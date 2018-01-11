@@ -1,0 +1,49 @@
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Config:etc/system_file.xsd">
+    <system>
+        <section id="shopgate_export" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+            <class>separator-top</class>
+            <label>Export</label>
+            <tab>shopgate</tab>
+            <resource>Shopgate_Base::config_export</resource>
+            <group id="categories" translate="label" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Categories</label>
+                <attribute type="expanded">1</attribute>
+                <field id="force" translate="label comment tooltip" type="text" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Force export disabled categories</label>
+                    <comment>List a comma separated list of category ID's (e.g. 1,4,6,34)</comment>
+                    <tooltip>Exports disabled categories and sets them enabled on Shopgate's platform. Applies to child
+                        categories. Ignores "In navigation only" setting.
+                    </tooltip>
+                </field>
+                <field id="nav_only" translate="label tooltip" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
+                    <label>In navigation only</label>
+                    <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
+                    <comment>Export categories that only have the "Include In Navigation" checked</comment>
+                </field>
+            </group>
+            <group id="products" translate="label" type="text" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                <label>Products</label>
+                <field id="description" translate="label tooltip" type="select" sortOrder="10" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Description</label>
+                    <source_model>Shopgate\Export\Model\Config\Source\Description</source_model>
+                    <comment>The order of which a description is exported, e.g. short description first, then long</comment>
+                </field>
+                <field id="child_description" translate="label tooltip" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <label>Child Description</label>
+                    <source_model>Shopgate\Export\Model\Config\Source\ChildDescription</source_model>
+                    <comment>Select description content for child export</comment>
+                </field>
+                <field id="ean_code" translate="label comment" type="select" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <source_model>Shopgate\Base\Model\Source\AttributeList</source_model>
+                    <label>EAN attribute</label>
+                    <comment>Select the attribute used for the EAN</comment>
+                </field>
+                <field id="force_property_export" translate="label comment" type="multiselect" sortOrder="40" showInDefault="1" showInWebsite="1" showInStore="1">
+                    <source_model>Shopgate\Base\Model\Source\AttributeList</source_model>
+                    <label>Force the export of properties</label>
+                    <comment>Attributes which are not visible on the frontpage will not be exported by default! Please select all invisible attributes that should be exported.</comment>
+                </field>
+            </group>
+        </section>
+    </system>
+</config>

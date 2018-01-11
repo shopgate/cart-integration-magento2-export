@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
+    <preference for="Shopgate\Base\Api\ExportInterface" type="Shopgate\Export\Api\ExportInterface"/>
+    <preference for="Shopgate\Export\Api\ExportInterface" type="Shopgate\Export\Model\Service\Export"/>
+    <preference for="Shopgate\Base\Api\ImportInterface" type="Shopgate\Import\Api\ImportInterface"/>
+    <type name="Shopgate\Export\Helper\Cart">
+        <arguments>
+            <argument name="quoteFields" xsi:type="array">
+                <item name="items" xsi:type="string">items</item>
+                <item name="customer" xsi:type="string">customer</item>
+                <item name="shipping" xsi:type="string">shipping</item>
+                <item name="external_coupons" xsi:type="string">external_coupons</item><!-- set last -->
+            </argument>
+        </arguments>
+        <arguments>
+            <argument name="quoteStockFields" xsi:type="array">
+                <item name="items" xsi:type="string">items</item>
+            </argument>
+        </arguments>
+    </type>
+</config>

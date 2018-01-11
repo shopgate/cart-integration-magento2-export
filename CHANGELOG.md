@@ -1,0 +1,41 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
+
+## [Unreleased]
+
+
+## 2.9.6
+### Fixed
+- Exceptions during item export
+### Changed
+- Composer file details
+
+## 2.9.5
+### Fixed
+- Incorrect permission reference in acl.xml
+- An issue with our logger printing an Array into the returned check_cart JSON
+
+## 2.9.4
+### Added
+- Review export via XML
+### Fixed
+- Export of shipping methods for Magento 2 Enterprise Edition
+
+## 2.9.3
+### Added
+- Implemented check_stock call
+- Added shipping methods to check_cart export
+### Fixed
+- Coupons will return gross/net price based on magento settings
+
+## 2.9.0
+### Added
+- get_categories call
+- get_items call
+- get_customer call
+- check_cart call
+
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.6...HEAD

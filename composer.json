@@ -1,0 +1,36 @@
+{
+  "name": "shopgate/export",
+  "description": "Shopgate export module for Magento 2, handles all export functionality",
+  "license": "Apache-2.0",
+  "type": "magento2-module",
+  "version": "2.9.6",
+  "authors": [
+    {
+      "name": "Konstantin Kiritsenko"
+    },
+    {
+      "name": "André Kraus"
+    },
+    {
+      "name": "Stephan Recknagel"
+    },
+    {
+      "name": "Alexander Wesselburg"
+    },
+    {
+      "name": "Rainer Skistims"
+    }
+  ],
+  "require": {
+    "shopgate/base": "~2.9.4"
+  },
+  "autoload": {
+    "files": [
+      "src/registration.php"
+    ],
+    "psr-4": {
+      "Shopgate\\Export\\": "src/",
+      "Shopgate\\Export\\Tests\\": "tests/"
+    }
+  }
+}
