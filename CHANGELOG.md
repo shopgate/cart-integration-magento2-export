@@ -6,8 +6,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 
+## 2.9.7
+### Changed
+- Changed the GitHub composer naming so that it does not clash with Marketplace repo
 
-## 2.9.6
+## [2.9.6]
 ### Fixed
 - Exceptions during item export
 ### Changed
@@ -38,4 +41,5 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.6...HEAD
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.7...HEAD
+[2.9.6]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.6...2.9.7
