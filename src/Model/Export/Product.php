@@ -268,7 +268,7 @@ class Product extends \Shopgate_Model_Catalog_Product
             'product_id'    => $this->item->getId(),
             'item_type'     => $this->item->getTypeId()
         ];
-        if (is_object($this->parent)) {
+        if ($this->parent instanceof MageProduct) {
             $internalOrderInfo['parent_sku'] = $this->parent->getSku();
             $internalOrderInfo['item_type']  = $this->parent->getTypeId();
         }
