@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 ### Added
-- Support of cart rule 
+- Support of cart rule discounts
 ### Changed
 - Child products are now exported with type configurable
 
