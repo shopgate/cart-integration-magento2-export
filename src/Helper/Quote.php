@@ -109,15 +109,41 @@ class Quote extends \Shopgate\Base\Helper\Quote
     public function getValidatedCoupons()
     {
         $coupons = [];
+        $returnInvalidCartRuleCoupon = false;
+        $amount = $this->quote->getSubtotal() - $this->quote->getSubtotalWithDiscount();
+        $couponsIncludeTax = $this->taxHelper->couponInclTax();
         foreach ($this->sgBase->getExternalCoupons() as $coupon) {
+            if ($coupon->getCode() == '1'){
+                $returnInvalidCartRuleCoupon = true;
+                continue;
+            }
             if (!$coupon->getNotValidMessage()) {
-                $amount = $this->quote->getSubtotal() - $this->quote->getSubtotalWithDiscount();
                 $coupon->setIsValid(true);
                 $coupon->setCurrency($this->quote->getStoreCurrencyCode());
                 $coupon->setIsFreeShipping((bool) $this->quote->getShippingAddress()->getFreeShipping());
-                $this->taxHelper->couponInclTax() ? $coupon->setAmountGross($amount) : $coupon->setAmountNet($amount);
+                $couponsIncludeTax ? $coupon->setAmountGross($amount) : $coupon->setAmountNet($amount);
             }
             $coupons[] = $this->couponHelper->dataToEntity($coupon->toArray());
+        }
+        if (empty($coupons) && !empty($amount)) {
+            $coupon = new \ShopgateExternalCoupon();
+            $coupon->setCode('1');
+            $coupon->setIsValid(true);
+            $coupon->setCurrency($this->quote->getStoreCurrencyCode());
+            $coupon->setIsFreeShipping((bool) $this->quote->getShippingAddress()->getFreeShipping());
+            $couponsIncludeTax ? $coupon->setAmountGross($amount) : $coupon->setAmountNet($amount);
+            $coupons[] = $coupon;
+            $returnInvalidCartRuleCoupon = false;
+        }
+        if ($returnInvalidCartRuleCoupon) {
+            $coupon = new \ShopgateExternalCoupon();
+            $coupon->setCode('1');
+            $coupon->setIsValid(false);
+            $coupon->setCurrency($this->quote->getStoreCurrencyCode());
+            $coupon->setIsFreeShipping(false);
+            $coupon->setAmountGross(0);
+            $coupon->setAmountNet(0);
+            $coupons[] = $coupon;
         }
 
         return $coupons;
