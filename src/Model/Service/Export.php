@@ -74,7 +74,7 @@ class Export implements ExportInterface
     /**
      * @inheritdoc
      */
-    public function getCategories($action, $shopNumber, $traceId, $limit = null, $offset = null, array $uids = [])
+    public function getCategories($action, $shopNumber, $traceId, $limit = null, $offset = null, $uids = [])
     {
         $categories = [];
         $rawCats    = $this->getCategoriesRaw($limit, $offset, $uids);
