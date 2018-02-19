@@ -335,8 +335,8 @@ class Product extends \Shopgate_Model_Catalog_Product
         $result      = [];
         $sortInflate = 1000000;
 
-        try {
-            foreach ($this->item->getCategoryIds() as $categoryId) {
+        foreach ($this->item->getCategoryIds() as $categoryId) {
+            try {
                 /** @var \Magento\Catalog\Model\Category $category */
                 $category            = $this->categoryRepository->get($categoryId);
                 $position            = $this->helperProduct->getPositionInCategory($this->item->getId(), $categoryId);
@@ -350,11 +350,11 @@ class Product extends \Shopgate_Model_Catalog_Product
                     $position          = $this->helperProduct->getPositionInCategory($this->item->getId(), $anchorId);
                     $result[$anchorId] = $this->helperProduct->getExportCategory($anchorId, $position);
                 }
+            } catch (\Exception $e) {
+                $this->logger->error(
+                    "Skip assigning of category with id: {$categoryId}, message: " . $e->getMessage()
+                );
             }
-        } catch (\Exception $e) {
-            $this->logger->error(
-                "Skip assigning of category with id: {$categoryId}, message: " . $e->getMessage()
-            );
         }
 
         parent::setCategoryPaths($result);
@@ -407,7 +407,7 @@ class Product extends \Shopgate_Model_Catalog_Product
         }
 
         $stock->setUseStock($useStock);
-        $stock->setBackorders((bool) $stockItem->getBackorders());
+        $stock->setBackorders((bool)$stockItem->getBackorders());
         $stock->setStockQuantity($stockItem->getQty());
         $stock->setMaximumOrderQuantity($stockItem->getMaxSaleQty());
         $stock->setMinimumOrderQuantity($stockItem->getMinSaleQty());
