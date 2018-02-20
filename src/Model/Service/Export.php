@@ -117,7 +117,7 @@ class Export implements ExportInterface
     /**
      * @inheritdoc
      */
-    public function getReviews($action, $shopNumber, $traceId, $limit = null, $offset = null, array $uids = [])
+    public function getReviews($action, $shopNumber, $traceId, $limit = null, $offset = null, $uids = [])
     {
         $reviews = [];
         foreach ($this->getReviewsRaw($limit, $offset, $uids) as $review) {
