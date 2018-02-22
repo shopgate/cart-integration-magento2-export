@@ -109,9 +109,9 @@ class Export implements ExportInterface
     /**
      * @inheritdoc
      */
-    public function getItemsRaw($limit = null, $offset = null, array $uids = [])
+    public function getItemsRaw($limit = null, $offset = null, array $uids = [], array $skipItemIds = [])
     {
-        return $this->productRetriever->getItems($limit, $offset, $uids);
+        return $this->productRetriever->getItems($limit, $offset, $uids, $skipItemIds);
     }
 
     /**
