@@ -112,14 +112,15 @@ class Quote extends \Shopgate\Base\Helper\Quote
      */
     public function getValidatedCoupons()
     {
-        $coupons                     = [];
-        $returnInvalidCartRuleCoupon = false;
-        $discountAmount              = $this->quote->getSubtotal() - $this->quote->getSubtotalWithDiscount();
-        $couponsIncludeTax           = $this->taxHelper->couponInclTax();
-        $quoteCurrency               = $this->quote->getStoreCurrencyCode();
+        $coupons = [];
+        /** @var bool $invalidateCRP return an invalidated Cart Rule Coupon only if it was actually requested */
+        $invalidateCRP     = false;
+        $discountAmount    = $this->quote->getSubtotal() - $this->quote->getSubtotalWithDiscount();
+        $couponsIncludeTax = $this->taxHelper->couponInclTax();
+        $quoteCurrency     = $this->quote->getStoreCurrencyCode();
         foreach ($this->sgBase->getExternalCoupons() as $coupon) {
             if ($coupon->getCode() === self::CART_RULE_COUPON_CODE) {
-                $returnInvalidCartRuleCoupon = true;
+                $invalidateCRP = true;
                 continue;
             }
             if (!$coupon->getNotValidMessage()) {
@@ -131,7 +132,7 @@ class Quote extends \Shopgate\Base\Helper\Quote
             $coupons[] = $this->couponHelper->dataToEntity($coupon->toArray());
         }
         if (empty($coupons) && !empty($discountAmount)) {
-            $couponData                  = [
+            $couponData    = [
                 'code'             => self::CART_RULE_COUPON_CODE,
                 'name'             => __(self::CART_RULE_COUPON_NAME),
                 'is_valid'         => true,
@@ -141,10 +142,10 @@ class Quote extends \Shopgate\Base\Helper\Quote
                 'amount_net'       => $couponsIncludeTax ? null : $discountAmount,
 
             ];
-            $coupons[]                   = $this->couponHelper->dataToEntity($couponData);
-            $returnInvalidCartRuleCoupon = false;
+            $coupons[]     = $this->couponHelper->dataToEntity($couponData);
+            $invalidateCRP = false;
         }
-        if ($returnInvalidCartRuleCoupon) {
+        if ($invalidateCRP) {
             $couponData = [
                 'code'             => self::CART_RULE_COUPON_CODE,
                 'name'             => __(self::CART_RULE_COUPON_NAME),
