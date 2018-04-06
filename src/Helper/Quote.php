@@ -40,8 +40,9 @@ use Shopgate\Export\Helper\Tax as TaxHelper;
 
 class Quote extends \Shopgate\Base\Helper\Quote
 {
-    /** Code for a coupon, which just represents cart rules */
+    /** Code and name for a coupon, which just represents cart rules */
     const CART_RULE_COUPON_CODE = '1';
+    const CART_RULE_COUPON_NAME= 'Discount';
 
     /** @var CartItem */
     private $cartItemHelper;
@@ -130,24 +131,31 @@ class Quote extends \Shopgate\Base\Helper\Quote
             $coupons[] = $this->couponHelper->dataToEntity($coupon->toArray());
         }
         if (empty($coupons) && !empty($discountAmount)) {
-            $coupon = new \ShopgateExternalCoupon();
-            $coupon->setCode(self::CART_RULE_COUPON_CODE);
-            $coupon->setIsValid(true);
-            $coupon->setCurrency($quoteCurrency);
-            $coupon->setIsFreeShipping((bool)$this->quote->getShippingAddress()->getFreeShipping());
-            $couponsIncludeTax ? $coupon->setAmountGross($discountAmount) : $coupon->setAmountNet($discountAmount);
-            $coupons[]                   = $coupon;
+            $coupon = [
+                'code'     => self::CART_RULE_COUPON_CODE,
+                'name'     => __(self::CART_RULE_COUPON_NAME),
+                'is_valid' => true,
+                'currency' => $quoteCurrency,
+                'is_free_shipping' => (bool)$this->quote->getShippingAddress()->getFreeShipping(),
+                'amount_gross' => $couponsIncludeTax ? $discountAmount : null,
+                'amount_net' => $couponsIncludeTax ? null : $discountAmount,
+
+            ];
+            $coupons[]                   = $this->couponHelper->dataToEntity($coupon);
             $returnInvalidCartRuleCoupon = false;
         }
         if ($returnInvalidCartRuleCoupon) {
-            $coupon = new \ShopgateExternalCoupon();
-            $coupon->setCode(self::CART_RULE_COUPON_CODE);
-            $coupon->setIsValid(false);
-            $coupon->setCurrency($quoteCurrency);
-            $coupon->setIsFreeShipping(false);
-            $coupon->setAmountGross(0);
-            $coupon->setAmountNet(0);
-            $coupons[] = $coupon;
+            $coupon = [
+                'code'     => self::CART_RULE_COUPON_CODE,
+                'name'     => __(self::CART_RULE_COUPON_NAME),
+                'is_valid' => false,
+                'currency' => $quoteCurrency,
+                'is_free_shipping' => false,
+                'amount_gross' => 0,
+                'amount_net' => 0,
+
+            ];
+            $coupons[] = $this->couponHelper->dataToEntity($coupon);
         }
 
         return $coupons;
@@ -234,7 +242,7 @@ class Quote extends \Shopgate\Base\Helper\Quote
             $sgMethod->setShippingGroup(strtoupper($rate->getCarrier()));
             $sgMethod->setSortOrder($key);
             $sgMethod->setTitle($shipMethod->getCarrierTitle() . ': ' . $shipMethod->getMethodTitle());
-            $sgMethod->setDescription($rate->getMethodDescription() ? : '');
+            $sgMethod->setDescription($rate->getMethodDescription() ?: '');
             $sgMethod->setAmount($shipMethod->getPriceExclTax());
             $sgMethod->setAmountWithTax($shipMethod->getPriceInclTax());
             $sgMethod->setTaxClass($this->quote->getCustomerTaxClassId());
