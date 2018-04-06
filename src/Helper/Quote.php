@@ -42,7 +42,7 @@ class Quote extends \Shopgate\Base\Helper\Quote
 {
     /** Code and name for a coupon, which just represents cart rules */
     const CART_RULE_COUPON_CODE = '1';
-    const CART_RULE_COUPON_NAME= 'Discount';
+    const CART_RULE_COUPON_NAME = 'Discount';
 
     /** @var CartItem */
     private $cartItemHelper;
@@ -118,7 +118,7 @@ class Quote extends \Shopgate\Base\Helper\Quote
         $couponsIncludeTax           = $this->taxHelper->couponInclTax();
         $quoteCurrency               = $this->quote->getStoreCurrencyCode();
         foreach ($this->sgBase->getExternalCoupons() as $coupon) {
-            if ($coupon->getCode() == self::CART_RULE_COUPON_CODE) {
+            if ($coupon->getCode() === self::CART_RULE_COUPON_CODE) {
                 $returnInvalidCartRuleCoupon = true;
                 continue;
             }
@@ -131,31 +131,31 @@ class Quote extends \Shopgate\Base\Helper\Quote
             $coupons[] = $this->couponHelper->dataToEntity($coupon->toArray());
         }
         if (empty($coupons) && !empty($discountAmount)) {
-            $coupon = [
-                'code'     => self::CART_RULE_COUPON_CODE,
-                'name'     => __(self::CART_RULE_COUPON_NAME),
-                'is_valid' => true,
-                'currency' => $quoteCurrency,
+            $couponData                  = [
+                'code'             => self::CART_RULE_COUPON_CODE,
+                'name'             => __(self::CART_RULE_COUPON_NAME),
+                'is_valid'         => true,
+                'currency'         => $quoteCurrency,
                 'is_free_shipping' => (bool)$this->quote->getShippingAddress()->getFreeShipping(),
-                'amount_gross' => $couponsIncludeTax ? $discountAmount : null,
-                'amount_net' => $couponsIncludeTax ? null : $discountAmount,
+                'amount_gross'     => $couponsIncludeTax ? $discountAmount : null,
+                'amount_net'       => $couponsIncludeTax ? null : $discountAmount,
 
             ];
-            $coupons[]                   = $this->couponHelper->dataToEntity($coupon);
+            $coupons[]                   = $this->couponHelper->dataToEntity($couponData);
             $returnInvalidCartRuleCoupon = false;
         }
         if ($returnInvalidCartRuleCoupon) {
-            $coupon = [
-                'code'     => self::CART_RULE_COUPON_CODE,
-                'name'     => __(self::CART_RULE_COUPON_NAME),
-                'is_valid' => false,
-                'currency' => $quoteCurrency,
+            $couponData = [
+                'code'             => self::CART_RULE_COUPON_CODE,
+                'name'             => __(self::CART_RULE_COUPON_NAME),
+                'is_valid'         => false,
+                'currency'         => $quoteCurrency,
                 'is_free_shipping' => false,
-                'amount_gross' => 0,
-                'amount_net' => 0,
+                'amount_gross'     => 0,
+                'amount_net'       => 0,
 
             ];
-            $coupons[] = $this->couponHelper->dataToEntity($coupon);
+            $coupons[]  = $this->couponHelper->dataToEntity($couponData);
         }
 
         return $coupons;
