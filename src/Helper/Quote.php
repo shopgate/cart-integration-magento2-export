@@ -40,6 +40,9 @@ use Shopgate\Export\Helper\Tax as TaxHelper;
 
 class Quote extends \Shopgate\Base\Helper\Quote
 {
+    /** Code for a coupon, which just represents cart rules */
+    const CART_RULE_COUPON_CODE = '1';
+
     /** @var CartItem */
     private $cartItemHelper;
     /** @var ExternalCoupon */
@@ -108,38 +111,39 @@ class Quote extends \Shopgate\Base\Helper\Quote
      */
     public function getValidatedCoupons()
     {
-        $coupons = [];
+        $coupons                     = [];
         $returnInvalidCartRuleCoupon = false;
-        $amount = $this->quote->getSubtotal() - $this->quote->getSubtotalWithDiscount();
-        $couponsIncludeTax = $this->taxHelper->couponInclTax();
+        $discountAmount              = $this->quote->getSubtotal() - $this->quote->getSubtotalWithDiscount();
+        $couponsIncludeTax           = $this->taxHelper->couponInclTax();
+        $quoteCurrency               = $this->quote->getStoreCurrencyCode();
         foreach ($this->sgBase->getExternalCoupons() as $coupon) {
-            if ($coupon->getCode() == '1'){
+            if ($coupon->getCode() == self::CART_RULE_COUPON_CODE) {
                 $returnInvalidCartRuleCoupon = true;
                 continue;
             }
             if (!$coupon->getNotValidMessage()) {
                 $coupon->setIsValid(true);
-                $coupon->setCurrency($this->quote->getStoreCurrencyCode());
-                $coupon->setIsFreeShipping((bool) $this->quote->getShippingAddress()->getFreeShipping());
-                $couponsIncludeTax ? $coupon->setAmountGross($amount) : $coupon->setAmountNet($amount);
+                $coupon->setCurrency($quoteCurrency);
+                $coupon->setIsFreeShipping((bool)$this->quote->getShippingAddress()->getFreeShipping());
+                $couponsIncludeTax ? $coupon->setAmountGross($discountAmount) : $coupon->setAmountNet($discountAmount);
             }
             $coupons[] = $this->couponHelper->dataToEntity($coupon->toArray());
         }
-        if (empty($coupons) && !empty($amount)) {
+        if (empty($coupons) && !empty($discountAmount)) {
             $coupon = new \ShopgateExternalCoupon();
-            $coupon->setCode('1');
+            $coupon->setCode(self::CART_RULE_COUPON_CODE);
             $coupon->setIsValid(true);
-            $coupon->setCurrency($this->quote->getStoreCurrencyCode());
-            $coupon->setIsFreeShipping((bool) $this->quote->getShippingAddress()->getFreeShipping());
-            $couponsIncludeTax ? $coupon->setAmountGross($amount) : $coupon->setAmountNet($amount);
-            $coupons[] = $coupon;
+            $coupon->setCurrency($quoteCurrency);
+            $coupon->setIsFreeShipping((bool)$this->quote->getShippingAddress()->getFreeShipping());
+            $couponsIncludeTax ? $coupon->setAmountGross($discountAmount) : $coupon->setAmountNet($discountAmount);
+            $coupons[]                   = $coupon;
             $returnInvalidCartRuleCoupon = false;
         }
         if ($returnInvalidCartRuleCoupon) {
             $coupon = new \ShopgateExternalCoupon();
-            $coupon->setCode('1');
+            $coupon->setCode(self::CART_RULE_COUPON_CODE);
             $coupon->setIsValid(false);
-            $coupon->setCurrency($this->quote->getStoreCurrencyCode());
+            $coupon->setCurrency($quoteCurrency);
             $coupon->setIsFreeShipping(false);
             $coupon->setAmountGross(0);
             $coupon->setAmountNet(0);
