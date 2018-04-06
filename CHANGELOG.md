@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 ### Added
+- Support of cart rule discounts
  - Possibility to exclude specific items from the export
 ### Fixed
 - Export of category paths in product export
