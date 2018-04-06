@@ -95,7 +95,7 @@ class Retriever
         $productCollection->addAttributeToFilter('type_id', ['in' => self::ALLOWED_PRODUCT_TYPES]);
 
         if (!empty($skipItemIds)) {
-            $productCollection->addAttributeToFilter('entity_id', array('nin' => $skipItemIds));
+            $productCollection->addAttributeToFilter('entity_id', ['nin' => $skipItemIds]);
         }
 
         if (!empty($uids)) {
