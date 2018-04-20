@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [2.9.8] - 2018-04-19
 ### Added
 - Support of cart rule discounts
  - Possibility to exclude specific items from the export
@@ -13,7 +15,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Changed
 - Child products are now exported with type configurable
 
-## 2.9.7
+## [2.9.7]
 ### Changed
 - Changed the GitHub composer naming so that it does not clash with Marketplace repo
 
@@ -48,5 +50,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.7...HEAD
-[2.9.6]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.6...2.9.7
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.8...HEAD
+[2.9.8]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.7...2.9.8
+[2.9.7]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.6...2.9.7
