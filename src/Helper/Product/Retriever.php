@@ -68,11 +68,12 @@ class Retriever
     /**
      * @param null | int $limit
      * @param null | int $offset
-     * @param array      $uids
+     * @param int[]      $uids
+     * @param int[]      $skipItemIds
      *
      * @return array
      */
-    public function getItems($limit = null, $offset = null, array $uids = [])
+    public function getItems($limit = null, $offset = null, array $uids = [], array $skipItemIds = [])
     {
         $this->log->access('Start Product Export...');
         $this->log->debug('Start Product Export...');
@@ -92,6 +93,10 @@ class Retriever
         );
         $productCollection->addAttributeToFilter('status', Status::STATUS_ENABLED);
         $productCollection->addAttributeToFilter('type_id', ['in' => self::ALLOWED_PRODUCT_TYPES]);
+
+        if (!empty($skipItemIds)) {
+            $productCollection->addAttributeToFilter('entity_id', ['nin' => $skipItemIds]);
+        }
 
         if (!empty($uids)) {
             $productCollection->addAttributeToFilter('entity_id', ['in' => $uids]);

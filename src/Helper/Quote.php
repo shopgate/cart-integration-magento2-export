@@ -40,6 +40,10 @@ use Shopgate\Export\Helper\Tax as TaxHelper;
 
 class Quote extends \Shopgate\Base\Helper\Quote
 {
+    /** Code and name for a coupon, which just represents cart rules */
+    const CART_RULE_COUPON_CODE = '1';
+    const CART_RULE_COUPON_NAME = 'Discount';
+
     /** @var CartItem */
     private $cartItemHelper;
     /** @var ExternalCoupon */
@@ -109,15 +113,50 @@ class Quote extends \Shopgate\Base\Helper\Quote
     public function getValidatedCoupons()
     {
         $coupons = [];
+        /** @var bool $invalidateCRP return an invalidated Cart Rule Coupon only if it was actually requested */
+        $invalidateCRP     = false;
+        $discountAmount    = $this->quote->getSubtotal() - $this->quote->getSubtotalWithDiscount();
+        $couponsIncludeTax = $this->taxHelper->couponInclTax();
+        $quoteCurrency     = $this->quote->getStoreCurrencyCode();
         foreach ($this->sgBase->getExternalCoupons() as $coupon) {
+            if ($coupon->getCode() === self::CART_RULE_COUPON_CODE) {
+                $invalidateCRP = true;
+                continue;
+            }
             if (!$coupon->getNotValidMessage()) {
-                $amount = $this->quote->getSubtotal() - $this->quote->getSubtotalWithDiscount();
                 $coupon->setIsValid(true);
-                $coupon->setCurrency($this->quote->getStoreCurrencyCode());
-                $coupon->setIsFreeShipping((bool) $this->quote->getShippingAddress()->getFreeShipping());
-                $this->taxHelper->couponInclTax() ? $coupon->setAmountGross($amount) : $coupon->setAmountNet($amount);
+                $coupon->setCurrency($quoteCurrency);
+                $coupon->setIsFreeShipping((bool)$this->quote->getShippingAddress()->getFreeShipping());
+                $couponsIncludeTax ? $coupon->setAmountGross($discountAmount) : $coupon->setAmountNet($discountAmount);
             }
             $coupons[] = $this->couponHelper->dataToEntity($coupon->toArray());
+        }
+        if (empty($coupons) && !empty($discountAmount)) {
+            $couponData    = [
+                'code'             => self::CART_RULE_COUPON_CODE,
+                'name'             => __(self::CART_RULE_COUPON_NAME),
+                'is_valid'         => true,
+                'currency'         => $quoteCurrency,
+                'is_free_shipping' => (bool)$this->quote->getShippingAddress()->getFreeShipping(),
+                'amount_gross'     => $couponsIncludeTax ? $discountAmount : null,
+                'amount_net'       => $couponsIncludeTax ? null : $discountAmount,
+
+            ];
+            $coupons[]     = $this->couponHelper->dataToEntity($couponData);
+            $invalidateCRP = false;
+        }
+        if ($invalidateCRP) {
+            $couponData = [
+                'code'             => self::CART_RULE_COUPON_CODE,
+                'name'             => __(self::CART_RULE_COUPON_NAME),
+                'is_valid'         => false,
+                'currency'         => $quoteCurrency,
+                'is_free_shipping' => false,
+                'amount_gross'     => 0,
+                'amount_net'       => 0,
+
+            ];
+            $coupons[]  = $this->couponHelper->dataToEntity($couponData);
         }
 
         return $coupons;
@@ -204,7 +243,7 @@ class Quote extends \Shopgate\Base\Helper\Quote
             $sgMethod->setShippingGroup(strtoupper($rate->getCarrier()));
             $sgMethod->setSortOrder($key);
             $sgMethod->setTitle($shipMethod->getCarrierTitle() . ': ' . $shipMethod->getMethodTitle());
-            $sgMethod->setDescription($rate->getMethodDescription() ? : '');
+            $sgMethod->setDescription($rate->getMethodDescription() ?: '');
             $sgMethod->setAmount($shipMethod->getPriceExclTax());
             $sgMethod->setAmountWithTax($shipMethod->getPriceInclTax());
             $sgMethod->setTaxClass($this->quote->getCustomerTaxClassId());
