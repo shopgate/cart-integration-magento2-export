@@ -134,7 +134,6 @@ class Cancellation
 
             $this->finalizeCancellation($shopgateOrderModel, $magentoOrder);
         } catch (\ShopgateMerchantApiException $e) {
-
             if ($e->getCode() == '222') {
                 // order already canceled in shopgate
                 $shopgateOrderModel->setIsCancellationSentToShopgate(true);
@@ -212,7 +211,6 @@ class Cancellation
 
         /**  @var $orderItem \Magento\Sales\Model\Order\Item */
         foreach ($orderItems as $orderItem) {
-
             $rdItem   = $this->cronHelper->findItemByProductId(
                 $shopgateOrder->getItems(),
                 $orderItem->getData('product_id')

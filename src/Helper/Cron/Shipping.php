@@ -61,7 +61,6 @@ class Shipping
         MerchantApiHelper $merchantApiHelper,
         ManagerInterface $messageManager
     ) {
-
         $this->config            = $config;
         $this->cronHelper        = $cronHelper;
         $this->logger            = $logger;
@@ -205,7 +204,6 @@ class Shipping
         $reportedShipments = $shopgateOrder->getReportedShippingCollections();
 
         foreach ($notes as $note) {
-
             if (in_array($shipment->getId(), $reportedShipments)) {
                 continue;
             }
@@ -222,7 +220,6 @@ class Shipping
                 $this->logger->debug('> Call to SMA::addOrderDeliveryNote was successfull!');
                 $reportedShipments[] = $shipment->getId();
             } catch (ShopgateMerchantApiException $e) {
-
                 if ($e->getCode() == ShopgateMerchantApiException::ORDER_SHIPPING_STATUS_ALREADY_COMPLETED
                     || $e->getCode() == ShopgateMerchantApiException::ORDER_ALREADY_COMPLETED
                 ) {
@@ -268,7 +265,6 @@ class Shipping
 
         /** @var \Magento\Sales\Model\Order\Shipment\Track $track */
         foreach ($tracks as $track) {
-
             switch ($track->getCarrierCode()) {
                 case 'fedex':
                     $carrier = ShopgateDeliveryNote::FEDEX;

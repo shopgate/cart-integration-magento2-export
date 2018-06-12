@@ -99,7 +99,6 @@ class Utility
         }
         /** @var $item \ShopgateOrderItem */
         foreach ($items as $item) {
-
             $internalOrderInfo = $item->getInternalOrderInfo();
             if ($internalOrderInfo['product_id'] == $productID) {
                 return $item;

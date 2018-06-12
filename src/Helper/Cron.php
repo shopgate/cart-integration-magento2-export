@@ -122,10 +122,8 @@ class Cron
 
             if (!$magentoOrder->isCanceled()) {
                 continue;
-
             }
             $this->cancellationHelper->cancelOrder($shopgateOrder, $magentoOrder);
         }
     }
 }
-
