@@ -26,9 +26,7 @@ use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Shopgate\Base\Api\Config\SgCoreInterface;
-use Shopgate\Base\Helper\Encoder;
 use Shopgate\Base\Helper\Initializer\MerchantApi as MerchantApiHelper;
-use Shopgate\Base\Model\Config as MainConfig;
 use Shopgate\Base\Model\Shopgate\Order as ShopgateOrderModel;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Export\Helper\Cron\Shipping as ShippingHelper;
@@ -40,8 +38,6 @@ class Cancellation
     private $messageManager;
     /** @var SgLoggerInterface */
     private $logger;
-    /** @var MainConfig */
-    private $config;
     /** @var SgCoreInterface */
     private $sgCoreConfig;
     /** @var MerchantApiHelper */
@@ -50,38 +46,30 @@ class Cancellation
     private $merchantApi;
     /** @var ShippingHelper */
     private $shippingHelper;
-    /** @var Encoder */
-    private $encoder;
     /** @var CronHelper */
     private $cronHelper;
 
     /**
      * @param ManagerInterface  $messageManager
      * @param SgLoggerInterface $logger
-     * @param MainConfig        $config
      * @param SgCoreInterface   $sgCoreConfig
      * @param MerchantApiHelper $merchantApiHelper
      * @param ShippingHelper    $shippingHelper
-     * @param Encoder           $encoder
      */
     public function __construct(
         ManagerInterface $messageManager,
         SgLoggerInterface $logger,
-        MainConfig $config,
         SgCoreInterface $sgCoreConfig,
         MerchantApiHelper $merchantApiHelper,
         ShippingHelper $shippingHelper,
-        Encoder $encoder,
         CronHelper $cronHelper
     ) {
         $this->messageManager    = $messageManager;
         $this->logger            = $logger;
-        $this->config            = $config;
         $this->sgCoreConfig      = $sgCoreConfig;
         $this->shippingHelper    = $shippingHelper;
         $this->merchantApiHelper = $merchantApiHelper;
         $this->merchantApi       = $this->merchantApiHelper->buildMerchantApi();
-        $this->encoder           = $encoder;
         $this->cronHelper        = $cronHelper;
     }
 

@@ -23,10 +23,8 @@
 namespace Shopgate\Export\Helper;
 
 use Magento\Framework\Api\SearchCriteriaBuilder;
-use Magento\Framework\Message\ManagerInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\OrderRepository;
-use Shopgate\Base\Model\Config as MainConfig;
 use Shopgate\Base\Model\Shopgate\OrderFactory as ShopgateOrderFactory;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Export\Helper\Cron\Cancellation as CancellationHelper;
@@ -34,8 +32,6 @@ use Shopgate\Export\Helper\Cron\Shipping as ShippingHelper;
 
 class Cron
 {
-    /** @var ManagerInterface */
-    private $messageManager;
     /** @var SgLoggerInterface */
     private $logger;
     /** @var ShopgateOrderFactory */
@@ -44,39 +40,31 @@ class Cron
     private $orderRepository;
     /** @var SearchCriteriaBuilder */
     private $searchCriteriaBuilder;
-    /** @var MainConfig */
-    private $config;
     /** @var ShippingHelper */
     private $shippingHelper;
     /** @var CancellationHelper */
     private $cancellationHelper;
 
     /**
-     * @param ManagerInterface      $messageManager
      * @param SgLoggerInterface     $logger
      * @param ShopgateOrderFactory  $orderFactory
      * @param OrderRepository       $orderRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
-     * @param MainConfig            $config
      * @param ShippingHelper        $shippingHelper
      * @param CancellationHelper    $cancellationHelper
      */
     public function __construct(
-        ManagerInterface $messageManager,
         SgLoggerInterface $logger,
         ShopgateOrderFactory $orderFactory,
         OrderRepository $orderRepository,
         SearchCriteriaBuilder $searchCriteriaBuilder,
-        MainConfig $config,
         ShippingHelper $shippingHelper,
         CancellationHelper $cancellationHelper
     ) {
-        $this->messageManager        = $messageManager;
         $this->logger                = $logger;
         $this->shopgateOrderFactory  = $orderFactory;
         $this->orderRepository       = $orderRepository;
         $this->searchCriteriaBuilder = $searchCriteriaBuilder;
-        $this->config                = $config;
         $this->shippingHelper        = $shippingHelper;
         $this->cancellationHelper    = $cancellationHelper;
     }
@@ -91,8 +79,8 @@ class Cron
         $orderCollection = $this->shopgateOrderFactory->create()->getCollection();
         $orderCollection->filterByUnsynchronizedOrders();
         $this->logger->debug("# Found {$orderCollection->getSize()} potential orders to send");
-        /** @var ShopgateOrderModel $shopgateOrder */
 
+        /** @var ShopgateOrderModel $shopgateOrder */
         foreach ($orderCollection as $shopgateOrder) {
             $searchCriteria = $this->searchCriteriaBuilder
                 ->addFilter('entity_id', $shopgateOrder->getOrderId(), 'eq')->create();

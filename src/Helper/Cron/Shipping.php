@@ -25,7 +25,6 @@ namespace Shopgate\Export\Helper\Cron;
 use Magento\Framework\Message\ManagerInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Shopgate\Base\Helper\Initializer\MerchantApi as MerchantApiHelper;
-use Shopgate\Base\Model\Config;
 use Shopgate\Base\Model\Shopgate\Order as ShopgateOrderModel;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Export\Helper\Cron\Utility as CronHelper;
@@ -34,8 +33,6 @@ use ShopgateMerchantApiException;
 
 class Shipping
 {
-    /** @var Config */
-    private $config;
     /** @var CronHelper */
     private $cronHelper;
     /** @var SgLoggerInterface */
@@ -48,20 +45,17 @@ class Shipping
     private $messageManager;
 
     /**
-     * @param Config            $config
      * @param Utility           $cronHelper
      * @param SgLoggerInterface $logger
      * @param MerchantApiHelper $merchantApiHelper
      * @param ManagerInterface  $messageManager
      */
     public function __construct(
-        Config $config,
         CronHelper $cronHelper,
         SgLoggerInterface $logger,
         MerchantApiHelper $merchantApiHelper,
         ManagerInterface $messageManager
     ) {
-        $this->config            = $config;
         $this->cronHelper        = $cronHelper;
         $this->logger            = $logger;
         $this->merchantApiHelper = $merchantApiHelper;
