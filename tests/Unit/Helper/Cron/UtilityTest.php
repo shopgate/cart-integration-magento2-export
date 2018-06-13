@@ -127,7 +127,7 @@ class UtiltiyTest extends \PHPUnit_Framework_TestCase
     public function shippedItemsProvider()
     {
         return [
-            'NULL items to ship' => [NULL, false],
+            'null items to ship' => [null, false],
             '0 items to ship' => [0, false],
             '1 item to ship' => [1, true]
         ];
