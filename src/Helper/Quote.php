@@ -33,6 +33,7 @@ use Shopgate\Base\Helper\Quote\Coupon;
 use Shopgate\Base\Helper\Quote\Customer;
 use Shopgate\Base\Helper\Shopgate\CartItem;
 use Shopgate\Base\Helper\Shopgate\ExternalCoupon;
+use Shopgate\Base\Model\Rule\Condition\ShopgateOrder as OrderCondition;
 use Shopgate\Base\Model\Shopgate\Extended\Base;
 use Shopgate\Base\Model\Utility\Registry;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
@@ -264,6 +265,8 @@ class Quote extends \Shopgate\Base\Helper\Quote
     {
         $info   = $this->sgBase->getShippingInfos();
         $method = ($info instanceof \ShopgateShippingInfo && $info->getName()) ? $info->getName() : 'shopgate_fix';
-        $this->quote->getShippingAddress()->setShippingMethod($method);
+        $this->quote->getShippingAddress()
+                    ->setShippingMethod($method)
+                    ->setData(OrderCondition::CLIENT_ATTRIBUTE, $this->sgBase->getClient()->getType());
     }
 }
