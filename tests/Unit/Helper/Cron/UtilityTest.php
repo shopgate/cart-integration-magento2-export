@@ -28,7 +28,7 @@ use Shopgate\Export\Helper\Cron\Utility as CronHelper;
 /**
  * @coversDefaultClass \Shopgate\Export\Helper\Product\Utility
  */
-class UtilitiyTest extends \PHPUnit\Framework\TestCase
+class UtilityTest extends \PHPUnit\Framework\TestCase
 {
     /** @var ObjectManager */
     private $objectManager;
@@ -42,9 +42,7 @@ class UtilitiyTest extends \PHPUnit\Framework\TestCase
     {
         $this->objectManager = new ObjectManager($this);
         /** @var \Shopgate\Export\Helper\Cron\Utility $cronHelper */
-        $this->cronHelper = $this->objectManager->getObject(
-            \Shopgate\Export\Helper\Cron\Utility::class
-        );
+        $this->cronHelper = $this->objectManager->getObject(CronHelper::class);
     }
 
     /**
@@ -97,8 +95,8 @@ class UtilitiyTest extends \PHPUnit\Framework\TestCase
      */
     public function testFindItemByProductIdFails($searchedProductId, $productId)
     {
-        /** @var \ShopgateOrderItem\Item|\PHPUnit_Framework_MockObject_MockObject $orderItemStub */
-        $orderItemStub = $this->getTestDouble('\ShopgateOrderItem');
+        /** @var \ShopgateOrderItem|\PHPUnit_Framework_MockObject_MockObject $orderItemStub */
+        $orderItemStub = $this->getTestDouble(\ShopgateOrderItem::class);
         $orderItemStub->method('getInternalOrderInfo')
             ->willReturn([
                 'product_id' => $productId
