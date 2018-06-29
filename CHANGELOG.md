@@ -5,11 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Shipping and cancellation synchronisation to Shopgate
 
 ## [2.9.8] - 2018-04-19
 ### Added
 - Support of cart rule discounts
- - Possibility to exclude specific items from the export
+- Possibility to exclude specific items from the export
 ### Fixed
 - Export of category paths in product export
 ### Changed

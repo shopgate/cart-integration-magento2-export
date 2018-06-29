@@ -2,7 +2,8 @@
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:ObjectManager/etc/config.xsd">
     <preference for="Shopgate\Base\Api\ExportInterface" type="Shopgate\Export\Api\ExportInterface"/>
     <preference for="Shopgate\Export\Api\ExportInterface" type="Shopgate\Export\Model\Service\Export"/>
-    <preference for="Shopgate\Base\Api\ImportInterface" type="Shopgate\Import\Api\ImportInterface"/>
+    <preference for="Shopgate\Base\Api\CronInterface" type="Shopgate\Export\Api\CronInterface"/>
+    <preference for="Shopgate\Export\Api\CronInterface" type="Shopgate\Export\Model\Service\Cron"/>
     <type name="Shopgate\Export\Helper\Cart">
         <arguments>
             <argument name="quoteFields" xsi:type="array">
@@ -15,6 +16,16 @@
         <arguments>
             <argument name="quoteStockFields" xsi:type="array">
                 <item name="items" xsi:type="string">items</item>
+            </argument>
+        </arguments>
+    </type>
+    <type name="Shopgate\Base\Helper\Initializer\Config">
+        <arguments>
+            <argument name="configMethods" xsi:type="array">
+                <item name="supported_methods_cron" xsi:type="array">
+                    <item name="0" xsi:type="string">set_shipping_completed</item>
+                    <item name="1" xsi:type="string">cancel_orders</item>
+                </item>
             </argument>
         </arguments>
     </type>
