@@ -188,7 +188,7 @@ class Cancellation
     }
 
     /**
-     * @param Magento\Sales\Model\ResourceModel\Order\Item\Collection $orderItems
+     * @param \Magento\Sales\Model\ResourceModel\Order\Item\Collection $orderItems
      * @param \ShopgateOrder                                          $shopgateOrder
      *
      * @return array
