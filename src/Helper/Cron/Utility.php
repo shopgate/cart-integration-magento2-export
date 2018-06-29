@@ -25,26 +25,20 @@ namespace Shopgate\Export\Helper\Cron;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Shopgate\Base\Helper\Encoder;
 use Shopgate\Base\Model\Shopgate\Order as ShopgateOrderModel;
-use Shopgate\Base\Model\Utility\SgLoggerInterface;
 
 class Utility
 {
-    /** @var SgLoggerInterface */
-    private $log;
     /** @var Encoder */
     private $encoder;
 
     /**
-     * @param SgLoggerInterface $logger
      * @param Encoder           $encoder
      *
      * @codeCoverageIgnore
      */
     public function __construct(
-        SgLoggerInterface $logger,
         Encoder $encoder
     ) {
-        $this->log     = $logger;
         $this->encoder = $encoder;
     }
 

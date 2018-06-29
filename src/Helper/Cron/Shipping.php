@@ -39,8 +39,6 @@ class Shipping
     private $logger;
     /** @var \ShopgateMerchantApi */
     private $merchantApi;
-    /** @var MerchantApiHelper */
-    private $merchantApiHelper;
     /** @var ManagerInterface */
     private $messageManager;
 
@@ -58,8 +56,7 @@ class Shipping
     ) {
         $this->cronHelper        = $cronHelper;
         $this->logger            = $logger;
-        $this->merchantApiHelper = $merchantApiHelper;
-        $this->merchantApi       = $this->merchantApiHelper->buildMerchantApi();
+        $this->merchantApi       = $merchantApiHelper->buildMerchantApi();
         $this->messageManager    = $messageManager;
     }
 
@@ -87,7 +84,7 @@ class Shipping
             $this->messageManager->addErrorMessage(
                 __(
                     '[SHOPGATE] Order status was updated but %s errors occurred',
-                    $errors['errorcount']
+                    $errors
                 )
             );
         } else {
