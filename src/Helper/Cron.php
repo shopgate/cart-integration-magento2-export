@@ -108,7 +108,10 @@ class Cron
             /** @var MagentoOrder $magentoOrder */
             $magentoOrder = $orderList->getFirstItem();
 
-            if (!$magentoOrder->isCanceled()) {
+            if (!$magentoOrder->isCanceled()
+                && $magentoOrder->getState() !== MagentoOrder::STATE_CLOSED
+                && !$magentoOrder->hasCreditmemos()
+            ) {
                 continue;
             }
             $this->cancellationHelper->cancelOrder($shopgateOrder, $magentoOrder);
