@@ -40,8 +40,6 @@ class Cancellation
     private $logger;
     /** @var SgCoreInterface */
     private $sgCoreConfig;
-    /** @var MerchantApiHelper */
-    private $merchantApiHelper;
     /** @var \ShopgateMerchantApi */
     private $merchantApi;
     /** @var ShippingHelper */
@@ -55,6 +53,7 @@ class Cancellation
      * @param SgCoreInterface   $sgCoreConfig
      * @param MerchantApiHelper $merchantApiHelper
      * @param ShippingHelper    $shippingHelper
+     * @param CronHelper        $cronHelper
      */
     public function __construct(
         ManagerInterface $messageManager,
@@ -68,8 +67,7 @@ class Cancellation
         $this->logger            = $logger;
         $this->sgCoreConfig      = $sgCoreConfig;
         $this->shippingHelper    = $shippingHelper;
-        $this->merchantApiHelper = $merchantApiHelper;
-        $this->merchantApi       = $this->merchantApiHelper->buildMerchantApi();
+        $this->merchantApi       = $merchantApiHelper->buildMerchantApi();
         $this->cronHelper        = $cronHelper;
     }
 
@@ -94,8 +92,8 @@ class Cancellation
             $cancellationItems = $this->getItemsForCancellation($orderItems, $shopgateOrder);
             $qtyCancelled      = $this->getCancelledItemCount($cancellationItems);
 
-            if (count($orderItems) > 0
-                && empty($cancellationItems)
+            if (empty($cancellationItems)
+                && count($orderItems) > 0
             ) {
                 $magentoOrder->addStatusHistoryComment(
                     '[SHOPGATE] Notice: Credit memo was not sent to Shopgate because no product quantity was affected.'
@@ -199,20 +197,22 @@ class Cancellation
 
         /**  @var $orderItem \Magento\Sales\Model\Order\Item */
         foreach ($orderItems as $orderItem) {
-            $rdItem   = $this->cronHelper->findItemByProductId(
+            $parentItem = $orderItem->getParentItem();
+            $rdItem     = $this->cronHelper->findItemByProductId(
                 $shopgateOrder->getItems(),
                 $orderItem->getData('product_id')
             );
-            $mainItem = empty($orderItem->getParentItem()) || $orderItem->getParentItem()->getProductType() != Configurable::TYPE_CODE
+            $mainItem   = empty($parentItem) || ($parentItem && $parentItem->getProductType() != Configurable::TYPE_CODE)
                 ? $orderItem
                 : $orderItem->getParentItem();
 
             if ($this->shouldCancelOrderItem($orderItem)
                 && $rdItem
+                && $mainItem
             ) {
                 $cancellationItems[] = [
                     'item_number' => $rdItem->getItemNumber(),
-                    'quantity'    => intval($mainItem->getQtyCanceled()) + intval($mainItem->getQtyRefunded()),
+                    'quantity'    => (int)$mainItem->getQtyCanceled() + (int)$mainItem->getQtyRefunded(),
                 ];
             }
         }
@@ -241,6 +241,6 @@ class Cancellation
      */
     protected function isFullCancellation($qtyCancelled, $qtyOrdered, $cancelShippingCosts)
     {
-        return (empty($cancellationItems) || $qtyCancelled === $qtyOrdered) && $cancelShippingCosts;
+        return $qtyCancelled === $qtyOrdered && $cancelShippingCosts;
     }
 }

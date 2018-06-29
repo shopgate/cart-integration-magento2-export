@@ -25,6 +25,7 @@ namespace Shopgate\Export\Helper;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\OrderRepository;
+use Shopgate\Base\Model\Shopgate\Order as ShopgateOrderModel;
 use Shopgate\Base\Model\Shopgate\OrderFactory as ShopgateOrderFactory;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Export\Helper\Cron\Cancellation as CancellationHelper;
