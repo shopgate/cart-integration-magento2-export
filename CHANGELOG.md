@@ -6,6 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 ### Added
+- Validation off app-only cart rules in cart validation
 - Shipping and cancellation synchronisation to Shopgate
 
 ## [2.9.8] - 2018-04-19
