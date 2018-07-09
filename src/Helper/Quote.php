@@ -265,8 +265,9 @@ class Quote extends \Shopgate\Base\Helper\Quote
     {
         $info   = $this->sgBase->getShippingInfos();
         $method = ($info instanceof \ShopgateShippingInfo && $info->getName()) ? $info->getName() : 'shopgate_fix';
+        $client = is_null($this->sgBase->getClient()) ? '' : $this->sgBase->getClient()->getType();
         $this->quote->getShippingAddress()
                     ->setShippingMethod($method)
-                    ->setData(OrderCondition::CLIENT_ATTRIBUTE, $this->sgBase->getClient()->getType());
+                    ->setData(OrderCondition::CLIENT_ATTRIBUTE, $client);
     }
 }
