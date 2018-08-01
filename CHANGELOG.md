@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+## [2.9.9] - 2018-08-01
 ### Added
 - Validation off app-only cart rules in cart validation
 - Shipping and cancellation synchronisation to Shopgate
@@ -53,6 +54,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.8...HEAD
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.9...HEAD
+[2.9.9]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.8...2.9.9
 [2.9.8]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.7...2.9.8
 [2.9.7]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.6...2.9.7
