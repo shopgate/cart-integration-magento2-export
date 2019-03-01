@@ -447,6 +447,8 @@ class Product extends \Shopgate_Model_Catalog_Product
                     $images[] = $imageModel;
                 }
             }
+
+            ksort($images);
         }
 
         parent::setImages($images);
