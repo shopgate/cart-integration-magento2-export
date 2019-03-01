@@ -431,7 +431,7 @@ class Product extends \Shopgate_Model_Catalog_Product
 
         if (is_object($galleryImages)) {
             foreach ($galleryImages as $image) {
-                $coverImage = $this->item->getImage();
+                $smallImage = $this->item->getSmallImage();
                 /** @var $image DataObject */
                 $imageModel = new \Shopgate_Model_Media_Image();
                 $imageModel->setUid($image->getData('id'));
@@ -440,11 +440,12 @@ class Product extends \Shopgate_Model_Catalog_Product
                 $imageModel->setTitle($image->getData('label'));
                 $imageModel->setAlt($image->getData('label'));
 
-                if ($coverImage == $image->getData('file')) {
+                if ($smallImage == $image->getData('file')) {
+                    $images[-1] = $imageModel;
                     $imageModel->setIsCover(true);
+                } else {
+                    $images[] = $imageModel;
                 }
-
-                $images[] = $imageModel;
             }
         }
 
