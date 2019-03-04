@@ -156,6 +156,83 @@ class ProductTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * @param array     $imageData
+     * @param string    $smallImagePath
+     *
+     * @covers ::setImages
+     * @dataProvider imageProvider
+     */
+    public function testImageSortOrder($imageData, $smallImagePath)
+    {
+        $productStub = $this->getProductDouble();
+        $productStub->method('getMediaGalleryImages')
+            ->will($this->returnValue($this->getTestCollection($imageData)));
+
+        $productStub->method('getData')
+            ->will($this->returnValueMap([['small_image', null, $smallImagePath]]));
+
+        /** @var \Shopgate\Export\Model\Export\Product $exportModel */
+        $exportModel = $this->objectManager->getObject(
+            'Shopgate\Export\Model\Export\Product'
+        );
+
+        $exportModel->setItem($productStub)->setImages();
+
+        $images = array_reverse($exportModel->getImages());
+        $firstImage = array_pop($images);
+
+        $this->assertEquals($smallImagePath, $firstImage->getUrl());
+        $this->assertEquals(1, $firstImage->getIsCover());
+    }
+
+    /**
+     * @return array
+     */
+    public function imageProvider()
+    {
+        return [
+            'First product set as small image' => [[$this->createImageObject('1.jpg', '1'), $this->createImageObject('2.jpg', '3')], '1.jpg'],
+            'Second product set as small image' => [[$this->createImageObject('1.jpg', '1'), $this->createImageObject('2.jpg', '14')], '2.jpg']
+        ];
+    }
+
+    /**
+     * @param string    $url
+     * @param int       $position
+     *
+     * @return \Magento\Framework\DataObject
+     */
+    private function createImageObject($url, $position)
+    {
+        return new \Magento\Framework\DataObject([
+            'id'       => rand(0, 10000),
+            'url'      => $url,
+            'file'     => $url,
+            'position' => $position,
+            'tile'     => 'fake image',
+            'alt'      => 'fake image'
+        ]);
+    }
+
+    /**
+     * @param array $items
+     *
+     * @return \PHPUnit_Framework_MockObject_MockObject
+     */
+    private function getTestCollection($items)
+    {
+        $collection = $this
+            ->getMockBuilder(\Magento\Framework\Data\Collection::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $iterator = new \ArrayIterator($items);
+        $collection->expects($this->any())->method('getIterator')->will($this->returnValue($iterator));
+
+        return $collection;
+    }
+
+    /**
      * @return array
      */
     public function productTypeProvider()
