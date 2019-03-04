@@ -440,7 +440,7 @@ class Product extends \Shopgate_Model_Catalog_Product
                 $imageModel->setTitle($image->getData('label'));
                 $imageModel->setAlt($image->getData('label'));
 
-                if ($smallImage == $image->getData('file')) {
+                if ($smallImage === $image->getData('file')) {
                     $images[-1] = $imageModel;
                     $imageModel->setIsCover(true);
                 } else {
