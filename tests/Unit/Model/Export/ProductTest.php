@@ -166,7 +166,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
     {
         $productStub = $this->getProductDouble();
         $productStub->method('getMediaGalleryImages')
-            ->will($this->returnValue($this->getTestCollection($imageData)));
+            ->willReturn($this->getTestCollection($imageData));
 
         $productStub->method('getData')
             ->will($this->returnValueMap([['small_image', null, $smallImagePath]]));
