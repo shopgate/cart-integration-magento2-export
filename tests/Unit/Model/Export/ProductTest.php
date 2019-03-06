@@ -26,6 +26,7 @@ use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Framework\App\Config;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\GroupedProduct\Model\Product\Type\Grouped;
+use PHPUnit\Framework\MockObject\MockObject;
 use Shopgate\Base\Api\Config\CoreInterface;
 use Shopgate\Export\Model\Config\Source\Description;
 
@@ -41,7 +42,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
     private $objectManager;
 
     /**
-     * @return \PHPUnit_Framework_MockObject_MockObject
+     * @return MockObject
      */
     private function getProductDouble()
     {
@@ -97,7 +98,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
-            'Shopgate\Export\Model\Export\Product',
+            Shopgate\Export\Model\Export\Product::class,
             [
                 'scopeConfig' => $scopeConfigStub
             ]
@@ -124,7 +125,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
-            'Shopgate\Export\Model\Export\Product'
+            Shopgate\Export\Model\Export\Product::class
         );
 
         $exportModel->setItem($productStub)->setDisplayType();
@@ -147,7 +148,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
-            'Shopgate\Export\Model\Export\Product'
+            Shopgate\Export\Model\Export\Product::class
         );
 
         $exportModel->setItem($productStub)->setAttributeGroups();
@@ -173,7 +174,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
-            'Shopgate\Export\Model\Export\Product'
+            Shopgate\Export\Model\Export\Product::class
         );
 
         $exportModel->setItem($productStub)->setImages();
@@ -217,7 +218,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
     /**
      * @param array $items
      *
-     * @return \PHPUnit_Framework_MockObject_MockObject
+     * @return MockObject
      */
     private function getTestCollection($items)
     {
