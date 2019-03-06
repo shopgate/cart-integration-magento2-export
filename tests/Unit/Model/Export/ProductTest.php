@@ -35,7 +35,6 @@ use Shopgate\Export\Model\Config\Source\Description;
  */
 class ProductTest extends \PHPUnit\Framework\TestCase
 {
-
     /**
      * @var ObjectManager
      */
@@ -75,32 +74,32 @@ class ProductTest extends \PHPUnit\Framework\TestCase
     {
         $this->markTestIncomplete('Expected strings not yet returned by the stub');
         $configValueStub = $this->getMockBuilder(Config\Value::class)
-                                ->disableOriginalConstructor()
-                                ->getMock();
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $configValueStub->method('getValue')
-                        ->will($this->returnValue($descConfig));
+            ->will($this->returnValue($descConfig));
 
         $scopeConfigStub = $this->getMockBuilder(CoreInterface::class)
-                                ->disableOriginalConstructor()
-                                ->getMock();
+            ->disableOriginalConstructor()
+            ->getMock();
 
         $scopeConfigStub->method('getConfigByPath')
-                        ->will($this->returnValue($configValueStub));
+            ->will($this->returnValue($configValueStub));
 
         $productStub = $this->getProductDouble();
 
         $productStub->method('getDescription')
-                    ->will($this->returnValue($longDesc));
+            ->will($this->returnValue($longDesc));
 
         $productStub->method('getShortDescription')
-                    ->will($this->returnValue($shortDesc));
+            ->will($this->returnValue($shortDesc));
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
             Shopgate\Export\Model\Export\Product::class,
             [
-                'scopeConfig' => $scopeConfigStub
+                'scopeConfig' => $scopeConfigStub,
             ]
         );
 
@@ -121,7 +120,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
         $productStub = $this->getProductDouble();
 
         $productStub->method('getTypeId')
-                    ->will($this->returnValue($productType));
+            ->will($this->returnValue($productType));
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
@@ -144,7 +143,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
         $productStub = $this->getProductDouble();
 
         $productStub->method('getTypeId')
-                    ->will($this->returnValue($productType));
+            ->will($this->returnValue($productType));
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
@@ -157,8 +156,8 @@ class ProductTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param array     $imageData
-     * @param string    $smallImagePath
+     * @param array  $imageData
+     * @param string $smallImagePath
      *
      * @covers ::setImages
      * @dataProvider imageProvider
@@ -178,9 +177,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
         );
 
         $exportModel->setItem($productStub)->setImages();
-
-        $images = array_reverse($exportModel->getImages());
-        $firstImage = array_pop($images);
+        $firstImage = array_shift($exportModel->getImages());
 
         $this->assertEquals($smallImagePath, $firstImage->getUrl());
         $this->assertEquals(1, $firstImage->getIsCover());
@@ -192,14 +189,26 @@ class ProductTest extends \PHPUnit\Framework\TestCase
     public function imageProvider()
     {
         return [
-            'First product set as small image' => [[$this->createImageObject('1.jpg', '1'), $this->createImageObject('2.jpg', '3')], '1.jpg'],
-            'Second product set as small image' => [[$this->createImageObject('1.jpg', '1'), $this->createImageObject('2.jpg', '14')], '2.jpg']
+            'First product set as small image'  => [
+                [
+                    $this->createImageObject('1.jpg', '1'),
+                    $this->createImageObject('2.jpg', '3'),
+                ],
+                '1.jpg',
+            ],
+            'Second product set as small image' => [
+                [
+                    $this->createImageObject('1.jpg', '1'),
+                    $this->createImageObject('2.jpg', '14'),
+                ],
+                '2.jpg',
+            ],
         ];
     }
 
     /**
-     * @param string    $url
-     * @param int       $position
+     * @param string $url
+     * @param int    $position
      *
      * @return \Magento\Framework\DataObject
      */
@@ -211,7 +220,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
             'file'     => $url,
             'position' => $position,
             'tile'     => 'fake image',
-            'alt'      => 'fake image'
+            'alt'      => 'fake image',
         ]);
     }
 
@@ -242,7 +251,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
             [Grouped::TYPE_CODE],
             [Product\Type::TYPE_SIMPLE],
             [Product\Type::TYPE_BUNDLE],
-            [Product\Type::TYPE_VIRTUAL]
+            [Product\Type::TYPE_VIRTUAL],
         ];
     }
 
@@ -254,7 +263,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
         return [
             'grouped product'      => ['list', Grouped::TYPE_CODE],
             'configurable product' => ['select', Configurable::TYPE_CODE],
-            'default type'         => ['simple', 'simple']
+            'default type'         => ['simple', 'simple'],
         ];
     }
 
@@ -265,7 +274,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
     {
         return [
             'default long description' => ['long', 'test', 'long', 'short'],
-            'return short description' => ['short', Description::ID_SHORT_DESCRIPTION, 'long', 'short']
+            'return short description' => ['short', Description::ID_SHORT_DESCRIPTION, 'long', 'short'],
         ];
     }
 }
