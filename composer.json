@@ -23,7 +23,7 @@
   ],
   "require": {
     "shopgate/cart-integration-magento2-base": "~2.9.9"
-  }
+  },
   "autoload": {
     "files": [
       "src/registration.php"
