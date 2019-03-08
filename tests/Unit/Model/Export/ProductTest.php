@@ -124,7 +124,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
-            Shopgate\Export\Model\Export\Product::class
+            \Shopgate\Export\Model\Export\Product::class
         );
 
         $exportModel->setItem($productStub)->setDisplayType();
@@ -147,7 +147,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
-            Shopgate\Export\Model\Export\Product::class
+            \Shopgate\Export\Model\Export\Product::class
         );
 
         $exportModel->setItem($productStub)->setAttributeGroups();
@@ -173,11 +173,12 @@ class ProductTest extends \PHPUnit\Framework\TestCase
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
-            Shopgate\Export\Model\Export\Product::class
+            \Shopgate\Export\Model\Export\Product::class
         );
 
         $exportModel->setItem($productStub)->setImages();
-        $firstImage = array_shift($exportModel->getImages());
+        $images     = $exportModel->getImages();
+        $firstImage = array_shift($images);
 
         $this->assertEquals($smallImagePath, $firstImage->getUrl());
         $this->assertEquals(1, $firstImage->getIsCover());
