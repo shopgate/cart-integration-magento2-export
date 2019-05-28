@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [Unreleased]
 ### Fixed
 - check_cart return the correct item_number
+- The small product images are now used as the first image of the product in the app
 
 ## [2.9.9] - 2018-08-01
 ### Added
