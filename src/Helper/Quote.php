@@ -186,7 +186,7 @@ class Quote extends \Shopgate\Base\Helper\Quote
             }
             $type                         = $this->typeHelper->getType($item);
             $stockData                    = $type->getStockData();
-            $productId                    = $type->getItemId();
+            $productId                    = unserialize($item->getAdditionalData())->getShopgateItemNumber();
             $data['unit_amount']          = round($priceExclTax, 4);
             $data['unit_amount_with_tax'] = round($priceInclTax, 4);
 
