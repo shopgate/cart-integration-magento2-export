@@ -38,6 +38,7 @@ use Shopgate\Base\Model\Shopgate\Extended\Base;
 use Shopgate\Base\Model\Utility\Registry;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Export\Helper\Tax as TaxHelper;
+use \Zend\Serializer\Serializer;
 
 class Quote extends \Shopgate\Base\Helper\Quote
 {
@@ -186,7 +187,7 @@ class Quote extends \Shopgate\Base\Helper\Quote
             }
             $type                         = $this->typeHelper->getType($item);
             $stockData                    = $type->getStockData();
-            $productId                    = unserialize($item->getAdditionalData())->getShopgateItemNumber();
+            $productId                    = Serializer::unserialize($item->getAdditionalData())->getShopgateItemNumber();
             $data['unit_amount']          = round($priceExclTax, 4);
             $data['unit_amount_with_tax'] = round($priceInclTax, 4);
 
