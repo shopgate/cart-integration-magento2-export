@@ -170,12 +170,12 @@ class Quote extends \Shopgate\Base\Helper\Quote
      */
     public function getValidatedItems()
     {
-        //todo-sg check validation for budnle products in check_cart and check_stock
+        //todo-sg check validation for bundle products in check_cart and check_stock
         $products = [];
         $this->quote->collectTotals();
 
         foreach ($this->quote->getAllVisibleItems() as $item) {
-            $price   = $item->getProduct()->getFinalPrice();
+            $price   = $item->getPrice();
             $percent = $item->getTaxPercent();
 
             if ($this->taxData->priceIncludesTax($this->quote->getStore())) {
