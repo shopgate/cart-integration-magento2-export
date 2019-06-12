@@ -5,21 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
-## [2.9.11] - 2018-06-12
+## [2.9.11] - 2019-06-12
 ### Fixed
 - coupon amount for customer group based special prices
 
-## [2.9.10] - 2018-06-04
+## [2.9.10] - 2019-06-04
 ### Fixed
 - check_cart now returns the correct item_number
 - The small product images are now used as the first image of the product in the app
 
-## [2.9.9] - 2018-08-01
+## [2.9.9] - 2019-08-01
 ### Added
 - Validation off app-only cart rules in cart validation
 - Shipping and cancellation synchronisation to Shopgate
 
-## [2.9.8] - 2018-04-19
+## [2.9.8] - 2019-04-19
 ### Added
 - Support of cart rule discounts
 - Possibility to exclude specific items from the export
