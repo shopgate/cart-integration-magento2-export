@@ -7,8 +7,8 @@
     <type name="Shopgate\Export\Helper\Cart">
         <arguments>
             <argument name="quoteFields" xsi:type="array">
-                <item name="items" xsi:type="string">items</item>
                 <item name="customer" xsi:type="string">customer</item>
+                <item name="items" xsi:type="string">items</item>
                 <item name="shipping" xsi:type="string">shipping</item>
                 <item name="external_coupons" xsi:type="string">external_coupons</item><!-- set last -->
             </argument>
