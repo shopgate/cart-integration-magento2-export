@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- Cron cancellation logic
+
 ## [2.9.11] - 2019-06-12
 ### Fixed
 - coupon amount for customer group based special prices
