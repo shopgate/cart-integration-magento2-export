@@ -22,14 +22,17 @@
 
 namespace Shopgate\Export\Helper;
 
+use Exception;
 use Magento\Framework\Api\SearchCriteriaBuilder;
 use Magento\Sales\Model\Order as MagentoOrder;
 use Magento\Sales\Model\OrderRepository;
+use Shopgate\Base\Model\ResourceModel\Shopgate\Order\Collection;
 use Shopgate\Base\Model\Shopgate\Order as ShopgateOrderModel;
 use Shopgate\Base\Model\Shopgate\OrderFactory as ShopgateOrderFactory;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Export\Helper\Cron\Cancellation as CancellationHelper;
 use Shopgate\Export\Helper\Cron\Shipping as ShippingHelper;
+use ShopgateLibraryException;
 
 class Cron
 {
@@ -47,8 +50,8 @@ class Cron
     private $cancellationHelper;
 
     /**
-     * @param SgLoggerInterface     $logger
-     * @param ShopgateOrderFactory  $orderFactory
+     * @param SgLoggerInterface    $logger
+     * @param ShopgateOrderFactory $orderFactory
      * @param OrderRepository       $orderRepository
      * @param SearchCriteriaBuilder $searchCriteriaBuilder
      * @param ShippingHelper        $shippingHelper
@@ -76,7 +79,7 @@ class Cron
      */
     public function setShippingCompleted()
     {
-        /** @var \Shopgate\Base\Model\ResourceModel\Shopgate\Order\Collection $orderCollection */
+        /** @var Collection $orderCollection */
         $orderCollection = $this->shopgateOrderFactory->create()->getCollection();
         $orderCollection->filterByUnsynchronizedOrders();
         $this->logger->debug("# Found {$orderCollection->getSize()} potential orders to send");
@@ -90,32 +93,47 @@ class Cron
             $this->shippingHelper->sendShippingForOrder($shopgateOrder, $magentoOrder);
         }
     }
+
     /**
      * Iterates through all cancelled shopgate orders and sends
      * the cancellation back to Shopgate
+     *
+     * @throws ShopgateLibraryException
+     * @throws Exception
      */
     public function cancelOrders()
     {
-        /** @var \Shopgate\Base\Model\ResourceModel\Shopgate\Order\Collection $orderCollection */
-        $orderCollection = $this->shopgateOrderFactory->create()->getCollection();
-        $orderCollection->filterByCancelledOrders();
-        $this->logger->debug("# Found {$orderCollection->getSize()} potential orders to send");
+        /** @var Collection $sgOrders */
+        $sgOrders = $this->shopgateOrderFactory->create()->getCollection();
+        $sgOrders->filterByCancelledOrders();
+        $this->logger->debug("# Found {$sgOrders->getSize()} potential orders to send");
 
-        foreach ($orderCollection as $shopgateOrder) {
-            $searchCriteria = $this->searchCriteriaBuilder
-                ->addFilter('entity_id', $shopgateOrder->getOrderId(), 'eq')->create();
+        $shopgateOrderIds = $sgOrders->getMageOrderIds();
+        $searchCriteria   = $this->searchCriteriaBuilder
+            ->addFilter('entity_id', $shopgateOrderIds, 'in')->create();
 
-            $orderList = $this->orderRepository->getList($searchCriteria);
+        $orderList = $this->orderRepository->getList($searchCriteria);
+        foreach ($orderList as $magentoOrder) {
             /** @var MagentoOrder $magentoOrder */
-            $magentoOrder = $orderList->getFirstItem();
-
-            if (!$magentoOrder->isCanceled()
-                && $magentoOrder->getState() !== MagentoOrder::STATE_CLOSED
-                && !$magentoOrder->hasCreditmemos()
-            ) {
-                continue;
+            if ($this->isCancelled($magentoOrder)) {
+                $list = $sgOrders->getItemsByColumnValue('order_id', $magentoOrder->getId());
+                $this->cancellationHelper->cancelOrder(
+                    array_pop($list),
+                    $magentoOrder
+                );
             }
-            $this->cancellationHelper->cancelOrder($shopgateOrder, $magentoOrder);
         }
+    }
+
+    /**
+     * Checks if the order is refunded/cancelled
+     *
+     * @param MagentoOrder $order
+     *
+     * @return bool
+     */
+    private function isCancelled(MagentoOrder $order): bool
+    {
+        return $order->isCanceled() || $order->getState() === MagentoOrder::STATE_CLOSED;
     }
 }
