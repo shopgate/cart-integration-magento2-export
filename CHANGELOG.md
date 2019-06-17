@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [2.9.12] - 2019-06-17
+### Changed
+- Cron cancellation logic
+
 ## [2.9.11] - 2019-06-12
 ### Fixed
 - coupon amount for customer group based special prices
@@ -63,7 +68,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.11...HEAD
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.12...HEAD
+[2.9.12]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.11...2.9.12
 [2.9.11]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.10...2.9.11
 [2.9.10]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.9...2.9.10
 [2.9.9]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.8...2.9.9

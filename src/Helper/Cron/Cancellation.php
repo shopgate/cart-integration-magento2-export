@@ -22,15 +22,24 @@
 
 namespace Shopgate\Export\Helper\Cron;
 
+use Exception;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Framework\Message\ManagerInterface;
+use Magento\Sales\Api\Data\OrderStatusHistoryInterface;
+use Magento\Sales\Api\OrderStatusHistoryRepositoryInterface;
 use Magento\Sales\Model\Order as MagentoOrder;
+use Magento\Sales\Model\Order\Item;
+use Magento\Sales\Model\Order\Status\HistoryFactory;
+use Magento\Sales\Model\ResourceModel\Order\Item\Collection;
 use Shopgate\Base\Api\Config\SgCoreInterface;
 use Shopgate\Base\Helper\Initializer\MerchantApi as MerchantApiHelper;
 use Shopgate\Base\Model\Shopgate\Order as ShopgateOrderModel;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Export\Helper\Cron\Shipping as ShippingHelper;
 use Shopgate\Export\Helper\Cron\Utility as CronHelper;
+use ShopgateMerchantApi;
+use ShopgateMerchantApiException;
+use ShopgateOrder;
 
 class Cancellation
 {
@@ -40,20 +49,26 @@ class Cancellation
     private $logger;
     /** @var SgCoreInterface */
     private $sgCoreConfig;
-    /** @var \ShopgateMerchantApi */
+    /** @var ShopgateMerchantApi */
     private $merchantApi;
     /** @var ShippingHelper */
     private $shippingHelper;
     /** @var CronHelper */
     private $cronHelper;
+    /** @var HistoryFactory */
+    private $historyFactory;
+    /** @var OrderStatusHistoryRepositoryInterface */
+    private $historyRepository;
 
     /**
-     * @param ManagerInterface  $messageManager
-     * @param SgLoggerInterface $logger
-     * @param SgCoreInterface   $sgCoreConfig
-     * @param MerchantApiHelper $merchantApiHelper
-     * @param ShippingHelper    $shippingHelper
-     * @param CronHelper        $cronHelper
+     * @param ManagerInterface                      $messageManager
+     * @param SgLoggerInterface                     $logger
+     * @param SgCoreInterface                       $sgCoreConfig
+     * @param MerchantApiHelper                     $merchantApiHelper
+     * @param ShippingHelper                        $shippingHelper
+     * @param CronHelper                            $cronHelper
+     * @param HistoryFactory                        $historyFactory
+     * @param OrderStatusHistoryRepositoryInterface $historyRepository
      */
     public function __construct(
         ManagerInterface $messageManager,
@@ -61,7 +76,9 @@ class Cancellation
         SgCoreInterface $sgCoreConfig,
         MerchantApiHelper $merchantApiHelper,
         ShippingHelper $shippingHelper,
-        CronHelper $cronHelper
+        CronHelper $cronHelper,
+        HistoryFactory $historyFactory,
+        OrderStatusHistoryRepositoryInterface $historyRepository
     ) {
         $this->messageManager    = $messageManager;
         $this->logger            = $logger;
@@ -69,19 +86,20 @@ class Cancellation
         $this->shippingHelper    = $shippingHelper;
         $this->merchantApi       = $merchantApiHelper->buildMerchantApi();
         $this->cronHelper        = $cronHelper;
+        $this->historyFactory    = $historyFactory;
+        $this->historyRepository = $historyRepository;
     }
 
     /**
      * @param ShopgateOrderModel $shopgateOrderModel
      * @param MagentoOrder       $magentoOrder
      *
-     * @return bool
-     * @throws \ShopgateLibraryException
+     * @throws Exception
      */
     public function cancelOrder($shopgateOrderModel, $magentoOrder)
     {
         if (!$this->sgCoreConfig->isValid()) {
-            return false;
+            return;
         }
 
         $orderNumber = $shopgateOrderModel->getShopgateOrderNumber();
@@ -92,15 +110,20 @@ class Cancellation
             $cancellationItems = $this->getItemsForCancellation($orderItems, $shopgateOrder);
             $qtyCancelled      = $this->getCancelledItemCount($cancellationItems);
 
-            if (empty($cancellationItems)
-                && count($orderItems) > 0
-            ) {
-                $magentoOrder->addStatusHistoryComment(
-                    '[SHOPGATE] Notice: Credit memo was not sent to Shopgate because no product quantity was affected.'
-                );
-                $magentoOrder->save();
+            if (empty($cancellationItems) && count($orderItems) > 0) {
+                /** @var OrderStatusHistoryInterface $history */
+                /** @noinspection PhpUndefinedMethodInspection */
+                $history = $this->historyFactory->create();
+                $comment =
+                    '[SHOPGATE] Notice: Credit memo was not sent to Shopgate because no product quantity was affected.';
+                $history->setParentId($magentoOrder->getId())
+                        ->setComment($comment)
+                        ->setEntityName('order')
+                        ->setStatus($magentoOrder->getStatus());
 
-                return true;
+                $this->historyRepository->save($history);
+
+                return;
             }
 
             $cancelShippingCosts = !$this->cronHelper->hasShippedItems($magentoOrder);
@@ -119,8 +142,8 @@ class Cancellation
             );
 
             $this->finalizeCancellation($shopgateOrderModel, $magentoOrder);
-        } catch (\ShopgateMerchantApiException $e) {
-            if ($e->getCode() == '222') {
+        } catch (ShopgateMerchantApiException $e) {
+            if ($e->getCode() === '222') {
                 // order already canceled in shopgate
                 $shopgateOrderModel->setIsCancellationSentToShopgate(true);
                 $shopgateOrderModel->save();
@@ -128,7 +151,7 @@ class Cancellation
                 // Received error from shopgate server
                 $this->messageManager->addErrorMessage(
                     __(
-                        '[SHOPGATE] An error occured while trying to cancel the order at Shopgate.<br />Please contact Shopgate support.'
+                        '[SHOPGATE] An error occurred while trying to cancel the order at Shopgate.<br />Please contact Shopgate support.'
                     )
                 );
                 $this->messageManager->addErrorMessage("Error: {$e->getCode()} - {$e->getMessage()}");
@@ -136,9 +159,9 @@ class Cancellation
                     "(#{$orderNumber})  SMA-Error on cancel order! Message: {$e->getCode()} - {$e->getMessage()}"
                 );
             }
-        } catch (\Exception $e) {
+        } catch (Exception $e) {
             $this->messageManager->addErrorMessage(
-                __('[SHOPGATE] An unknown error occured!<br />Please contact Shopgate support.')
+                __('[SHOPGATE] An unknown error occurred!<br />Please contact Shopgate support.')
             );
             $this->logger->error(
                 "(#{$orderNumber})  SMA-Error on cancel order! Message: {$e->getCode()} - {$e->getMessage()}"
@@ -149,6 +172,8 @@ class Cancellation
     /**
      * @param ShopgateOrderModel $shopgateOrderModel
      * @param MagentoOrder       $magentoOrder
+     *
+     * @throws Exception
      */
     protected function finalizeCancellation($shopgateOrderModel, $magentoOrder)
     {
@@ -174,7 +199,7 @@ class Cancellation
      *
      * @return int
      */
-    protected function getCancelledItemCount($cancelledItems)
+    protected function getCancelledItemCount($cancelledItems): int
     {
         $qtyCancelled = 0;
 
@@ -186,25 +211,26 @@ class Cancellation
     }
 
     /**
-     * @param \Magento\Sales\Model\ResourceModel\Order\Item\Collection $orderItems
-     * @param \ShopgateOrder                                          $shopgateOrder
+     * @param Collection    $orderItems
+     * @param ShopgateOrder $shopgateOrder
      *
      * @return array
      */
-    protected function getItemsForCancellation($orderItems, $shopgateOrder)
+    protected function getItemsForCancellation($orderItems, $shopgateOrder): array
     {
         $cancellationItems = [];
 
-        /**  @var $orderItem \Magento\Sales\Model\Order\Item */
+        /**  @var $orderItem Item */
         foreach ($orderItems as $orderItem) {
             $parentItem = $orderItem->getParentItem();
             $rdItem     = $this->cronHelper->findItemByProductId(
                 $shopgateOrder->getItems(),
                 $orderItem->getData('product_id')
             );
-            $mainItem   = empty($parentItem) || ($parentItem && $parentItem->getProductType() != Configurable::TYPE_CODE)
-                ? $orderItem
-                : $orderItem->getParentItem();
+            $mainItem   =
+                empty($parentItem) || ($parentItem && $parentItem->getProductType() !== Configurable::TYPE_CODE)
+                    ? $orderItem
+                    : $orderItem->getParentItem();
 
             if ($this->shouldCancelOrderItem($orderItem)
                 && $rdItem
@@ -212,7 +238,7 @@ class Cancellation
             ) {
                 $cancellationItems[] = [
                     'item_number' => $rdItem->getItemNumber(),
-                    'quantity'    => (int)$mainItem->getQtyCanceled() + (int)$mainItem->getQtyRefunded(),
+                    'quantity'    => (int) $mainItem->getQtyCanceled() + (int) $mainItem->getQtyRefunded(),
                 ];
             }
         }
@@ -221,11 +247,11 @@ class Cancellation
     }
 
     /**
-     * @param \Magento\Sales\Model\Order\Item $orderItem
+     * @param Item $orderItem
      *
      * @return bool
      */
-    protected function shouldCancelOrderItem($orderItem)
+    protected function shouldCancelOrderItem($orderItem): bool
     {
         return $orderItem->getProductType() !== Configurable::TYPE_CODE
             && $orderItem->getQtyCanceled() + $orderItem->getQtyRefunded() > 0
@@ -239,7 +265,7 @@ class Cancellation
      *
      * @return bool
      */
-    protected function isFullCancellation($qtyCancelled, $qtyOrdered, $cancelShippingCosts)
+    protected function isFullCancellation($qtyCancelled, $qtyOrdered, $cancelShippingCosts): bool
     {
         return $qtyCancelled === $qtyOrdered && $cancelShippingCosts;
     }
