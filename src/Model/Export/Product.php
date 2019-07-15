@@ -134,7 +134,7 @@ class Product extends Shopgate_Model_Catalog_Product
         SgLoggerInterface $logger
     ) {
         parent::__construct();
-        $this->scopeConfig = $scopeConfig;
+        $this->scopeConfig        = $scopeConfig;
         $this->storeManager       = $storeManager;
         $this->helperProduct      = $helperProduct;
         $this->exportFactory      = $exportFactory;
