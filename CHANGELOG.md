@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- EAN attribute mapping configuration will export even if it is not visible on the frontend
 
 ## [2.9.12] - 2019-06-17
 ### Changed

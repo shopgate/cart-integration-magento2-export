@@ -21,6 +21,7 @@
 
 namespace Shopgate\Export\Model\Export;
 
+use Exception;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Model\Product as MageProduct;
 use Magento\CatalogInventory\Model\Stock;
@@ -29,6 +30,7 @@ use Magento\Customer\Model\GroupManagement;
 use Magento\Directory\Helper\Data;
 use Magento\Framework\DataObject;
 use Magento\GroupedProduct\Model\Product\Type\Grouped;
+use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Shopgate\Base\Api\Config\CoreInterface;
 use Shopgate\Base\Helper\Product\Type;
@@ -37,8 +39,24 @@ use Shopgate\Export\Api\ExportInterface;
 use Shopgate\Export\Helper\Product\Utility as HelperProduct;
 use Shopgate\Export\Model\Config\Source\ChildDescription;
 use Shopgate\Export\Model\Export\ProductFactory as ExportFactory;
+use Shopgate_Model_Catalog_Attribute;
+use Shopgate_Model_Catalog_AttributeGroup;
+use Shopgate_Model_Catalog_Identifier;
+use Shopgate_Model_Catalog_Input;
+use Shopgate_Model_Catalog_Manufacturer;
+use Shopgate_Model_Catalog_Price;
+use Shopgate_Model_Catalog_Product;
+use Shopgate_Model_Catalog_Property;
+use Shopgate_Model_Catalog_Relation;
+use Shopgate_Model_Catalog_Shipping;
+use Shopgate_Model_Catalog_Stock;
+use Shopgate_Model_Catalog_Tag;
+use Shopgate_Model_Catalog_TierPrice;
+use Shopgate_Model_Media_Image;
+use Zend_Date;
+use Zend_Json;
 
-class Product extends \Shopgate_Model_Catalog_Product
+class Product extends Shopgate_Model_Catalog_Product
 {
     /** @var MageProduct */
     protected $item;
@@ -138,7 +156,7 @@ class Product extends \Shopgate_Model_Catalog_Product
      */
     public function setLastUpdate()
     {
-        parent::setLastUpdate(date(\Zend_Date::ISO_8601, strtotime($this->item->getUpdatedAt())));
+        parent::setLastUpdate(date(Zend_Date::ISO_8601, strtotime($this->item->getUpdatedAt())));
     }
 
     /**
@@ -173,7 +191,7 @@ class Product extends \Shopgate_Model_Catalog_Product
      */
     public function setCurrency()
     {
-        /** @var \Magento\Store\Model\Store $store */
+        /** @var Store $store */
         $store = $this->storeManager->getStore();
         parent::setCurrency($store->getCurrentCurrency()->getCode());
     }
@@ -185,10 +203,10 @@ class Product extends \Shopgate_Model_Catalog_Product
     {
         $isGross   = $this->helperProduct->priceIncludesTax();
         $priceType = $isGross
-            ? \Shopgate_Model_Catalog_Price::DEFAULT_PRICE_TYPE_GROSS
-            : \Shopgate_Model_Catalog_Price::DEFAULT_PRICE_TYPE_NET;
+            ? Shopgate_Model_Catalog_Price::DEFAULT_PRICE_TYPE_GROSS
+            : Shopgate_Model_Catalog_Price::DEFAULT_PRICE_TYPE_NET;
 
-        $priceModel = new \Shopgate_Model_Catalog_Price();
+        $priceModel = new Shopgate_Model_Catalog_Price();
         $priceModel->setPrice($this->item->getPrice());
 
         if ($priceModel->getPrice() > 0) {
@@ -199,10 +217,10 @@ class Product extends \Shopgate_Model_Catalog_Product
         $priceModel->setType($priceType);
 
         foreach ($this->item->getTierPrices() as $tierPrice) {
-            $tierPriceModel = new \Shopgate_Model_Catalog_TierPrice();
+            $tierPriceModel = new Shopgate_Model_Catalog_TierPrice();
             $tierPriceModel->setFromQuantity($tierPrice->getQty());
             $tierPriceModel->setReduction($priceModel->getSalePrice() - $tierPrice->getValue());
-            $tierPriceModel->setReductionType(\Shopgate_Model_Catalog_TierPrice::DEFAULT_TIER_PRICE_TYPE_FIXED);
+            $tierPriceModel->setReductionType(Shopgate_Model_Catalog_TierPrice::DEFAULT_TIER_PRICE_TYPE_FIXED);
 
             if ($tierPrice->getCustomerGroupId() !== GroupManagement::CUST_GROUP_ALL) {
                 $tierPriceModel->setCustomerGroupUid($tierPrice->getCustomerGroupId());
@@ -273,7 +291,7 @@ class Product extends \Shopgate_Model_Catalog_Product
             $internalOrderInfo['item_type']  = $this->parent->getTypeId();
         }
 
-        parent::setInternalOrderInfo(\Zend_Json::encode($internalOrderInfo));
+        parent::setInternalOrderInfo(Zend_Json::encode($internalOrderInfo));
     }
 
     /**
@@ -311,7 +329,7 @@ class Product extends \Shopgate_Model_Catalog_Product
      */
     public function setShipping()
     {
-        $shipping = new \Shopgate_Model_Catalog_Shipping();
+        $shipping = new Shopgate_Model_Catalog_Shipping();
         $shipping->setAdditionalCostsPerUnit(0);
         $shipping->setCostsPerOrder(0);
         $shipping->setIsFree(false);
@@ -338,8 +356,8 @@ class Product extends \Shopgate_Model_Catalog_Product
         foreach ($this->item->getCategoryIds() as $categoryId) {
             try {
                 /** @var \Magento\Catalog\Model\Category $category */
-                $category            = $this->categoryRepository->get($categoryId);
-                $position            = $this->helperProduct->getPositionInCategory($this->item->getId(), $categoryId);
+                $category = $this->categoryRepository->get($categoryId);
+                $position = $this->helperProduct->getPositionInCategory($this->item->getId(), $categoryId);
                 $result[$categoryId] = $this->helperProduct->getExportCategory($categoryId, $sortInflate + $position);
 
                 $anchors = $category->getAnchorsAbove();
@@ -350,7 +368,7 @@ class Product extends \Shopgate_Model_Catalog_Product
                     $position          = $this->helperProduct->getPositionInCategory($this->item->getId(), $anchorId);
                     $result[$anchorId] = $this->helperProduct->getExportCategory($anchorId, $position);
                 }
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 $this->logger->error(
                     "Skip assigning of category with id: {$categoryId}, message: " . $e->getMessage()
                 );
@@ -368,7 +386,7 @@ class Product extends \Shopgate_Model_Catalog_Product
         $title = $this->helperProduct->getManufacturer($this->item);
 
         if (!empty($title)) {
-            $manufacturer = new \Shopgate_Model_Catalog_Manufacturer();
+            $manufacturer = new Shopgate_Model_Catalog_Manufacturer();
             $manufacturer->setUid($this->item->getManufacturer());
             $manufacturer->setTitle($title);
             $manufacturer->setItemNumber(false);
@@ -392,7 +410,7 @@ class Product extends \Shopgate_Model_Catalog_Product
     public function setStock()
     {
         $stockItem = $this->helperProduct->getStockItem($this->item);
-        $stock     = new \Shopgate_Model_Catalog_Stock();
+        $stock     = new Shopgate_Model_Catalog_Stock();
         $useStock  = false;
 
         if ($stockItem->getManageStock()) {
@@ -407,7 +425,7 @@ class Product extends \Shopgate_Model_Catalog_Product
         }
 
         $stock->setUseStock($useStock);
-        $stock->setBackorders((bool)$stockItem->getBackorders());
+        $stock->setBackorders((bool) $stockItem->getBackorders());
         $stock->setStockQuantity($stockItem->getQty());
         $stock->setMaximumOrderQuantity($stockItem->getMaxSaleQty());
         $stock->setMinimumOrderQuantity($stockItem->getMinSaleQty());
@@ -434,7 +452,7 @@ class Product extends \Shopgate_Model_Catalog_Product
                 $smallImage = $this->item->getData('small_image');
 
                 /** @var $image DataObject */
-                $imageModel = new \Shopgate_Model_Media_Image();
+                $imageModel = new Shopgate_Model_Media_Image();
                 $imageModel->setUid($image->getData('id'));
                 $imageModel->setUrl($image->getData('url'));
                 $imageModel->setSortOrder($image->getData('position'));
@@ -460,7 +478,7 @@ class Product extends \Shopgate_Model_Catalog_Product
      */
     public function setIdentifiers()
     {
-        $identifierItemObject = new \Shopgate_Model_Catalog_Identifier();
+        $identifierItemObject = new Shopgate_Model_Catalog_Identifier();
         $identifierItemObject->setType('SKU');
         $identifierItemObject->setValue($this->item->getSku());
         $result[] = $identifierItemObject;
@@ -478,7 +496,7 @@ class Product extends \Shopgate_Model_Catalog_Product
 
         foreach ($tags as $tag) {
             if (!ctype_space($tag) && !empty($tag)) {
-                $tagItemObject = new \Shopgate_Model_Catalog_Tag();
+                $tagItemObject = new Shopgate_Model_Catalog_Tag();
                 $tagItemObject->setValue(trim($tag));
                 $result[] = $tagItemObject;
             }
@@ -501,7 +519,7 @@ class Product extends \Shopgate_Model_Catalog_Product
         if (!empty($relationIds)) {
             $result[] = $this->helperProduct->createRelationProducts(
                 $relationIds,
-                \Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_UPSELL
+                Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_UPSELL
             );
         }
 
@@ -518,15 +536,14 @@ class Product extends \Shopgate_Model_Catalog_Product
             ',',
             $this->scopeConfig->getConfigByPath(ExportInterface::PATH_PROD_FORCE_ATTRIBUTES)->getValue()
         );
+        $eanMapping      = $this->scopeConfig->getConfigByPath(ExportInterface::PATH_PROD_EAN_CODE)->getValue();
 
         foreach ($this->item->getAttributes() as $code => $attribute) {
-            $forceExport = in_array($code, $forceAttributes);
-            if ($attribute->getIsVisibleOnFront()
-                || $forceExport
-            ) {
+            $forceExport = in_array($code, $forceAttributes, true);
+            if ($forceExport || $attribute->getIsVisibleOnFront() || $eanMapping === $attribute->getAttributeCode()) {
                 $value = $attribute->getFrontend()->getValue($this->item);
                 if (!empty($value) && ($this->item->hasData($code) || $forceExport)) {
-                    $propertyModel = new \Shopgate_Model_Catalog_Property();
+                    $propertyModel = new Shopgate_Model_Catalog_Property();
                     $propertyModel->setUid($attribute->getAttributeId());
                     $propertyModel->setLabel($attribute->getDefaultFrontendLabel());
                     $propertyModel->setValue($value);
@@ -552,7 +569,7 @@ class Product extends \Shopgate_Model_Catalog_Product
                 continue;
             }
 
-            $inputItem = new \Shopgate_Model_Catalog_Input();
+            $inputItem = new Shopgate_Model_Catalog_Input();
             $inputItem->setUid($option->getId());
             $inputItem->setType($inputType);
             $inputItem->setLabel($option->getTitle());
@@ -564,12 +581,12 @@ class Product extends \Shopgate_Model_Catalog_Product
              * Add additional price for types without options
              */
             switch ($inputType) {
-                case \Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_TEXT:
-                case \Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_AREA:
-                case \Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_FILE:
-                case \Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_DATE:
-                case \Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_DATETIME:
-                case \Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_TIME:
+                case Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_TEXT:
+                case Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_AREA:
+                case Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_FILE:
+                case Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_DATE:
+                case Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_DATETIME:
+                case Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_TIME:
                     $inputItem->setAdditionalPrice($this->helperProduct->getInputValuePrice($option, $this->item));
                     break;
                 default:
@@ -595,7 +612,7 @@ class Product extends \Shopgate_Model_Catalog_Product
             $attributeGroups        = [];
             foreach ($configurableAttributes as $attribute) {
                 /* @var $attribute Configurable\Attribute */
-                $attributeItem = new \Shopgate_Model_Catalog_AttributeGroup();
+                $attributeItem = new Shopgate_Model_Catalog_AttributeGroup();
                 $attributeItem->setUid($attribute->getAttributeId());
                 $attributeItem->setLabel($attribute->getProductAttribute()->getFrontend()->getLabel());
                 $attributeGroups[] = $attributeItem;
@@ -625,7 +642,7 @@ class Product extends \Shopgate_Model_Catalog_Product
                     ->getFrontend()
                     ->getValue($this->item);
 
-                $itemAttribute = new \Shopgate_Model_Catalog_Attribute();
+                $itemAttribute = new Shopgate_Model_Catalog_Attribute();
                 $itemAttribute->setGroupUid($attribute->getAttributeId());
                 $itemAttribute->setLabel($attributeValue);
                 $attributes[] = $itemAttribute;
@@ -675,13 +692,13 @@ class Product extends \Shopgate_Model_Catalog_Product
     {
         switch ($this->item->getTypeId()) {
             case Grouped::TYPE_CODE:
-                parent::setDisplayType(\Shopgate_Model_Catalog_Product::DISPLAY_TYPE_LIST);
+                parent::setDisplayType(Shopgate_Model_Catalog_Product::DISPLAY_TYPE_LIST);
                 break;
             case Configurable::TYPE_CODE:
-                parent::setDisplayType(\Shopgate_Model_Catalog_Product::DISPLAY_TYPE_SELECT);
+                parent::setDisplayType(Shopgate_Model_Catalog_Product::DISPLAY_TYPE_SELECT);
                 break;
             default:
-                parent::setDisplayType(\Shopgate_Model_Catalog_Product::DISPLAY_TYPE_SIMPLE);
+                parent::setDisplayType(Shopgate_Model_Catalog_Product::DISPLAY_TYPE_SIMPLE);
                 break;
         }
     }
