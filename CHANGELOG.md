@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [2.9.13] - 2019-07-18
 ### Changed
 - EAN attribute mapping configuration will export even if it is not visible on the frontend
 
@@ -70,7 +72,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.12...HEAD
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.13...HEAD
+[2.9.13]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.12...2.9.13
 [2.9.12]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.11...2.9.12
 [2.9.11]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.10...2.9.11
 [2.9.10]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.9...2.9.10
