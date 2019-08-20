@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- rudimentary getExternalCoupons method to cart helper to support bolt plugin which extends it
 
 ## [2.9.13] - 2019-07-18
 ### Changed

@@ -157,4 +157,12 @@ class Cart
     {
         //todo-sg: return payment methods available for this cart
     }
+
+    /**
+     * @return string
+     */
+    protected function getInternalCartInfo()
+    {
+        return '{}';
+    }
 }
