@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [Unreleased]
+## [2.9.14] - 2019-08-22
 ### Added
 - rudimentary getExternalCoupons method to cart helper to support bolt plugin which extends it
 
@@ -74,7 +74,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.13...HEAD
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.14...HEAD
+[2.9.14]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.13...2.9.14
 [2.9.13]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.12...2.9.13
 [2.9.12]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.11...2.9.12
 [2.9.11]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.10...2.9.11
