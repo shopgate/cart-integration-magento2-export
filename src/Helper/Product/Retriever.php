@@ -93,6 +93,7 @@ class Retriever
         );
         $productCollection->addAttributeToFilter('status', Status::STATUS_ENABLED);
         $productCollection->addAttributeToFilter('type_id', ['in' => self::ALLOWED_PRODUCT_TYPES]);
+        $productCollection->addStoreFilter();
 
         if (!empty($skipItemIds)) {
             $productCollection->addAttributeToFilter('entity_id', ['nin' => $skipItemIds]);
@@ -108,7 +109,7 @@ class Retriever
 
         foreach ($productCollection as $product) {
             $this->log->debug("Start Collection Product Load With ID: {$product->getId()}");
-            $product = $this->productFactory->create()->load($product->getId());
+            $product = $products->load($product->getId());
 
             /** @var Product $productExportModel */
             $productExportModel = $this->exportFactory->create();
