@@ -81,8 +81,7 @@ class Retriever
         $export   = [];
 
         /** @var \Magento\Catalog\Model\ResourceModel\Product\Collection $productCollection */
-        $products          = $this->productFactory->create();
-        $productCollection = $products->getCollection();
+        $productCollection = $this->productFactory->create()->getCollection();
         $productCollection->addAttributeToFilter(
             'visibility',
             [
@@ -109,7 +108,7 @@ class Retriever
 
         foreach ($productCollection as $product) {
             $this->log->debug("Start Collection Product Load With ID: {$product->getId()}");
-            $product = $products->load($product->getId());
+            $product = $this->productFactory->create()->load($product->getId());
 
             /** @var Product $productExportModel */
             $productExportModel = $this->exportFactory->create();
