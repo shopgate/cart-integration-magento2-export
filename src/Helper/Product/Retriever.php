@@ -81,8 +81,7 @@ class Retriever
         $export   = [];
 
         /** @var \Magento\Catalog\Model\ResourceModel\Product\Collection $productCollection */
-        $products          = $this->productFactory->create();
-        $productCollection = $products->getCollection();
+        $productCollection = $this->productFactory->create()->getCollection();
         $productCollection->addAttributeToFilter(
             'visibility',
             [
@@ -93,6 +92,7 @@ class Retriever
         );
         $productCollection->addAttributeToFilter('status', Status::STATUS_ENABLED);
         $productCollection->addAttributeToFilter('type_id', ['in' => self::ALLOWED_PRODUCT_TYPES]);
+        $productCollection->addStoreFilter();
 
         if (!empty($skipItemIds)) {
             $productCollection->addAttributeToFilter('entity_id', ['nin' => $skipItemIds]);
