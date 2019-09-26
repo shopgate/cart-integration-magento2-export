@@ -358,7 +358,7 @@ class Product extends Shopgate_Model_Catalog_Product
                 /** @var \Magento\Catalog\Model\Category $category */
                 $category = $this->categoryRepository->get($categoryId);
                 $position = $this->helperProduct->getPositionInCategory($this->item->getId(), $categoryId);
-                $result[$categoryId] = $this->helperProduct->getExportCategory($categoryId, $sortInflate + $position);
+                $result[$categoryId] = $this->helperProduct->getExportCategory($categoryId, $sortInflate - $position);
 
                 $anchors = $category->getAnchorsAbove();
                 foreach ($anchors as $anchorId) {
