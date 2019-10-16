@@ -449,6 +449,6 @@ class Utility
                 $description = $product->getDescription();
         }
 
-        return $this->filter->getPageFilter()->filter($description);
+        return $this->filter->getPageFilter()->filter((string)$description);
     }
 }
