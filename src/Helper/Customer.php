@@ -24,6 +24,8 @@ namespace Shopgate\Export\Helper;
 
 use Shopgate\Base\Helper\Customer as CustomerHelper;
 use Shopgate\Base\Model\Shopgate\Extended\Base;
+use \ShopgateCartCustomer;
+use \ShopgateCartCustomerGroup;
 
 class Customer
 {
@@ -45,7 +47,7 @@ class Customer
     }
 
     /**
-     * @return \ShopgateCartCustomer
+     * @return ShopgateCartCustomer
      */
     public function getCustomer()
     {
@@ -56,8 +58,8 @@ class Customer
         }
 
         $magentoCustomer = $this->customerHelper->getById($id);
-        $shopgateCartCustomer = new \ShopgateCartCustomer();
-        $shopgateCartCustomer->setCustomerGroups($this->mapMagentoCustomerGroup($magentoCustomer->getGroupId()));
+        $shopgateCartCustomer = new ShopgateCartCustomer();
+        $shopgateCartCustomer->setCustomerGroups($this->mapMagentoCustomerGroups($magentoCustomer->getGroupId()));
         $shopgateCartCustomer->setCustomerTaxClassKey($magentoCustomer->getTaxvat());
 
         return $shopgateCartCustomer;
@@ -65,12 +67,13 @@ class Customer
 
     /**
      * @param $groupId
-     * @return /ShopgateCartCustomerGroup[]
+     * @return ShopgateCartCustomerGroup[]
      */
-    public function mapMagentoCustomerGroup($groupId)
+    public function mapMagentoCustomerGroups($groupId)
     {
-        $customerGroup = new \ShopgateCartCustomerGroup();
+        $customerGroup = new ShopgateCartCustomerGroup();
         $customerGroup->setId($groupId);
+
         return [$customerGroup];
     }
 }
