@@ -9,6 +9,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - sort order of products within categories
 - error in product export (Enterprise Edtition only)
 
+### Added
+- support for returning customer data in check cart
+
 ## [2.9.15] - 2019-09-13
 ### Added
 - filter for website specific items in product export

@@ -26,6 +26,7 @@ use Magento\Framework\Api\SimpleDataObjectConverter;
 use Shopgate\Base\Model\Config;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Export\Helper\Quote as QuoteHelper;
+use Shopgate\Export\Helper\Customer as CustomerHelper;
 
 class Cart
 {
@@ -35,6 +36,8 @@ class Cart
     private $logger;
     /** @var QuoteHelper */
     private $quoteHelper;
+    /** @var CustomerHelper */
+    private $customerHelper;
     /** @var array */
     private $quoteFields;
     /** @var array */
@@ -44,6 +47,7 @@ class Cart
      * @param Config            $config
      * @param SgLoggerInterface $logger
      * @param QuoteHelper       $quoteHelper
+     * @param CustomerHelper    $customerHelper
      * @param array             $quoteFields
      * @param array             $quoteStockFields
      */
@@ -51,12 +55,14 @@ class Cart
         Config $config,
         SgLoggerInterface $logger,
         QuoteHelper $quoteHelper,
+        CustomerHelper $customerHelper,
         array $quoteFields = [],
         array $quoteStockFields = []
     ) {
         $this->config           = $config;
         $this->logger           = $logger;
         $this->quoteHelper      = $quoteHelper;
+        $this->customerHelper   = $customerHelper;
         $this->quoteFields      = $quoteFields;
         $this->quoteStockFields = $quoteStockFields;
     }
@@ -130,7 +136,7 @@ class Cart
      */
     protected function getCustomer()
     {
-        //todo-sg: get customer data, seems like we can reuse Helper/Customer.php here quite a bit
+        return $this->customerHelper->getCustomer();
     }
 
     /**
