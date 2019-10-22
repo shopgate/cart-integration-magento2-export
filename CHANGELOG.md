@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - sort order of products within categories
 - error in product export (Enterprise Edtition only)
 
+## [Unreleased]
 ### Added
 - support for returning customer data in check cart
 
