@@ -24,8 +24,8 @@ namespace Shopgate\Export\Helper;
 
 use Shopgate\Base\Helper\Customer as CustomerHelper;
 use Shopgate\Base\Model\Shopgate\Extended\Base;
-use \ShopgateCartCustomer;
-use \ShopgateCartCustomerGroup;
+use ShopgateCartCustomer;
+use ShopgateCartCustomerGroup;
 
 class Customer
 {
