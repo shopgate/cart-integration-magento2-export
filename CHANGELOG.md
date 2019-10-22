@@ -5,9 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- support for returning customer data cart validation
 ### Fixed
 - sort order of products within categories
-- error in product export (Enterprise Edtition only)
+- error in product export (Enterprise Edition only)
 
 ## [2.9.15] - 2019-09-13
 ### Added
