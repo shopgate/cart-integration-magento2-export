@@ -88,7 +88,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - check_cart call
 
 [Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.16...HEAD
-[2.9.15]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.15...2.9.16
+[2.9.16]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.15...2.9.16
 [2.9.15]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.14...2.9.15
 [2.9.14]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.13...2.9.14
 [2.9.13]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.12...2.9.13
