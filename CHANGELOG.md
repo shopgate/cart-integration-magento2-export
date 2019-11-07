@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [Unreleased]
+
+## [2.9.16] - 2019-11-07
+### Added
+- support for returning customer data cart validation
+### Fixed
+- sort order of products within categories
+- error in product export (Enterprise Edition only)
+
 ## [2.9.15] - 2019-09-13
 ### Added
 - filter for website specific items in product export
@@ -78,7 +87,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.15...HEAD
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.16...HEAD
+[2.9.15]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.15...2.9.16
 [2.9.15]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.14...2.9.15
 [2.9.14]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.13...2.9.14
 [2.9.13]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.12...2.9.13
