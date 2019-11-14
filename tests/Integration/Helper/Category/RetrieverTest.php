@@ -155,10 +155,10 @@ class RetrieverTest extends \PHPUnit\Framework\TestCase
     {
         $dom = new \DOMDocument();
         $dom->loadXML($currentXml);
-        $schema = @file_get_contents($xsdFile);
+        $schema = file_get_contents($xsdFile);
 
         libxml_use_internal_errors(true);
-        $result = @$dom->schemaValidateSource($schema);
+        $result = $dom->schemaValidateSource($schema);
         libxml_use_internal_errors(false);
 
         return $result;

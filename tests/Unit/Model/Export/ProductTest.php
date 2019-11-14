@@ -212,11 +212,13 @@ class ProductTest extends \PHPUnit\Framework\TestCase
      * @param int    $position
      *
      * @return \Magento\Framework\DataObject
+     *
+     * @throws \Exception
      */
     private function createImageObject($url, $position)
     {
         return new \Magento\Framework\DataObject([
-            'id'       => mt_rand(0, 10000),
+            'id'       => random_int(0, 10000),
             'url'      => $url,
             'file'     => $url,
             'position' => $position,
