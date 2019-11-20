@@ -28,9 +28,10 @@ use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product as MageProduct;
 use Magento\Catalog\Model\Product\Option;
 use Magento\Catalog\Model\Product\Visibility;
-use Magento\CatalogInventory\Api\Data\StockItemInterfaceFactory;
-use Magento\CatalogInventory\Model\ResourceModel\Stock\Item as StockItemResource;
 use Magento\Cms\Model\Template\FilterProvider;
+use Magento\InventoryCatalog\Model\GetStockIdForCurrentWebsite;
+use Magento\InventoryExportStock\Model\GetStockItemConfiguration;
+use Magento\InventorySalesApi\Model\GetStockItemDataInterface;
 use Magento\Store\Model\StoreManager;
 use Magento\Tax\Model\Config as TaxConfig;
 use Magento\Tax\Model\TaxCalculation;
@@ -76,10 +77,6 @@ class Utility
         'lb'   => \Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_POUND,
         'oz'   => \Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_OUNCE
     ];
-    /** @var StockItemResource */
-    protected $stockItemResource;
-    /** @var StockItemInterfaceFactory */
-    protected $stockItemFactory;
     /** @var StoreManager */
     protected $storeManager;
     /** @var TaxCalculation */
@@ -94,10 +91,14 @@ class Utility
     protected $filter;
     /** @var CoreInterface */
     protected $sgCore;
+    /** @var var GetStockIdForCurrentWebsite */
+    protected $getStockIdForCurrentWebsite;
+    /** @var GetStockItemDataInterface */
+    private $getStockItemData;
+    /** @var GetStockItemConfiguration */
+    protected $getStockItemConfiguration;
 
     /**
-     * @param StockItemResource           $stockItemResource
-     * @param StockItemInterfaceFactory   $stockItemFactory
      * @param StoreManager                $storeManager
      * @param TaxCalculation              $taxCalculation
      * @param ExportUtility               $utility
@@ -105,27 +106,32 @@ class Utility
      * @param TaxConfig                   $taxConfig
      * @param FilterProvider              $filter
      * @param CoreInterface               $sgCore
+     * @param GetStockIdForCurrentWebsite $getStockIdForCurrentWebsite
+     * @param GetStockItemConfiguration   $getStockItemConfiguration
+     * @param GetStockItemDataInterface   $getStockItemData
      */
     public function __construct(
-        StockItemResource $stockItemResource,
-        StockItemInterfaceFactory $stockItemFactory,
         StoreManager $storeManager,
         TaxCalculation $taxCalculation,
         ExportUtility $utility,
         CategoryRepositoryInterface $categoryRepository,
         TaxConfig $taxConfig,
         FilterProvider $filter,
-        CoreInterface $sgCore
+        CoreInterface $sgCore,
+        GetStockIdForCurrentWebsite $getStockIdForCurrentWebsite,
+        GetStockItemConfiguration $getStockItemConfiguration,
+        GetStockItemDataInterface $getStockItemData
     ) {
-        $this->stockItemResource  = $stockItemResource;
-        $this->stockItemFactory   = $stockItemFactory;
-        $this->storeManager       = $storeManager;
-        $this->taxCalculation     = $taxCalculation;
-        $this->utility            = $utility;
-        $this->taxConfig          = $taxConfig;
-        $this->categoryRepository = $categoryRepository;
-        $this->filter             = $filter;
-        $this->sgCore             = $sgCore;
+        $this->storeManager                = $storeManager;
+        $this->taxCalculation              = $taxCalculation;
+        $this->utility                     = $utility;
+        $this->taxConfig                   = $taxConfig;
+        $this->categoryRepository          = $categoryRepository;
+        $this->filter                      = $filter;
+        $this->sgCore                      = $sgCore;
+        $this->getStockIdForCurrentWebsite = $getStockIdForCurrentWebsite;
+        $this->getStockItemConfiguration   = $getStockItemConfiguration;
+        $this->getStockItemData            = $getStockItemData;
     }
 
     /**
@@ -198,19 +204,26 @@ class Utility
     /**
      * @param MageProduct $product
      *
-     * @return \Magento\CatalogInventory\Api\Data\StockItemInterface
+     * @return array
      */
     public function getStockItem($product)
     {
-        $stockItem = $this->stockItemFactory->create();
+        $stockId       = $this->getStockIdForCurrentWebsite->execute();
+        $stockItemData = $this->getStockItemData->execute($product->getSku(), $stockId);
 
-        $this->stockItemResource->loadByProductId(
-            $stockItem,
-            $product->getId(),
-            $this->storeManager->getWebsite()->getId()
-        );
+        return $stockItemData;
+    }
 
-        return $stockItem;
+    /**
+     * @param MageProduct $product
+     *
+     * @return StockItemConfiguration
+     */
+    public function getStockItemConfig($product)
+    {
+        $stockId = $this->getStockIdForCurrentWebsite->execute();
+
+        return $this->getStockItemConfiguration->execute($product->getSku(), $stockId);
     }
 
     /**

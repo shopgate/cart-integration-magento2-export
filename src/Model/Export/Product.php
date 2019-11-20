@@ -409,32 +409,17 @@ class Product extends Shopgate_Model_Catalog_Product
      */
     public function setStock()
     {
-        $stockItem = $this->helperProduct->getStockItem($this->item);
-        $stock     = new Shopgate_Model_Catalog_Stock();
-        $useStock  = false;
+        $stockItem       = $this->helperProduct->getStockItem($this->item);
+        $stockItemConfig = $this->helperProduct->getStockItemConfig($this->item);
 
-        if ($stockItem->getManageStock()) {
-            switch ($stockItem->getBackorders() && $stockItem->getIsInStock()) {
-                case Stock::BACKORDERS_YES_NONOTIFY:
-                case Stock::BACKORDERS_YES_NOTIFY:
-                    break;
-                default:
-                    $useStock = true;
-                    break;
-            }
-        }
+        $stock    = new Shopgate_Model_Catalog_Stock();
 
-        $stock->setUseStock($useStock);
-        $stock->setBackorders((bool) $stockItem->getBackorders());
-        $stock->setStockQuantity($stockItem->getQty());
-        $stock->setMaximumOrderQuantity($stockItem->getMaxSaleQty());
-        $stock->setMinimumOrderQuantity($stockItem->getMinSaleQty());
-
-        if ($stock->getUseStock()) {
-            $stock->setIsSaleable($this->item->getIsSalable());
-        } else {
-            $stock->setIsSaleable(true);
-        }
+        $stock->setUseStock((bool)$stockItemConfig->isManageStock());
+        $stock->setBackorders((bool)$stockItemConfig->getBackorders());
+        $stock->setStockQuantity((int)$stockItem['quantity']);
+        $stock->setMaximumOrderQuantity($stockItemConfig->getMaxSaleQty());
+        $stock->setMinimumOrderQuantity($stockItemConfig->getMinSaleQty());
+        $stock->setIsSaleable((bool)$stockItem['is_salable']);
 
         parent::setStock($stock);
     }
