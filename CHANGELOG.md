@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Added
 - Security enhancements
 
+### Fixed
+- Inventoryhandling for for version >= 2.3 
+
 ### Removed
 - Support for PHP < 7.1
 - Support for Magento < 2.2  
