@@ -46,7 +46,7 @@ class StockItem extends DataObject
      */
     public function getStockQuantity()
     {
-        return $this->setData(self::STOCK_QUANTITY);
+        return $this->getData(self::STOCK_QUANTITY);
     }
 
     /**
@@ -126,6 +126,6 @@ class StockItem extends DataObject
      */
     public function getMinimumOrderQuantity()
     {
-        return $this->setData(self::MINIMUM_ORDER_QUANTITY);
+        return $this->getData(self::MINIMUM_ORDER_QUANTITY);
     }
 }

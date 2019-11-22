@@ -28,10 +28,7 @@ use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product as MageProduct;
 use Magento\Catalog\Model\Product\Option;
 use Magento\Catalog\Model\Product\Visibility;
-use Magento\CatalogInventory\Api\Data\StockItemInterfaceFactory;
 use Magento\Cms\Model\Template\FilterProvider;
-use Magento\Framework\App\ProductMetadataInterface;
-use Magento\CatalogInventory\Model\ResourceModel\Stock\Item as StockItemResource;
 use Magento\Store\Model\StoreManager;
 use Magento\Tax\Model\Config as TaxConfig;
 use Magento\Tax\Model\TaxCalculation;
@@ -39,15 +36,13 @@ use Shopgate\Base\Api\Config\CoreInterface;
 use Shopgate\Export\Api\ExportInterface;
 use Shopgate\Export\Model\Config\Source\Description;
 use Shopgate\Export\Model\Export\Utility as ExportUtility;
-use Shopgate\Export\Model\Utility\StockItem;
 use Shopgate_Model_Catalog_CategoryPath;
 use Shopgate_Model_Catalog_Input;
 use Shopgate_Model_Catalog_Option;
 use Shopgate_Model_Catalog_Relation;
 use Shopgate_Model_Catalog_Validation;
 use Shopgate_Model_Catalog_Visibility;
-use Magento\Framework\App\ObjectManager;
-use Magento\CatalogInventory\Model\Stock;
+use Shopgate\Export\Model\Product\StockItemFactory;
 
 use Shopgate\Export\Helper\Product\Stock\Utility as StockUtility;
 
@@ -189,8 +184,7 @@ class Utility
     /**
      * @param MageProduct $product
      *
-     * @return StockItem
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return StockItemFactory
      */
     public function getStockItem($product)
     {

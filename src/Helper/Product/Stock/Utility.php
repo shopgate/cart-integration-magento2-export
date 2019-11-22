@@ -41,7 +41,7 @@ class Utility
     /** @var ProductStockItemFactory */
     protected $stockItem;
 
-    /** @var StockItem */
+    /** @var ProductMetadataInterface */
     protected $productMetadata;
 
     /** @var StockItemResource */
@@ -53,13 +53,13 @@ class Utility
     /** @var StoreManager */
     protected $storeManager;
 
-    /** @var var GetStockIdForCurrentWebsite */
+    /** @noinspection PhpParamsInspection */
     protected $getStockIdForCurrentWebsite;
 
-    /** @var GetStockItemDataInterface */
+    /** @noinspection PhpParamsInspection */
     protected $getStockItemData;
 
-    /** @var GetStockItemConfiguration */
+    /** @noinspection PhpParamsInspection */
     protected $getStockItemConfiguration;
 
     /**
@@ -112,22 +112,28 @@ class Utility
     /**
      * @param MageProduct $product
      *
-     * @return \Shopgate\Export\Model\Product\StockItem|ProductStockItemFactory
-     * @throws LocalizedException
+     * @return ProductStockItemFactory
      */
     public function getStockItem($product)
     {
         try {
             if (version_compare($this->getCurrentVersion(), '2.3.0', '>=')) {
+                /** @noinspection PhpUndefinedMethodInspection */
                 $stockId         = $this->getStockIdForCurrentWebsite->execute();
+                /** @noinspection PhpUndefinedMethodInspection */
                 $stockItemData   = $this->getStockItemData->execute($product->getSku(), $stockId);
+                /** @noinspection PhpUndefinedMethodInspection */
                 $stockItemConfig = $this->getStockItemConfiguration->execute($product->getSku(), $stockId);
 
                 $this->stockItem->setStockQuantity((int)$stockItemData['quantity']);
                 $this->stockItem->setIsSaleable((bool)$stockItemData['is_salable']);
+                /** @noinspection PhpUndefinedMethodInspection */
                 $this->stockItem->setUseStock((bool)$stockItemConfig->isManageStock());
+                /** @noinspection PhpUndefinedMethodInspection */
                 $this->stockItem->setBackorders((bool)$stockItemConfig->getBackorders());
+                /** @noinspection PhpUndefinedMethodInspection */
                 $this->stockItem->setMaximumOrderQuantity($stockItemConfig->getMaxSaleQty());
+                /** @noinspection PhpUndefinedMethodInspection */
                 $this->stockItem->setMinimumOrderQuantity($stockItemConfig->getMinSaleQty());
 
                 return $this->stockItem;
@@ -161,11 +167,13 @@ class Utility
                 ? $this->stockItem->setIsSaleable($product->getIsSalable())
                 : $this->stockItem->setIsSaleable(true);
 
-            return $this->stockItem;
+
         } catch (LocalizedException $exception) {
             $this->log->error(
                 "Can't handle stock of product with id: {$product->getId()}, message: " . $exception->getMessage()
             );
         }
+
+        return $this->stockItem;
     }
 }
