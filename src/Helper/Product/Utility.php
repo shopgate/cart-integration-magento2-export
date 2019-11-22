@@ -28,10 +28,10 @@ use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product as MageProduct;
 use Magento\Catalog\Model\Product\Option;
 use Magento\Catalog\Model\Product\Visibility;
+use Magento\CatalogInventory\Api\Data\StockItemInterfaceFactory;
 use Magento\Cms\Model\Template\FilterProvider;
-use Magento\InventoryCatalog\Model\GetStockIdForCurrentWebsite;
-use Magento\InventoryExportStock\Model\GetStockItemConfiguration;
-use Magento\InventorySalesApi\Model\GetStockItemDataInterface;
+use Magento\Framework\App\ProductMetadataInterface;
+use Magento\CatalogInventory\Model\ResourceModel\Stock\Item as StockItemResource;
 use Magento\Store\Model\StoreManager;
 use Magento\Tax\Model\Config as TaxConfig;
 use Magento\Tax\Model\TaxCalculation;
@@ -39,12 +39,15 @@ use Shopgate\Base\Api\Config\CoreInterface;
 use Shopgate\Export\Api\ExportInterface;
 use Shopgate\Export\Model\Config\Source\Description;
 use Shopgate\Export\Model\Export\Utility as ExportUtility;
+use Shopgate\Export\Model\Utility\StockItem;
 use Shopgate_Model_Catalog_CategoryPath;
 use Shopgate_Model_Catalog_Input;
 use Shopgate_Model_Catalog_Option;
 use Shopgate_Model_Catalog_Relation;
 use Shopgate_Model_Catalog_Validation;
 use Shopgate_Model_Catalog_Visibility;
+use Magento\Framework\App\ObjectManager;
+use Magento\CatalogInventory\Model\Stock;
 
 class Utility
 {
@@ -94,9 +97,17 @@ class Utility
     /** @var var GetStockIdForCurrentWebsite */
     protected $getStockIdForCurrentWebsite;
     /** @var GetStockItemDataInterface */
-    private $getStockItemData;
+    protected $getStockItemData;
     /** @var GetStockItemConfiguration */
     protected $getStockItemConfiguration;
+    /** @var StockItem */
+    protected $stockItem;
+    /** @var StockItem */
+    protected $productMetadata;
+    /** @var StockItemResource */
+    protected $stockItemResource;
+    /** @var StockItemInterfaceFactory */
+    protected $stockItemFactory;
 
     /**
      * @param StoreManager                $storeManager
@@ -106,9 +117,10 @@ class Utility
      * @param TaxConfig                   $taxConfig
      * @param FilterProvider              $filter
      * @param CoreInterface               $sgCore
-     * @param GetStockIdForCurrentWebsite $getStockIdForCurrentWebsite
-     * @param GetStockItemConfiguration   $getStockItemConfiguration
-     * @param GetStockItemDataInterface   $getStockItemData
+     * @param StockItem                   $stockItem
+     * @param ProductMetadataInterface    $productMetadata
+     * @param StockItemInterfaceFactory   $stockItemFactory
+     * @param StockItemResource           $stockItemResource
      */
     public function __construct(
         StoreManager $storeManager,
@@ -118,20 +130,44 @@ class Utility
         TaxConfig $taxConfig,
         FilterProvider $filter,
         CoreInterface $sgCore,
-        GetStockIdForCurrentWebsite $getStockIdForCurrentWebsite,
-        GetStockItemConfiguration $getStockItemConfiguration,
-        GetStockItemDataInterface $getStockItemData
+        StockItem $stockItem,
+        ProductMetadataInterface $productMetadata,
+        StockItemInterfaceFactory $stockItemFactory,
+        StockItemResource $stockItemResource
     ) {
-        $this->storeManager                = $storeManager;
-        $this->taxCalculation              = $taxCalculation;
-        $this->utility                     = $utility;
-        $this->taxConfig                   = $taxConfig;
-        $this->categoryRepository          = $categoryRepository;
-        $this->filter                      = $filter;
-        $this->sgCore                      = $sgCore;
-        $this->getStockIdForCurrentWebsite = $getStockIdForCurrentWebsite;
-        $this->getStockItemConfiguration   = $getStockItemConfiguration;
-        $this->getStockItemData            = $getStockItemData;
+        $this->stockItemResource  = $stockItemResource;
+        $this->stockItemFactory   = $stockItemFactory;
+        $this->storeManager       = $storeManager;
+        $this->taxCalculation     = $taxCalculation;
+        $this->utility            = $utility;
+        $this->taxConfig          = $taxConfig;
+        $this->categoryRepository = $categoryRepository;
+        $this->filter             = $filter;
+        $this->sgCore             = $sgCore;
+        $this->stockItem          = $stockItem;
+        $this->productMetadata    = $productMetadata;
+        $this->setDependencies();
+    }
+
+    /**
+     * Set the dependencies based on version
+     */
+    protected function setDependencies()
+    {
+        if (version_compare($this->getCurrentVersion(), '2.3.0', '>=')) {
+            $om                                = ObjectManager::getInstance();
+            $this->getStockItemData            = $om->get('Magento\\InventorySalesApi\\Model\\GetStockItemDataInterface');
+            $this->getStockIdForCurrentWebsite = $om->get('Magento\\InventoryCatalog\\Model\\GetStockIdForCurrentWebsite');
+            $this->getStockItemConfiguration   = $om->get('Magento\\InventoryExportStock\\Model\\GetStockItemConfiguration');
+        }
+    }
+
+    /**
+     * @return string
+     */
+    protected function getCurrentVersion()
+    {
+        return $this->productMetadata->getVersion();
     }
 
     /**
@@ -204,26 +240,54 @@ class Utility
     /**
      * @param MageProduct $product
      *
-     * @return array
+     * @return StockItem
+     * @throws \Magento\Framework\Exception\LocalizedException
      */
     public function getStockItem($product)
     {
-        $stockId       = $this->getStockIdForCurrentWebsite->execute();
-        $stockItemData = $this->getStockItemData->execute($product->getSku(), $stockId);
+        if (version_compare($this->getCurrentVersion(), '2.3.0', '>=')) {
+            $stockId         = $this->getStockIdForCurrentWebsite->execute();
+            $stockItemData   = $this->getStockItemData->execute($product->getSku(), $stockId);
+            $stockItemConfig = $this->getStockItemConfiguration->execute($product->getSku(), $stockId);
 
-        return $stockItemData;
-    }
+            $this->stockItem->setStockQuantity((int)$stockItemData['quantity']);
+            $this->stockItem->setIsSaleable((bool)$stockItemData['is_salable']);
+            $this->stockItem->setUseStock((bool)$stockItemConfig->isManageStock());
+            $this->stockItem->setBackorders((bool)$stockItemConfig->getBackorders());
+            $this->stockItem->setMaximumOrderQuantity($stockItemConfig->getMaxSaleQty());
+            $this->stockItem->setMinimumOrderQuantity($stockItemConfig->getMinSaleQty());
+        } else {
+            $stockItem = $this->stockItemFactory->create();
+            $this->stockItemResource->loadByProductId(
+                $stockItem,
+                $product->getId(),
+                $this->storeManager->getWebsite()->getId()
+            );
 
-    /**
-     * @param MageProduct $product
-     *
-     * @return StockItemConfiguration
-     */
-    public function getStockItemConfig($product)
-    {
-        $stockId = $this->getStockIdForCurrentWebsite->execute();
+            $useStock = false;
+            if ($stockItem->getManageStock()) {
+                switch ($stockItem->getBackorders() && $stockItem->getIsInStock()) {
+                    case Stock::BACKORDERS_YES_NONOTIFY:
+                    case Stock::BACKORDERS_YES_NOTIFY:
+                        break;
+                    default:
+                        $useStock = true;
+                        break;
+                }
+            }
+            $this->stockItem->setUseStock((bool)$useStock);
+            $this->stockItem->setBackorders((bool)$stockItem->getBackorders());
+            $this->stockItem->setStockQuantity((int)$stockItem->getQty());
+            $this->stockItem->setMaximumOrderQuantity($stockItem->getMaxSaleQty());
+            $this->stockItem->setMinimumOrderQuantity($stockItem->getMinSaleQty());
+            if ($useStock) {
+                $this->stockItem->setIsSaleable($product->getIsSalable());
+            } else {
+                $this->stockItem->setIsSaleable(true);
+            }
+        }
 
-        return $this->getStockItemConfiguration->execute($product->getSku(), $stockId);
+        return $this->stockItem;
     }
 
     /**

@@ -409,17 +409,9 @@ class Product extends Shopgate_Model_Catalog_Product
      */
     public function setStock()
     {
-        $stockItem       = $this->helperProduct->getStockItem($this->item);
-        $stockItemConfig = $this->helperProduct->getStockItemConfig($this->item);
-
-        $stock    = new Shopgate_Model_Catalog_Stock();
-
-        $stock->setUseStock((bool)$stockItemConfig->isManageStock());
-        $stock->setBackorders((bool)$stockItemConfig->getBackorders());
-        $stock->setStockQuantity((int)$stockItem['quantity']);
-        $stock->setMaximumOrderQuantity($stockItemConfig->getMaxSaleQty());
-        $stock->setMinimumOrderQuantity($stockItemConfig->getMinSaleQty());
-        $stock->setIsSaleable((bool)$stockItem['is_salable']);
+        $stockItem = $this->helperProduct->getStockItem($this->item);
+        $stock     = new Shopgate_Model_Catalog_Stock();
+        $stock->setData($stockItem->getData());
 
         parent::setStock($stock);
     }
