@@ -167,7 +167,6 @@ class Utility
                 ? $this->stockItem->setIsSaleable($product->getIsSalable())
                 : $this->stockItem->setIsSaleable(true);
 
-
         } catch (LocalizedException $exception) {
             $this->log->error(
                 "Can't handle stock of product with id: {$product->getId()}, message: " . $exception->getMessage()
