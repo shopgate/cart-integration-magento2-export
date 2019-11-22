@@ -20,18 +20,25 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-namespace Shopgate\Export\Model\Utility;
+namespace Shopgate\Export\Model\Product;
 
 use Magento\Framework\DataObject;
 
 class StockItem extends DataObject
 {
+    const MINIMUM_ORDER_QUANTITY = 'minimum_order_quantity';
+    const MAXIMUM_ORDER_QUANTITY = 'maximum_order_quantity';
+    const BACKORDERS             = 'backorders';
+    const USE_STOCk              = 'use_stock';
+    const IS_SALABLE             = 'is_salable';
+    const STOCK_QUANTITY         = 'stock_quantity';
+
     /**
      * @param int $stockQuantity
      */
-    public function setStockQuantity($stockQuantity)
+    public function setStockQuantity(int $stockQuantity)
     {
-        $this->setData('stock_quantity', $stockQuantity);
+        $this->setData(self::STOCK_QUANTITY, $stockQuantity);
     }
 
     /**
@@ -39,15 +46,15 @@ class StockItem extends DataObject
      */
     public function getStockQuantity()
     {
-        return $this->setData('stock_quantity');
+        return $this->setData(self::STOCK_QUANTITY);
     }
 
     /**
      * @param bool $isSaleable
      */
-    public function setIsSaleable($isSaleable)
+    public function setIsSaleable(bool $isSaleable)
     {
-        $this->setData('is_salable', $isSaleable);
+        $this->setData(self::IS_SALABLE, $isSaleable);
     }
 
     /**
@@ -55,15 +62,15 @@ class StockItem extends DataObject
      */
     public function getIsSaleable()
     {
-        return $this->getData('is_salable');
+        return $this->getData(self::IS_SALABLE);
     }
 
     /**
      * @param bool $useStock
      */
-    public function setUseStock($useStock)
+    public function setUseStock(bool $useStock)
     {
-        $this->setData('use_stock', $useStock);
+        $this->setData(self::USE_STOCk, $useStock);
     }
 
     /**
@@ -71,15 +78,15 @@ class StockItem extends DataObject
      */
     public function getUseStock()
     {
-        return $this->getData('use_stock');
+        return $this->getData(self::USE_STOCk);
     }
 
     /**
      * @param bool $backorders
      */
-    public function setBackorders($backorders)
+    public function setBackorders(bool $backorders)
     {
-        $this->setData('backorders', $backorders);
+        $this->setData(self::BACKORDERS, $backorders);
     }
 
     /**
@@ -87,15 +94,15 @@ class StockItem extends DataObject
      */
     public function getBackorders()
     {
-        return $this->getData('backorders');
+        return $this->getData(self::BACKORDERS);
     }
 
     /**
      * @param int $maximumOrderQuantity
      */
-    public function setMaximumOrderQuantity($maximumOrderQuantity)
+    public function setMaximumOrderQuantity(int $maximumOrderQuantity)
     {
-        $this->setData('maximum_order_quantity', $maximumOrderQuantity);
+        $this->setData(self::MAXIMUM_ORDER_QUANTITY, $maximumOrderQuantity);
     }
 
     /**
@@ -103,15 +110,15 @@ class StockItem extends DataObject
      */
     public function getMaximumOrderQuantity()
     {
-        return $this->getData('maximum_order_quantity');
+        return $this->getData(self::MAXIMUM_ORDER_QUANTITY);
     }
 
     /**
      * @param int $minimumOrderQuantity
      */
-    public function setMinimumOrderQuantity($minimumOrderQuantity)
+    public function setMinimumOrderQuantity(int $minimumOrderQuantity)
     {
-        $this->setData('minimum_order_quantity', $minimumOrderQuantity);
+        $this->setData(self::MINIMUM_ORDER_QUANTITY, $minimumOrderQuantity);
     }
 
     /**
@@ -119,6 +126,6 @@ class StockItem extends DataObject
      */
     public function getMinimumOrderQuantity()
     {
-        return $this->setData('minimum_order_quantity');
+        return $this->setData(self::MINIMUM_ORDER_QUANTITY);
     }
 }
