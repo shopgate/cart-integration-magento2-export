@@ -24,7 +24,6 @@ namespace Shopgate\Export\Model\Export;
 use Exception;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Model\Product as MageProduct;
-use Magento\CatalogInventory\Model\Stock;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\GroupManagement;
 use Magento\Directory\Helper\Data;

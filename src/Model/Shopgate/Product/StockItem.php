@@ -20,23 +20,23 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-namespace Shopgate\Export\Model\Product;
+namespace Shopgate\Export\Model\Shopgate\Product;
 
 use Magento\Framework\DataObject;
 
 class StockItem extends DataObject
 {
-    const MINIMUM_ORDER_QUANTITY = 'minimum_order_quantity';
-    const MAXIMUM_ORDER_QUANTITY = 'maximum_order_quantity';
-    const BACKORDERS             = 'backorders';
-    const USE_STOCk              = 'use_stock';
-    const IS_SALABLE             = 'is_salable';
-    const STOCK_QUANTITY         = 'stock_quantity';
+    public const MINIMUM_ORDER_QUANTITY = 'minimum_order_quantity';
+    public const MAXIMUM_ORDER_QUANTITY = 'maximum_order_quantity';
+    public const BACKORDERS             = 'backorders';
+    public const USE_STOCK              = 'use_stock';
+    public const IS_SALABLE             = 'is_salable';
+    public const STOCK_QUANTITY         = 'stock_quantity';
 
     /**
      * @param int $stockQuantity
      */
-    public function setStockQuantity(int $stockQuantity)
+    public function setStockQuantity(int $stockQuantity): void
     {
         $this->setData(self::STOCK_QUANTITY, $stockQuantity);
     }
@@ -44,7 +44,7 @@ class StockItem extends DataObject
     /**
      * @return int
      */
-    public function getStockQuantity()
+    public function getStockQuantity(): int
     {
         return $this->getData(self::STOCK_QUANTITY);
     }
@@ -52,7 +52,7 @@ class StockItem extends DataObject
     /**
      * @param bool $isSaleable
      */
-    public function setIsSaleable(bool $isSaleable)
+    public function setIsSaleable(bool $isSaleable): void
     {
         $this->setData(self::IS_SALABLE, $isSaleable);
     }
@@ -60,7 +60,7 @@ class StockItem extends DataObject
     /**
      * @return bool
      */
-    public function getIsSaleable()
+    public function getIsSaleable(): bool
     {
         return $this->getData(self::IS_SALABLE);
     }
@@ -68,23 +68,23 @@ class StockItem extends DataObject
     /**
      * @param bool $useStock
      */
-    public function setUseStock(bool $useStock)
+    public function setUseStock(bool $useStock): void
     {
-        $this->setData(self::USE_STOCk, $useStock);
+        $this->setData(self::USE_STOCK, $useStock);
     }
 
     /**
      * @return bool
      */
-    public function getUseStock()
+    public function getUseStock(): bool
     {
-        return $this->getData(self::USE_STOCk);
+        return $this->getData(self::USE_STOCK);
     }
 
     /**
      * @param bool $backorders
      */
-    public function setBackorders(bool $backorders)
+    public function setBackorders(bool $backorders): void
     {
         $this->setData(self::BACKORDERS, $backorders);
     }
@@ -92,7 +92,7 @@ class StockItem extends DataObject
     /**
      * @return bool
      */
-    public function getBackorders()
+    public function getBackorders(): bool
     {
         return $this->getData(self::BACKORDERS);
     }
@@ -100,7 +100,7 @@ class StockItem extends DataObject
     /**
      * @param int $maximumOrderQuantity
      */
-    public function setMaximumOrderQuantity(int $maximumOrderQuantity)
+    public function setMaximumOrderQuantity(int $maximumOrderQuantity): void
     {
         $this->setData(self::MAXIMUM_ORDER_QUANTITY, $maximumOrderQuantity);
     }
@@ -108,7 +108,7 @@ class StockItem extends DataObject
     /**
      * @return int
      */
-    public function getMaximumOrderQuantity()
+    public function getMaximumOrderQuantity(): int
     {
         return $this->getData(self::MAXIMUM_ORDER_QUANTITY);
     }
@@ -116,7 +116,7 @@ class StockItem extends DataObject
     /**
      * @param int $minimumOrderQuantity
      */
-    public function setMinimumOrderQuantity(int $minimumOrderQuantity)
+    public function setMinimumOrderQuantity(int $minimumOrderQuantity): void
     {
         $this->setData(self::MINIMUM_ORDER_QUANTITY, $minimumOrderQuantity);
     }
@@ -124,7 +124,7 @@ class StockItem extends DataObject
     /**
      * @return int
      */
-    public function getMinimumOrderQuantity()
+    public function getMinimumOrderQuantity(): int
     {
         return $this->getData(self::MINIMUM_ORDER_QUANTITY);
     }
