@@ -29,17 +29,21 @@ use Magento\CatalogInventory\Model\Stock;
 use Magento\Framework\App\ObjectManager;
 use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\InventoryCatalog\Model\GetStockIdForCurrentWebsite;
+use Magento\InventoryExportStock\Model\GetStockItemConfiguration;
+use Magento\InventorySalesApi\Model\GetStockItemDataInterface;
 use Magento\Store\Model\StoreManager;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
-use Shopgate\Export\Model\Product\StockItemFactory as ProductStockItemFactory;
+use Shopgate\Export\Model\Shopgate\Product\StockItem;
+use Shopgate\Export\Model\Shopgate\Product\StockItemFactory as ShopgateStockItemFactory;
 
 class Utility
 {
     /** @var SgLoggerInterface */
     protected $log;
 
-    /** @var ProductStockItemFactory */
-    protected $stockItem;
+    /** @var ShopgateStockItemFactory */
+    protected $shopgateStockItemFactory;
 
     /** @var ProductMetadataInterface */
     protected $productMetadata;
@@ -53,18 +57,18 @@ class Utility
     /** @var StoreManager */
     protected $storeManager;
 
-    /** @noinspection PhpParamsInspection */
+    /** @var GetStockIdForCurrentWebsite */
     protected $getStockIdForCurrentWebsite;
 
-    /** @noinspection PhpParamsInspection */
+    /** @var GetStockItemDataInterface */
     protected $getStockItemData;
 
-    /** @noinspection PhpParamsInspection */
+    /** @var GetStockItemConfiguration */
     protected $getStockItemConfiguration;
 
     /**
      * @param SgLoggerInterface         $logger
-     * @param ProductStockItemFactory   $productStockItemFactory
+     * @param ShopgateStockItemFactory  $productStockItemFactory
      * @param ProductMetadataInterface  $productMetadata
      * @param StockItemInterfaceFactory $stockItemFactory
      * @param StockItemResource         $stockItemResource
@@ -72,106 +76,85 @@ class Utility
      */
     public function __construct(
         SgLoggerInterface $logger,
-        ProductStockItemFactory $productStockItemFactory,
+        ShopgateStockItemFactory $productStockItemFactory,
         ProductMetadataInterface $productMetadata,
         StockItemInterfaceFactory $stockItemFactory,
         StockItemResource $stockItemResource,
         StoreManager $storeManager
     ) {
-        $this->log               = $logger;
-        $this->stockItem         = $productStockItemFactory->create();
-        $this->productMetadata   = $productMetadata;
-        $this->stockItemResource = $stockItemResource;
-        $this->stockItemFactory  = $stockItemFactory;
-        $this->storeManager      = $storeManager;
+        $this->log                      = $logger;
+        $this->shopgateStockItemFactory = $productStockItemFactory;
+        $this->productMetadata          = $productMetadata;
+        $this->stockItemResource        = $stockItemResource;
+        $this->stockItemFactory         = $stockItemFactory;
+        $this->storeManager             = $storeManager;
 
-        $this->setDependencies();
-    }
-
-    /**
-     * Set the dependencies based on version
-     */
-    protected function setDependencies()
-    {
         if (version_compare($this->getCurrentVersion(), '2.3.0', '>=')) {
             $om                                = ObjectManager::getInstance();
-            $this->getStockItemData            = $om->get('Magento\\InventorySalesApi\\Model\\GetStockItemDataInterface');
-            $this->getStockIdForCurrentWebsite = $om->get('Magento\\InventoryCatalog\\Model\\GetStockIdForCurrentWebsite');
-            $this->getStockItemConfiguration   = $om->get('Magento\\InventoryExportStock\\Model\\GetStockItemConfiguration');
+            $this->getStockItemData            = $om->get(GetStockItemDataInterface::class);
+            $this->getStockIdForCurrentWebsite = $om->get(GetStockIdForCurrentWebsite::class);
+            $this->getStockItemConfiguration   = $om->get(GetStockItemConfiguration::class);
         }
-    }
-
-    /**
-     * @return string
-     */
-    protected function getCurrentVersion()
-    {
-        return $this->productMetadata->getVersion();
     }
 
     /**
      * @param MageProduct $product
      *
-     * @return ProductStockItemFactory
+     * @return StockItem
+     * @throws LocalizedException
      */
-    public function getStockItem($product)
+    public function getStockItem($product): StockItem
     {
-        try {
-            if (version_compare($this->getCurrentVersion(), '2.3.0', '>=')) {
-                /** @noinspection PhpUndefinedMethodInspection */
-                $stockId         = $this->getStockIdForCurrentWebsite->execute();
-                /** @noinspection PhpUndefinedMethodInspection */
-                $stockItemData   = $this->getStockItemData->execute($product->getSku(), $stockId);
-                /** @noinspection PhpUndefinedMethodInspection */
-                $stockItemConfig = $this->getStockItemConfiguration->execute($product->getSku(), $stockId);
+        /** @var StockItem $shopgateStockItem */
+        $shopgateStockItem = $this->shopgateStockItemFactory->create();
+        if (version_compare($this->getCurrentVersion(), '2.3.0', '>=')) {
+            $stockId         = $this->getStockIdForCurrentWebsite->execute();
+            $stockItemData   = $this->getStockItemData->execute($product->getSku(), $stockId);
+            $stockItemConfig = $this->getStockItemConfiguration->execute($product->getSku());
 
-                $this->stockItem->setStockQuantity((int)$stockItemData['quantity']);
-                $this->stockItem->setIsSaleable((bool)$stockItemData['is_salable']);
-                /** @noinspection PhpUndefinedMethodInspection */
-                $this->stockItem->setUseStock((bool)$stockItemConfig->isManageStock());
-                /** @noinspection PhpUndefinedMethodInspection */
-                $this->stockItem->setBackorders((bool)$stockItemConfig->getBackorders());
-                /** @noinspection PhpUndefinedMethodInspection */
-                $this->stockItem->setMaximumOrderQuantity($stockItemConfig->getMaxSaleQty());
-                /** @noinspection PhpUndefinedMethodInspection */
-                $this->stockItem->setMinimumOrderQuantity($stockItemConfig->getMinSaleQty());
+            $shopgateStockItem->setStockQuantity((int) $stockItemData['quantity']);
+            $shopgateStockItem->setIsSaleable((bool) $stockItemData['is_salable']);
+            $shopgateStockItem->setUseStock($stockItemConfig->isManageStock());
+            $shopgateStockItem->setBackorders((bool) $stockItemConfig->getBackorders());
+            $shopgateStockItem->setMaximumOrderQuantity($stockItemConfig->getMaxSaleQty());
+            $shopgateStockItem->setMinimumOrderQuantity($stockItemConfig->getMinSaleQty());
 
-                return $this->stockItem;
-            }
-
-            $stockItem = $this->stockItemFactory->create();
-            $this->stockItemResource->loadByProductId(
-                $stockItem,
-                $product->getId(),
-                $this->storeManager->getWebsite()->getId()
-            );
-
-            $useStock = false;
-            if ($stockItem->getManageStock()) {
-                switch ($stockItem->getBackorders() && $stockItem->getIsInStock()) {
-                    case Stock::BACKORDERS_YES_NONOTIFY:
-                    case Stock::BACKORDERS_YES_NOTIFY:
-                        break;
-                    default:
-                        $useStock = true;
-                        break;
-                }
-            }
-            $this->stockItem->setUseStock((bool)$useStock);
-            $this->stockItem->setBackorders((bool)$stockItem->getBackorders());
-            $this->stockItem->setStockQuantity((int)$stockItem->getQty());
-            $this->stockItem->setMaximumOrderQuantity($stockItem->getMaxSaleQty());
-            $this->stockItem->setMinimumOrderQuantity($stockItem->getMinSaleQty());
-
-            $useStock
-                ? $this->stockItem->setIsSaleable($product->getIsSalable())
-                : $this->stockItem->setIsSaleable(true);
-        } catch (LocalizedException $exception) {
-            $this->log->error(
-                "Can't handle stock of product with id: {$product->getId()}, message: " . $exception->getMessage()
-            );
+            return $shopgateStockItem;
         }
 
-        return $this->stockItem;
+        $stockItem = $this->stockItemFactory->create();
+        $this->stockItemResource->loadByProductId(
+            $stockItem,
+            $product->getId(),
+            $this->storeManager->getStore() ? $this->storeManager->getStore()->getWebsiteId() : 1
+        );
+
+        $useStock = false;
+        if ($stockItem->getManageStock()) {
+            switch ($stockItem->getBackorders() && $stockItem->getIsInStock()) {
+                case Stock::BACKORDERS_YES_NONOTIFY:
+                case Stock::BACKORDERS_YES_NOTIFY:
+                    break;
+                default:
+                    $useStock = true;
+                    break;
+            }
+        }
+        $shopgateStockItem->setUseStock($useStock);
+        $shopgateStockItem->setBackorders((bool) $stockItem->getBackorders());
+        $shopgateStockItem->setStockQuantity((int) $stockItem->getQty());
+        $shopgateStockItem->setMaximumOrderQuantity($stockItem->getMaxSaleQty());
+        $shopgateStockItem->setMinimumOrderQuantity($stockItem->getMinSaleQty());
+        $shopgateStockItem->setIsSaleable(!$useStock ? : $product->getIsSalable());
+
+        return $shopgateStockItem;
+    }
+
+    /**
+     * @return string
+     */
+    protected function getCurrentVersion(): string
+    {
+        return $this->productMetadata->getVersion();
     }
 }
