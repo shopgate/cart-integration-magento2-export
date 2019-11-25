@@ -24,6 +24,8 @@ namespace Shopgate\Export\Helper\Product\Stock;
 
 use Magento\Catalog\Model\Product as MageProduct;
 use Magento\CatalogInventory\Api\Data\StockItemInterfaceFactory;
+use Magento\CatalogInventory\Api\StockConfigurationInterface;
+use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\CatalogInventory\Model\ResourceModel\Stock\Item as StockItemResource;
 use Magento\CatalogInventory\Model\Stock;
 use Magento\Framework\App\ObjectManager;
@@ -66,6 +68,12 @@ class Utility
     /** @var GetStockItemConfiguration */
     protected $getStockItemConfiguration;
 
+    /** @var StockConfigurationInterface */
+    protected $stockConfiguration;
+
+    /** @var StockRegistryInterface */
+    protected $stockRegistry;
+
     /**
      * @param SgLoggerInterface         $logger
      * @param ShopgateStockItemFactory  $productStockItemFactory
@@ -80,7 +88,9 @@ class Utility
         ProductMetadataInterface $productMetadata,
         StockItemInterfaceFactory $stockItemFactory,
         StockItemResource $stockItemResource,
-        StoreManager $storeManager
+        StoreManager $storeManager,
+        StockConfigurationInterface $stockConfiguration,
+        StockRegistryInterface $stockRegistry
     ) {
         $this->log                      = $logger;
         $this->shopgateStockItemFactory = $productStockItemFactory;
@@ -88,6 +98,8 @@ class Utility
         $this->stockItemResource        = $stockItemResource;
         $this->stockItemFactory         = $stockItemFactory;
         $this->storeManager             = $storeManager;
+        $this->stockConfiguration       = $stockConfiguration;
+        $this->stockRegistry            = $stockRegistry;
 
         if (version_compare($this->getCurrentVersion(), '2.3.0', '>=')) {
             $om                                = ObjectManager::getInstance();
@@ -122,11 +134,15 @@ class Utility
             return $shopgateStockItem;
         }
 
-        $stockItem = $this->stockItemFactory->create();
+        $stockItem      = $this->stockItemFactory->create();
+        $defaultScopeId = $this->stockConfiguration->getDefaultScopeId();
+        $defaultStockId = $this->stockRegistry->getStock($defaultScopeId)->getStockId();
+        $stockId        = $stockItem->getStockId();
+
         $this->stockItemResource->loadByProductId(
             $stockItem,
             $product->getId(),
-            $this->storeManager->getStore() ? $this->storeManager->getStore()->getWebsiteId() : 1
+            $stockId ?: $defaultStockId
         );
 
         $useStock = false;
