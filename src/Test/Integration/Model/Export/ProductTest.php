@@ -129,37 +129,6 @@ class ProductTest extends TestCase
     }
 
     /**
-     * Tests Group UIDs
-     *
-     * @return array
-     */
-    public function tierPriceUidProvider(): array
-    {
-        return [
-            'group 1'    => [
-                'expected'    => 1,
-                'tier prices' => [
-                    [
-                        'group_id' => '1',
-                        'qty'      => 0,
-                        'value'    => 0,
-                    ]
-                ]
-            ],
-            'all groups' => [
-                'expected'    => null,
-                'tier prices' => [
-                    [
-                        'group_id' => GroupManagement::CUST_GROUP_ALL,
-                        'qty'      => 0,
-                        'value'    => 0,
-                    ]
-                ]
-            ]
-        ];
-    }
-
-    /**
      * Test internal_order_info for products
      *
      * @return array
