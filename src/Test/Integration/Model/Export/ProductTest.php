@@ -19,33 +19,40 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-namespace Shopgate\Integration\Model\Export;
+namespace Shopgate\Export\Test\Integration\Model\Export;
 
+use Exception;
+use Magento\Catalog\Api\Data\ProductTierPriceInterface;
 use Magento\Catalog\Model\Product;
+use Magento\Catalog\Model\ProductFactory;
 use Magento\Customer\Model\GroupManagement;
-use Shopgate\Base\Tests\Bootstrap;
+use Magento\TestFramework\ObjectManager;
+use PHPUnit\Framework\TestCase;
+use Shopgate\Export\Model\Export\Product as SubjectUnderTest;
+use Shopgate_Model_Catalog_TierPrice;
 
 /**
- * @coversDefaultClass Shopgate\Export\Model\Export\Product
+ * @magentoAppIsolation enabled
+ * @magentoDbIsolation  enabled
+ * @magentoAppArea      frontend
  */
-class ProductTest extends \PHPUnit\Framework\TestCase
+class ProductTest extends TestCase
 {
-    /** @var \Shopgate\Export\Model\Export\Product */
-    protected $class;
-    /** @var \Magento\Catalog\Model\ProductFactory */
+    /** @var SubjectUnderTest */
+    protected $subjectUnderTest;
+    /** @var ProductFactory */
     protected $productFactory;
+    /** * @var \Magento\Framework\App\ObjectManager */
+    protected $objectManager;
 
     /**
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * Setup
      */
     public function setUp()
     {
-        $objManager           = Bootstrap::getObjectManager();
-        $this->class          = $objManager->create('Shopgate\Export\Model\Export\Product');
-        $this->productFactory = $objManager->create('Magento\Catalog\Model\ProductFactory');
-        /** @var \Magento\Framework\App\State $state */
-        $state = $objManager->get('Magento\Framework\App\State');
-        $state->setAreaCode('frontend');
+        $this->objectManager    = ObjectManager::getInstance();
+        $this->subjectUnderTest = $this->objectManager->create(SubjectUnderTest::class);
+        $this->productFactory   = $this->objectManager->create(ProductFactory::class);
     }
 
     /**
@@ -53,18 +60,17 @@ class ProductTest extends \PHPUnit\Framework\TestCase
      * @param float $salePrice
      * @param array $tierPrices
      *
-     * @covers ::setPrice
      * @dataProvider tierPriceReductionProvider
-     * @throws \Exception
+     * @throws Exception
      */
-    public function testNonRuleTierPrices($expected, $salePrice, $tierPrices)
+    public function testNonRuleTierPrices($expected, $salePrice, $tierPrices): void
     {
         $product = $this->createProduct()->setFinalPrice($salePrice);
         $this->addTierPrices($product, $tierPrices);
-        $this->class->setItem($product)->setPrice();
-        $export = $this->class->getPrice()->getTierPricesGroup();
+        $this->subjectUnderTest->setItem($product)->setPrice();
+        $export = $this->subjectUnderTest->getPrice()->getTierPricesGroup();
 
-        /** @var \Shopgate_Model_Catalog_TierPrice $group */
+        /** @var Shopgate_Model_Catalog_TierPrice $group */
         $group = array_pop($export);
         $this->assertEquals($expected, $group->getReduction());
     }
@@ -73,18 +79,17 @@ class ProductTest extends \PHPUnit\Framework\TestCase
      * @param $expected
      * @param $tierPrices
      *
-     * @covers ::setPrice
      * @dataProvider tierPriceUidProvider
-     * @throws \Exception
+     * @throws Exception
      */
-    public function testGroupUids($expected, $tierPrices)
+    public function testGroupUids($expected, $tierPrices): void
     {
         $product = $this->createProduct();
         $this->addTierPrices($product, $tierPrices);
-        $this->class->setItem($product)->setPrice();
-        $export = $this->class->getPrice()->getTierPricesGroup();
+        $this->subjectUnderTest->setItem($product)->setPrice();
+        $export = $this->subjectUnderTest->getPrice()->getTierPricesGroup();
 
-        /** @var \Shopgate_Model_Catalog_TierPrice $group */
+        /** @var Shopgate_Model_Catalog_TierPrice $group */
         $group = array_pop($export);
         $this->assertEquals($expected, $group->getCustomerGroupUid());
     }
@@ -93,36 +98,36 @@ class ProductTest extends \PHPUnit\Framework\TestCase
      * @param string $expectedJson
      * @param int    $productId
      *
-     * @covers ::setInternalOrderInfo
      * @dataProvider orderInfoProvider
+     * @throws Exception
      */
-    public function testOrderInfoJson($expectedJson, $productId)
+    public function testOrderInfoJson($expectedJson, $productId): void
     {
         $product = $this->createProduct()->load($productId);
-        $this->class->setItem($product)->setInternalOrderInfo();
-        $orderInfo = $this->class->getInternalOrderInfo();
+        $this->subjectUnderTest->setItem($product)->setInternalOrderInfo();
+        $orderInfo = $this->subjectUnderTest->getInternalOrderInfo();
         $this->assertJson($orderInfo);
         $this->assertEquals($expectedJson, $orderInfo);
     }
 
     /**
-     * @covers ::setWeight
+     * @throws Exception
      */
-    public function testSetWeight()
+    public function testSetWeight(): void
     {
         $product = $this->createProduct();
-        $this->class->setItem($product)->setWeight();
-        $this->assertEquals($product->getData('weight'), $this->class->getWeight());
+        $this->subjectUnderTest->setItem($product)->setWeight();
+        $this->assertEquals($product->getData('weight'), $this->subjectUnderTest->getWeight());
     }
 
     /**
      * @covers ::setAttributeGroups
      */
-    public function testNotEmptyAttributeGroups()
+    public function testNotEmptyAttributeGroups(): void
     {
         $product = $this->createProduct()->load(83);
-        $this->class->setItem($product)->setAttributeGroups();
-        $this->assertNotEmpty($this->class->getAttributeGroups());
+        $this->subjectUnderTest->setItem($product)->setAttributeGroups();
+        $this->assertNotEmpty($this->subjectUnderTest->getAttributeGroups());
     }
 
     /**
@@ -130,7 +135,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
      *
      * @return array
      */
-    public function tierPriceReductionProvider()
+    public function tierPriceReductionProvider(): array
     {
         return [
             '5 off'    => [
@@ -163,7 +168,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
      *
      * @return array
      */
-    public function tierPriceUidProvider()
+    public function tierPriceUidProvider(): array
     {
         return [
             'group 1'    => [
@@ -197,13 +202,13 @@ class ProductTest extends \PHPUnit\Framework\TestCase
     public function orderInfoProvider()
     {
         return [
-            'simple product order info #1'  => ['{"store_view_id":"1","product_id":"1","item_type":"simple"}', 1],
-            'simple product order info #2'  => ['{"store_view_id":"1","product_id":"2","item_type":"simple"}', 2],
-            'config product order info #67' => [
+            'simple product order info #1'     => ['{"store_view_id":"1","product_id":"1","item_type":"simple"}', 1],
+            'simple product order info #2'     => ['{"store_view_id":"1","product_id":"2","item_type":"simple"}', 2],
+            'config product order info #67'    => [
                 '{"store_view_id":"1","product_id":"67","item_type":"configurable"}',
                 67
             ],
-            'config product order info #83' => [
+            'config product order info #83'    => [
                 '{"store_view_id":"1","product_id":"83","item_type":"configurable"}',
                 83
             ],
@@ -218,7 +223,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
      * Creates a simple product
      *
      * @return Product
-     * @throws \Exception
+     * @throws Exception
      */
     private function createProduct()
     {
@@ -256,13 +261,12 @@ class ProductTest extends \PHPUnit\Framework\TestCase
      * @param Product $product
      * @param array   $tierPrices
      */
-    private function addTierPrices(Product $product, array $tierPrices)
+    private function addTierPrices(Product $product, array $tierPrices): void
     {
-        $nodes     = [];
-        $bootstrap = Bootstrap::getObjectManager();
+        $nodes = [];
         foreach ($tierPrices as $tierPrice) {
-            /** @var \Magento\Catalog\Api\Data\ProductTierPriceInterface $tierPriceNode */
-            $tierPriceNode = $bootstrap->create('Magento\Catalog\Api\Data\ProductTierPriceInterface');
+            /** @var ProductTierPriceInterface $tierPriceNode */
+            $tierPriceNode = $this->objectManager->create(ProductTierPriceInterface::class);
             $nodes[]       = $tierPriceNode
                 ->setCustomerGroupId($tierPrice['group_id'])
                 ->setQty($tierPrice['qty'])

@@ -19,16 +19,18 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-namespace Shopgate\Export\Tests\Integration\Helper\Product;
+namespace Shopgate\Export\Test\Integration\Helper\Product;
 
 use Magento\Store\Model\StoreManagerInterface;
+use PHPUnit\Framework\TestCase;
 use Shopgate\Base\Tests\Bootstrap;
 use Shopgate\Export\Helper\Product\Retriever;
+use Shopgate\Export\Model\Export\Product;
 
 /**
  * @coversDefaultClass \Shopgate\Export\Helper\Product\Retriever
  */
-class RetrieverTest extends \PHPUnit\Framework\TestCase
+class RetrieverTest extends TestCase
 {
     /** @var StoreManagerInterface */
     protected $storeManager;
@@ -49,7 +51,7 @@ class RetrieverTest extends \PHPUnit\Framework\TestCase
      * Check if the created product can be pulled
      * individually by UID
      *
-     * @param   int $uid
+     * @param int $uid
      *
      * @covers ::getItems
      * @dataProvider uidProvider
@@ -59,7 +61,7 @@ class RetrieverTest extends \PHPUnit\Framework\TestCase
         $sgProducts = $this->class->getItems(null, null, [$uid]);
 
         foreach ($sgProducts as $sgProduct) {
-            /** @var \Shopgate\Export\Model\Export\Product $sgProduct */
+            /** @var Product $sgProduct */
             $this->assertEquals($uid, $sgProduct->getUid());
         }
     }

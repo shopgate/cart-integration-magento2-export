@@ -19,17 +19,23 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-namespace Shopgate\Export\Tests\Integration\Helper\Category;
+namespace Shopgate\Export\Test\Integration\Helper\Category;
 
+use DOMDocument;
+use Exception;
 use Magento\Catalog\Model\CategoryFactory;
+use Magento\Framework\Registry;
 use Magento\Store\Model\StoreManagerInterface;
+use PHPUnit\Framework\TestCase;
 use Shopgate\Base\Tests\Bootstrap;
 use Shopgate\Export\Helper\Category\Retriever;
+use Shopgate\Export\Model\Export\Category;
+use Shopgate_Model_XmlResultObject;
 
 /**
  * @coversDefaultClass \Shopgate\Export\Helper\Category\Retriever
  */
-class RetrieverTest extends \PHPUnit\Framework\TestCase
+class RetrieverTest extends TestCase
 {
     /** @var StoreManagerInterface */
     protected $storeManager;
@@ -65,34 +71,9 @@ class RetrieverTest extends \PHPUnit\Framework\TestCase
         $sgCategories = $this->class->getCategories(null, null, [$category->getId()]);
 
         foreach ($sgCategories as $sgCategory) {
-            /** @var \Shopgate\Export\Model\Export\Category $sgCategory */
+            /** @var Category $sgCategory */
             $this->assertEquals($category->getId(), $sgCategory->getUid());
         }
-    }
-
-    /**
-     * Creates a category
-     *
-     * @return \Magento\Catalog\Model\Category
-     * @throws \Exception
-     */
-    private function createCategory()
-    {
-        $rootId = $this->storeManager->getGroup()->getRootCategoryId();
-
-        /** @var CategoryFactory $categoryFactory */
-        $category = $this->categoryFactory->create();
-        $category
-            ->setIsActive(1)
-            ->setName('Test' . rand(0, 999))
-            ->setParentId($rootId)
-            ->setPath('1/' . $rootId)
-            ->setUrlPath('deep_link/url.html')
-            ->setData('is_anchor', 1)
-            ->setData('sort_order', '15');
-        $this->categories[] = $category->save();
-
-        return $category;
     }
 
     /**
@@ -136,9 +117,9 @@ class RetrieverTest extends \PHPUnit\Framework\TestCase
     {
         $category = $this->createCategory();
         $result   = $this->class->getCategories(null, null, [$category->getId()]);
-        /** @var \Shopgate\Export\Model\Export\Category $sgCategory */
+        /** @var Category $sgCategory */
         $sgCategory = array_pop($result);
-        $node       = new \Shopgate_Model_XmlResultObject('<categories></categories>');
+        $node       = new Shopgate_Model_XmlResultObject('<categories></categories>');
         $xml        = $sgCategory->asXml($node)->asXML();
         $result     = $this->checkXmlFile($sgCategory->getXsdFileLocation(), $xml);
 
@@ -153,7 +134,7 @@ class RetrieverTest extends \PHPUnit\Framework\TestCase
      */
     public function checkXmlFile($xsdFile, $currentXml)
     {
-        $dom = new \DOMDocument();
+        $dom = new DOMDocument();
         $dom->loadXML($currentXml);
         $schema = file_get_contents($xsdFile);
 
@@ -188,7 +169,7 @@ class RetrieverTest extends \PHPUnit\Framework\TestCase
     public function tearDown()
     {
         /**
-         * @var \Magento\Framework\Registry $registry
+         * @var Registry $registry
          */
         $registry = Bootstrap::getObjectManager()->get('\Magento\Framework\Registry');
         $registry->register('isSecureArea', true, true);
@@ -196,5 +177,30 @@ class RetrieverTest extends \PHPUnit\Framework\TestCase
         foreach ($this->categories as $category) {
             $category->delete();
         }
+    }
+
+    /**
+     * Creates a category
+     *
+     * @return \Magento\Catalog\Model\Category
+     * @throws Exception
+     */
+    private function createCategory()
+    {
+        $rootId = $this->storeManager->getGroup()->getRootCategoryId();
+
+        /** @var CategoryFactory $categoryFactory */
+        $category = $this->categoryFactory->create();
+        $category
+            ->setIsActive(1)
+            ->setName('Test' . rand(0, 999))
+            ->setParentId($rootId)
+            ->setPath('1/' . $rootId)
+            ->setUrlPath('deep_link/url.html')
+            ->setData('is_anchor', 1)
+            ->setData('sort_order', '15');
+        $this->categories[] = $category->save();
+
+        return $category;
     }
 }
