@@ -28,6 +28,7 @@ use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\GroupManagement;
 use Magento\Directory\Helper\Data;
 use Magento\Framework\DataObject;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\GroupedProduct\Model\Product\Type\Grouped;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
@@ -405,8 +406,10 @@ class Product extends Shopgate_Model_Catalog_Product
 
     /**
      * Set stock
+     *
+     * @throws LocalizedException
      */
-    public function setStock()
+    public function setStock(): void
     {
         $stockItem = $this->helperProduct->getStockItem($this->item);
         $stock     = new Shopgate_Model_Catalog_Stock();

@@ -24,6 +24,7 @@ namespace Shopgate\Export\Test\Integration\Model\Export;
 use Exception;
 use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Model\GroupManagement;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
@@ -118,7 +119,6 @@ class ProductTest extends TestCase
     }
 
     /**
-     * @covers ::setAttributeGroups
      * @throws NoSuchEntityException
      */
     public function testNotEmptyAttributeGroups(): void
@@ -129,9 +129,38 @@ class ProductTest extends TestCase
     }
 
     /**
+     * @param float  $expected
+     * @param string $sku
+     *
+     * @dataProvider inventoryDataProvider
+     * @throws NoSuchEntityException
+     * @throws LocalizedException
+     */
+    public function testInventory(float $expected, string $sku): void
+    {
+        $product = $this->productRepository->get($sku);
+        $this->subjectUnderTest->setItem($product)->setStock();
+        $stock = $this->subjectUnderTest->getStock();
+        $this->assertEquals($expected, $stock->getStockQuantity());
+    }
+
+    /**
+     * @return array
+     */
+    public function inventoryDataProvider(): array
+    {
+        return [
+            ['100', '24-MB01'],
+            ['0', 'MH01'],
+            ['0', '24-WG085_Group'],
+            ['0', '24-WG080']
+        ];
+    }
+
+    /**
      * Test internal_order_info for products
      *
-     * @return array
+     * @return string[]
      */
     public function orderInfoProvider(): array
     {
