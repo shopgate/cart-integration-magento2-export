@@ -121,7 +121,7 @@ class ProductTest extends TestCase
     /**
      * @throws NoSuchEntityException
      */
-    public function testNotEmptyAttributeGroups(): void
+    public function _testNotEmptyAttributeGroups(): void
     {
         $product = $this->productRepository->get('MH01');
         $this->subjectUnderTest->setItem($product)->setAttributeGroups();
@@ -151,9 +151,59 @@ class ProductTest extends TestCase
     {
         return [
             ['100', '24-MB01'],
-            ['0', 'MH01'],
-            ['0', '24-WG085_Group'],
-            ['0', '24-WG080']
+            ['0', 'MH01'], // Config
+            ['0', '24-WG085_Group'], // Group
+            ['0', '24-WG080'],
+            ['100', '24-WB07'],
+            ['100', 'MH01-XS-Black'], // Simple of config
+            ['0', '24-WG080'], // Bundle
+            ['100', '24-WG085'], // Simple 1 of bundle
+            ['100', '24-WG081-blue'], // Simple 2 of bundle
+            ['100', '243-MB04'], // Giftcard with stock
+        ];
+    }
+
+    /**
+     * @param string $sku
+     * @param float  $qty
+     * @param int    $maximumOrderQuantity
+     * @param int    $minimumOrderQuantity
+     * @param bool   $backOrders
+     * @param bool   $isSaleable
+     * @param bool   $useStock
+     *
+     * @dataProvider inventoryDetailDataProvider
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     */
+    public function testInventoryDetail(
+        string $sku,
+        float $qty,
+        int $maximumOrderQuantity,
+        int $minimumOrderQuantity,
+        bool $backOrders,
+        bool $isSaleable,
+        bool $useStock
+    ): void {
+        $product = $this->productRepository->get($sku);
+        $this->subjectUnderTest->setItem($product)->setStock();
+        $stock = $this->subjectUnderTest->getStock();
+        $this->assertEquals($qty, $stock->getStockQuantity());
+        $this->assertEquals($maximumOrderQuantity, $stock->getMaximumOrderQuantity());
+        $this->assertEquals($minimumOrderQuantity, $stock->getMinimumOrderQuantity());
+        $this->assertEquals($backOrders, $stock->getBackorders());
+        $this->assertEquals($isSaleable, $stock->getIsSaleable());
+        $this->assertEquals($useStock, $stock->getUseStock());
+    }
+
+    /**
+     * @return array
+     */
+    public function inventoryDetailDataProvider(): array
+    {
+        return [
+            ['24-MB01' , '100', '10000', '1', '0', '1', '1'], // Simple
+            ['MH01' , '0', '10000', '1', '0', '1', '1'] // Config
         ];
     }
 

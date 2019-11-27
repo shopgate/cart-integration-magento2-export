@@ -30,7 +30,7 @@ class StockItem extends DataObject
     public const MAXIMUM_ORDER_QUANTITY = 'maximum_order_quantity';
     public const BACKORDERS             = 'backorders';
     public const USE_STOCK              = 'use_stock';
-    public const IS_SALABLE             = 'is_salable';
+    public const IS_SALEABLE             = 'is_saleable';
     public const STOCK_QUANTITY         = 'stock_quantity';
 
     /**
@@ -54,7 +54,7 @@ class StockItem extends DataObject
      */
     public function setIsSaleable(bool $isSaleable): void
     {
-        $this->setData(self::IS_SALABLE, $isSaleable);
+        $this->setData(self::IS_SALEABLE, $isSaleable);
     }
 
     /**
@@ -62,7 +62,7 @@ class StockItem extends DataObject
      */
     public function getIsSaleable(): bool
     {
-        return $this->getData(self::IS_SALABLE);
+        return $this->getData(self::IS_SALEABLE);
     }
 
     /**
