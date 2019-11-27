@@ -82,7 +82,7 @@ class Cron
         /** @var Collection $orderCollection */
         $orderCollection = $this->shopgateOrderFactory->create()->getCollection();
         $orderCollection->filterByUnsynchronizedOrders();
-        $orderCollection->getSelect()->limit(100, 0);
+        $orderCollection->setPageSize(100);
         $this->logger->debug("# Found {$orderCollection->getSize()} potential orders to send");
 
         /** @var ShopgateOrderModel $shopgateOrder */
