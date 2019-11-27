@@ -30,7 +30,7 @@ class StockItem extends DataObject
     public const MAXIMUM_ORDER_QUANTITY = 'maximum_order_quantity';
     public const BACKORDERS             = 'backorders';
     public const USE_STOCK              = 'use_stock';
-    public const IS_SALEABLE             = 'is_saleable';
+    public const IS_SALEABLE            = 'is_saleable';
     public const STOCK_QUANTITY         = 'stock_quantity';
 
     /**
