@@ -82,14 +82,12 @@ class Cron
         /** @var Collection $orderCollection */
         $orderCollection = $this->shopgateOrderFactory->create()->getCollection();
         $orderCollection->filterByUnsynchronizedOrders();
+        $orderCollection->setPageSize(100);
         $this->logger->debug("# Found {$orderCollection->getSize()} potential orders to send");
 
         /** @var ShopgateOrderModel $shopgateOrder */
         foreach ($orderCollection as $shopgateOrder) {
-            $searchCriteria = $this->searchCriteriaBuilder
-                ->addFilter('entity_id', $shopgateOrder->getOrderId(), 'eq')->create();
-            $orderList      = $this->orderRepository->getList($searchCriteria);
-            $magentoOrder   = $orderList->getFirstItem();
+            $magentoOrder = $this->orderRepository->get($shopgateOrder->getOrderId());
             $this->shippingHelper->sendShippingForOrder($shopgateOrder, $magentoOrder);
         }
     }

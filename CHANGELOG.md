@@ -7,10 +7,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [Unreleased]
 ### Added
 - Security enhancements
+- Limit for order collection set shipping completed and refactor filter
 
 ### Removed
 - Support for PHP < 7.1
-- Support for Magento < 2.2  
+- Support for Magento < 2.2 
 
 ## [2.9.16] - 2019-11-07
 ### Added
