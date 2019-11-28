@@ -197,7 +197,7 @@ class ProductTest extends TestCase
     }
 
     /**
-     * @return array
+     * @return string[]
      */
     public function inventoryDetailDataProvider(): array
     {
