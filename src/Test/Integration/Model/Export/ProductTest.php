@@ -121,7 +121,7 @@ class ProductTest extends TestCase
     /**
      * @throws NoSuchEntityException
      */
-    public function _testNotEmptyAttributeGroups(): void
+    public function testNotEmptyAttributeGroups(): void
     {
         $product = $this->productRepository->get('MH01');
         $this->subjectUnderTest->setItem($product)->setAttributeGroups();
