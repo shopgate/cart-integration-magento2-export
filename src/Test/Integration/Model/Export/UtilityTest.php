@@ -19,18 +19,20 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-namespace Shopgate\Export\Tests\Integration\Model\Export;
+namespace Shopgate\Export\Test\Integration\Model\Export;
 
+use PHPUnit\Framework\TestCase;
 use Shopgate\Base\Api\Config\SgCoreInterface;
 use Shopgate\Base\Tests\Bootstrap;
 use Shopgate\Base\Tests\Integration\Db\ConfigManager;
+use Shopgate\Export\Model\Export\Utility;
 
 /**
  * @coversDefaultClass Shopgate\Export\Model\Export\Utility
  */
-class UtilityTest extends \PHPUnit\Framework\TestCase
+class UtilityTest extends TestCase
 {
-    /** @var  \Shopgate\Export\Model\Export\Utility */
+    /** @var  Utility */
     protected $class;
     /** @var  ConfigManager */
     protected $cfgManager;

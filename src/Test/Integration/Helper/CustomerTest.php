@@ -20,28 +20,34 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-namespace Shopgate\Export\Tests\Integration\Helper;
+namespace Shopgate\Export\Test\Integration\Helper;
 
+use Exception;
 use Magento\Customer\Model\AccountManagement;
+use Magento\Customer\Model\Customer;
 use Magento\Customer\Model\CustomerFactory;
 use Magento\Framework\App\Config\ScopePool;
+use Magento\Framework\Registry;
+use PHPUnit\Framework\TestCase;
 use Shopgate\Base\Tests\Bootstrap;
 use Shopgate\Base\Tests\Integration\Db\ConfigManager;
+use Shopgate\Export\Model\Service\Export;
+use ShopgateLibraryException;
 
 /**
  * @coversDefaultClass \Shopgate\Export\Helper\Customer
  */
-class CustomerTest extends \PHPUnit\Framework\TestCase
+class CustomerTest extends TestCase
 {
     /** @var CustomerFactory */
     protected $customerFactory;
     /** @var ConfigManager */
     protected $cfgManager;
-    /** @var \Magento\Customer\Model\Customer[] */
+    /** @var Customer[] */
     protected $customers;
     /** @var  ScopePool */
     protected $scopePool;
-    /** @var \Shopgate\Export\Model\Service\Export */
+    /** @var Export */
     private $class;
 
     /**
@@ -74,44 +80,14 @@ class CustomerTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * Helps create a magento customer
-     *
-     * @param null|string $user
-     * @param null|string $pass
-     *
-     * @return \Magento\Customer\Model\Customer
-     * @throws \Exception
-     */
-    private function createCustomer($user = null, $pass = null)
-    {
-        if (!$pass) {
-            $pass = 'test' . rand(0, 99999);
-        }
-
-        if (!$user) {
-            $user = $pass . '@shopgate.com';
-        }
-
-        /** @var \Magento\Customer\Model\Customer $customer */
-        $customer = $this->customerFactory->create();
-        $customer->setData('email', $user);
-        $customer->setData('firstname', 'Test');
-        $customer->setData('lastname', 'Tester');
-        $customer->setPassword($pass);
-        $customer->save();
-
-        return $this->customers[] = $customer;
-    }
-
-    /**
      * @covers ::getCustomer
      */
     public function testNonAuthenticatedCustomer()
     {
-        $exceptionCode = \ShopgateLibraryException::PLUGIN_WRONG_USERNAME_OR_PASSWORD;
+        $exceptionCode = ShopgateLibraryException::PLUGIN_WRONG_USERNAME_OR_PASSWORD;
         $this->setExpectedException(
             'ShopgateLibraryException',
-            \ShopgateLibraryException::getMessageFor($exceptionCode),
+            ShopgateLibraryException::getMessageFor($exceptionCode),
             $exceptionCode
         );
         $customer = $this->createCustomer();
@@ -129,13 +105,13 @@ class CustomerTest extends \PHPUnit\Framework\TestCase
     {
         $this->markTestSkipped('Skipping test as we are having issues with code pool');
 
-        $exceptionCode = \ShopgateLibraryException::PLUGIN_CUSTOMER_ACCOUNT_NOT_CONFIRMED;
+        $exceptionCode = ShopgateLibraryException::PLUGIN_CUSTOMER_ACCOUNT_NOT_CONFIRMED;
         $this->setExpectedException(
             'ShopgateLibraryException',
-            \ShopgateLibraryException::getMessageFor($exceptionCode),
+            ShopgateLibraryException::getMessageFor($exceptionCode),
             $exceptionCode
         );
-        /** @var \Magento\Customer\Model\Customer $customer */
+        /** @var Customer $customer */
         $customer = $this->createCustomer();
         $customer->setData('confirmation', '12345');
         $customer->save();
@@ -149,7 +125,7 @@ class CustomerTest extends \PHPUnit\Framework\TestCase
     public function tearDown()
     {
         /**
-         * @var \Magento\Framework\Registry $registry
+         * @var Registry $registry
          */
         $registry = Bootstrap::getObjectManager()->get('\Magento\Framework\Registry');
         $registry->register('isSecureArea', true, true);
@@ -157,5 +133,35 @@ class CustomerTest extends \PHPUnit\Framework\TestCase
         foreach ($this->customers as $customer) {
             $customer->delete();
         }
+    }
+
+    /**
+     * Helps create a magento customer
+     *
+     * @param null|string $user
+     * @param null|string $pass
+     *
+     * @return Customer
+     * @throws Exception
+     */
+    private function createCustomer($user = null, $pass = null)
+    {
+        if (!$pass) {
+            $pass = 'test' . rand(0, 99999);
+        }
+
+        if (!$user) {
+            $user = $pass . '@shopgate.com';
+        }
+
+        /** @var Customer $customer */
+        $customer = $this->customerFactory->create();
+        $customer->setData('email', $user);
+        $customer->setData('firstname', 'Test');
+        $customer->setData('lastname', 'Tester');
+        $customer->setPassword($pass);
+        $customer->save();
+
+        return $this->customers[] = $customer;
     }
 }

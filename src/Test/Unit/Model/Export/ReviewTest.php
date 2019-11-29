@@ -23,12 +23,14 @@ namespace Shopgate\Export\Test\Unit\Model\Export;
 
 use Magento\Framework\DataObject;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use PHPUnit\Framework\TestCase;
+use ReflectionClass;
 use Shopgate\Export\Model\Export\Review;
 
 /**
  * @coversDefaultClass \Shopgate\Export\Model\Export\Review
  */
-class ReviewTest extends \PHPUnit\Framework\TestCase
+class ReviewTest extends TestCase
 {
     /**
      * @var ObjectManager
@@ -41,6 +43,37 @@ class ReviewTest extends \PHPUnit\Framework\TestCase
     public function setUp()
     {
         $this->objectManager = new ObjectManager($this);
+    }
+
+    public function scoreProvider()
+    {
+        return [
+            '8 stars rating / 80%' => [8, 80],
+            '0 stars rating / 0%'  => [0, 0],
+            '1 stars rating / 5%'  => [1, 5],
+            '0 stars rating / 1%'  => [0, 1]
+        ];
+    }
+
+    /**
+     * @param int $expectedScore
+     * @param int $scorePerentage
+     *
+     * @dataProvider scoreProvider
+     */
+    public function testScoreCalculation($expectedScore, $scorePerentage)
+    {
+        $fakeReview = $this->getFakeReview($scorePerentage);
+
+        $reviewModel = new Review();
+        $reviewModel->setItem($fakeReview);
+
+        $reflection = new ReflectionClass($reviewModel);
+        $method     = $reflection->getMethod('_getScore');
+        $method->setAccessible(true);
+        $exportedScore = $method->invoke($reviewModel);
+
+        $this->assertEquals($expectedScore, $exportedScore);
     }
 
     /**
@@ -58,36 +91,5 @@ class ReviewTest extends \PHPUnit\Framework\TestCase
         $fakeReview->setRatingVotes([$fakeVote]);
 
         return $fakeReview;
-    }
-
-    public function scoreProvider()
-    {
-        return [
-            '8 stars rating / 80%' => [8, 80],
-            '0 stars rating / 0%' => [0, 0],
-            '1 stars rating / 5%' => [1, 5],
-            '0 stars rating / 1%' => [0, 1]
-        ];
-    }
-
-    /**
-     * @param int $expectedScore
-     * @param int $scorePerentage
-     *
-     * @dataProvider scoreProvider
-     */
-    public function testScoreCalculation($expectedScore, $scorePerentage)
-    {
-        $fakeReview = $this->getFakeReview($scorePerentage);
-
-        $reviewModel = new Review();
-        $reviewModel->setItem($fakeReview);
-
-        $reflection = new \ReflectionClass($reviewModel);
-        $method     = $reflection->getMethod('_getScore');
-        $method->setAccessible(true);
-        $exportedScore = $method->invoke($reviewModel);
-
-        $this->assertEquals($expectedScore, $exportedScore);
     }
 }

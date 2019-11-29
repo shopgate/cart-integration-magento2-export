@@ -20,16 +20,22 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-namespace Integration\Model\Service;
+namespace Shopgate\Export\Test\Integration;
 
+use Magento\Framework\Exception\CouldNotSaveException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Model\Quote;
+use PHPUnit\Framework\TestCase;
 use Shopgate\Base\Tests\Bootstrap;
 use Shopgate\Base\Tests\Integration\Db\StockManager;
 use Shopgate\Export\Helper\Cart;
+use Zend_Json_Decoder;
+use Zend_Json_Exception;
 
 /**
- * @coversDefaultClass Shopgate\Export\Model\Service\Export
+ * @coversDefaultClass \Shopgate\Export\Model\Service\Export
  */
-class Export extends \PHPUnit\Framework\TestCase
+class ExportTest extends TestCase
 {
 
     /**
@@ -53,21 +59,19 @@ class Export extends \PHPUnit\Framework\TestCase
      * @covers       ::checkCartRaw
      * @covers       Cart::__construct
      * @covers       Cart::loadSupportedMethods
-     * @covers       Cart::loadQuoteFields
      * @covers       Cart::getItems
      * @covers       Quote::setItems
      * @covers       Quote::setCustomer
-     * @covers       Quote::cleanup
      *
      * @dataProvider allProductProvider
      *
-     * @throws \Magento\Framework\Exception\CouldNotSaveException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     * @throws \Zend_Json_Exception
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
      */
     public function testCheckCartItems($expected, $sgCart)
     {
-        $internalInfo = \Zend_Json_Decoder::decode($sgCart['cart']['items'][0]['internal_order_info']);
+        $internalInfo = Zend_Json_Decoder::decode($sgCart['cart']['items'][0]['internal_order_info']);
         $this->stockManager->setStockWebsite($internalInfo['product_id']);
 
         /** @var \Shopgate\Export\Model\Service\Export $class */
@@ -340,7 +344,7 @@ class Export extends \PHPUnit\Framework\TestCase
     public function removeQuoteItems()
     {
         //todo-sg: does not clear quote correctly between tests
-        /** @var \Magento\Quote\Model\Quote $quote */
+        /** @var Quote $quote */
         $quote = Bootstrap::getObjectManager()->get('Magento\Quote\Model\Quote');
         $quote->removeAllItems();
         $quote->isDeleted(false);
@@ -354,13 +358,13 @@ class Export extends \PHPUnit\Framework\TestCase
      *
      * @dataProvider couponProvider
      *
-     * @throws \Magento\Framework\Exception\CouldNotSaveException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     * @throws \Zend_Json_Exception
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
      */
     public function testCheckCartCoupons($expected, $cart)
     {
-        $internalInfo = \Zend_Json_Decoder::decode($cart['cart']['items'][0]['internal_order_info']);
+        $internalInfo = Zend_Json_Decoder::decode($cart['cart']['items'][0]['internal_order_info']);
         $this->stockManager->setStockWebsite($internalInfo['product_id']);
 
         /** @var \Shopgate\Export\Model\Service\Export $class */

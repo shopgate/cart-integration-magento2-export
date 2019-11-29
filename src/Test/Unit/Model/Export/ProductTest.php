@@ -21,37 +21,29 @@
 
 namespace Shopgate\Export\Test\Unit\Model\Export;
 
+use ArrayIterator;
+use Exception;
 use Magento\Catalog\Model\Product;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Framework\App\Config;
+use Magento\Framework\Data\Collection;
+use Magento\Framework\DataObject;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\GroupedProduct\Model\Product\Type\Grouped;
 use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
 use Shopgate\Base\Api\Config\CoreInterface;
 use Shopgate\Export\Model\Config\Source\Description;
 
 /**
  * @coversDefaultClass \Shopgate\Export\Model\Export\Product
  */
-class ProductTest extends \PHPUnit\Framework\TestCase
+class ProductTest extends TestCase
 {
     /**
      * @var ObjectManager
      */
     private $objectManager;
-
-    /**
-     * @return MockObject
-     */
-    private function getProductDouble()
-    {
-        $productDouble = $this
-            ->getMockBuilder(Product::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        return $productDouble;
-    }
 
     /**
      * Load object manager for initialization
@@ -74,26 +66,26 @@ class ProductTest extends \PHPUnit\Framework\TestCase
     {
         $this->markTestIncomplete('Expected strings not yet returned by the stub');
         $configValueStub = $this->getMockBuilder(Config\Value::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+                                ->disableOriginalConstructor()
+                                ->getMock();
 
         $configValueStub->method('getValue')
-            ->will($this->returnValue($descConfig));
+                        ->will($this->returnValue($descConfig));
 
         $scopeConfigStub = $this->getMockBuilder(CoreInterface::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+                                ->disableOriginalConstructor()
+                                ->getMock();
 
         $scopeConfigStub->method('getConfigByPath')
-            ->will($this->returnValue($configValueStub));
+                        ->will($this->returnValue($configValueStub));
 
         $productStub = $this->getProductDouble();
 
         $productStub->method('getDescription')
-            ->will($this->returnValue($longDesc));
+                    ->will($this->returnValue($longDesc));
 
         $productStub->method('getShortDescription')
-            ->will($this->returnValue($shortDesc));
+                    ->will($this->returnValue($shortDesc));
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
@@ -120,7 +112,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
         $productStub = $this->getProductDouble();
 
         $productStub->method('getTypeId')
-            ->will($this->returnValue($productType));
+                    ->will($this->returnValue($productType));
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
@@ -143,7 +135,7 @@ class ProductTest extends \PHPUnit\Framework\TestCase
         $productStub = $this->getProductDouble();
 
         $productStub->method('getTypeId')
-            ->will($this->returnValue($productType));
+                    ->will($this->returnValue($productType));
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
@@ -166,10 +158,10 @@ class ProductTest extends \PHPUnit\Framework\TestCase
     {
         $productStub = $this->getProductDouble();
         $productStub->method('getMediaGalleryImages')
-            ->willReturn($this->getTestCollection($imageData));
+                    ->willReturn($this->getTestCollection($imageData));
 
         $productStub->method('getData')
-            ->will($this->returnValueMap([['small_image', null, $smallImagePath]]));
+                    ->will($this->returnValueMap([['small_image', null, $smallImagePath]]));
 
         /** @var \Shopgate\Export\Model\Export\Product $exportModel */
         $exportModel = $this->objectManager->getObject(
@@ -208,44 +200,6 @@ class ProductTest extends \PHPUnit\Framework\TestCase
     }
 
     /**
-     * @param string $url
-     * @param int    $position
-     *
-     * @return \Magento\Framework\DataObject
-     *
-     * @throws \Exception
-     */
-    private function createImageObject($url, $position)
-    {
-        return new \Magento\Framework\DataObject([
-            'id'       => random_int(0, 10000),
-            'url'      => $url,
-            'file'     => $url,
-            'position' => $position,
-            'tile'     => 'fake image',
-            'alt'      => 'fake image',
-        ]);
-    }
-
-    /**
-     * @param array $items
-     *
-     * @return MockObject
-     */
-    private function getTestCollection($items)
-    {
-        $collection = $this
-            ->getMockBuilder(\Magento\Framework\Data\Collection::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $iterator = new \ArrayIterator($items);
-        $collection->expects($this->any())->method('getIterator')->will($this->returnValue($iterator));
-
-        return $collection;
-    }
-
-    /**
      * @return array
      */
     public function productTypeProvider()
@@ -279,5 +233,58 @@ class ProductTest extends \PHPUnit\Framework\TestCase
             'default long description' => ['long', 'test', 'long', 'short'],
             'return short description' => ['short', Description::ID_SHORT_DESCRIPTION, 'long', 'short'],
         ];
+    }
+
+    /**
+     * @return MockObject
+     */
+    private function getProductDouble()
+    {
+        $productDouble = $this
+            ->getMockBuilder(Product::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        return $productDouble;
+    }
+
+    /**
+     * @param string $url
+     * @param int    $position
+     *
+     * @return DataObject
+     *
+     * @throws Exception
+     */
+    private function createImageObject($url, $position)
+    {
+        return new DataObject(
+            [
+                'id'       => random_int(0, 10000),
+                'url'      => $url,
+                'file'     => $url,
+                'position' => $position,
+                'tile'     => 'fake image',
+                'alt'      => 'fake image',
+            ]
+        );
+    }
+
+    /**
+     * @param array $items
+     *
+     * @return MockObject
+     */
+    private function getTestCollection($items)
+    {
+        $collection = $this
+            ->getMockBuilder(Collection::class)
+            ->disableOriginalConstructor()
+            ->getMock();
+
+        $iterator = new ArrayIterator($items);
+        $collection->expects($this->any())->method('getIterator')->will($this->returnValue($iterator));
+
+        return $collection;
     }
 }

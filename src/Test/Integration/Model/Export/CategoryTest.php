@@ -19,9 +19,10 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-namespace Shopgate\Export\Tests\Integration\Model\Export;
+namespace Shopgate\Export\Test\Integration\Model\Export;
 
 use Magento\Catalog\Model\CategoryFactory;
+use PHPUnit\Framework\TestCase;
 use Shopgate\Base\Tests\Bootstrap;
 use Shopgate\Base\Tests\Integration\Db\ConfigManager;
 use Shopgate\Export\Api\ExportInterface;
@@ -30,7 +31,7 @@ use Shopgate\Export\Model\Export\CategoryFactory as ExportFactory;
 /**
  * @coversDefaultClass Shopgate\Export\Model\Export\Category
  */
-class CategoryTest extends \PHPUnit\Framework\TestCase
+class CategoryTest extends TestCase
 {
     /** @var ExportFactory */
     protected $sgCategoryFactory;

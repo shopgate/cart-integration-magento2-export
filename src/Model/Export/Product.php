@@ -24,11 +24,11 @@ namespace Shopgate\Export\Model\Export;
 use Exception;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Model\Product as MageProduct;
-use Magento\CatalogInventory\Model\Stock;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\GroupManagement;
 use Magento\Directory\Helper\Data;
 use Magento\Framework\DataObject;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\GroupedProduct\Model\Product\Type\Grouped;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
@@ -406,35 +406,14 @@ class Product extends Shopgate_Model_Catalog_Product
 
     /**
      * Set stock
+     *
+     * @throws LocalizedException
      */
-    public function setStock()
+    public function setStock(): void
     {
         $stockItem = $this->helperProduct->getStockItem($this->item);
         $stock     = new Shopgate_Model_Catalog_Stock();
-        $useStock  = false;
-
-        if ($stockItem->getManageStock()) {
-            switch ($stockItem->getBackorders() && $stockItem->getIsInStock()) {
-                case Stock::BACKORDERS_YES_NONOTIFY:
-                case Stock::BACKORDERS_YES_NOTIFY:
-                    break;
-                default:
-                    $useStock = true;
-                    break;
-            }
-        }
-
-        $stock->setUseStock($useStock);
-        $stock->setBackorders((bool) $stockItem->getBackorders());
-        $stock->setStockQuantity($stockItem->getQty());
-        $stock->setMaximumOrderQuantity($stockItem->getMaxSaleQty());
-        $stock->setMinimumOrderQuantity($stockItem->getMinSaleQty());
-
-        if ($stock->getUseStock()) {
-            $stock->setIsSaleable($this->item->getIsSalable());
-        } else {
-            $stock->setIsSaleable(true);
-        }
+        $stock->setData($stockItem->getData());
 
         parent::setStock($stock);
     }
