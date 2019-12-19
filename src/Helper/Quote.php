@@ -38,7 +38,7 @@ use Shopgate\Base\Model\Shopgate\Extended\Base;
 use Shopgate\Base\Model\Utility\Registry;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Export\Helper\Tax as TaxHelper;
-use \Zend\Serializer\Serializer;
+use Zend\Serializer\Serializer;
 
 class Quote extends \Shopgate\Base\Helper\Quote
 {
@@ -175,21 +175,15 @@ class Quote extends \Shopgate\Base\Helper\Quote
         $this->quote->collectTotals();
 
         foreach ($this->quote->getAllVisibleItems() as $item) {
-            $price   = $item->getPrice();
-            $percent = $item->getTaxPercent();
-
-            if ($this->taxData->priceIncludesTax($this->quote->getStore())) {
-                $priceInclTax = $price;
-                $priceExclTax = $price / (1 + ($percent / 100));
-            } else {
-                $priceInclTax = $price * (1 + ($percent / 100));
-                $priceExclTax = $price;
-            }
+            $price                        = $item->getPrice();
+            $percent                      = $item->getTaxPercent();
             $type                         = $this->typeHelper->getType($item);
             $stockData                    = $type->getStockData();
-            $productId                    = Serializer::unserialize($item->getAdditionalData())->getShopgateItemNumber();
-            $data['unit_amount']          = round($priceExclTax, 4);
-            $data['unit_amount_with_tax'] = round($priceInclTax, 4);
+            $priceIncludesTaxes           = $this->taxData->priceIncludesTax($this->quote->getStore());
+            $productId                    =
+                Serializer::unserialize($item->getAdditionalData())->getShopgateItemNumber();
+            $data['unit_amount']          = $this->calculatePrice($price, $percent, $priceIncludesTaxes);
+            $data['unit_amount_with_tax'] = $this->calculatePrice($price, $percent, $priceIncludesTaxes, true);
 
             $product = $this->sgBase->getItemById($productId);
             if ($product) {
@@ -240,14 +234,17 @@ class Quote extends \Shopgate\Base\Helper\Quote
                 $this->log->debug('Shipping method error: ' . $shipMethod->getErrorMessage());
                 continue;
             }
+
+            $priceIncludesTaxes = $this->taxData->shippingPriceIncludesTax($this->quote->getStore());
+
             $sgMethod = new \ShopgateShippingMethod();
             $sgMethod->setId($rate->getCode());
             $sgMethod->setShippingGroup(strtoupper($rate->getCarrier()));
             $sgMethod->setSortOrder($key);
             $sgMethod->setTitle($shipMethod->getCarrierTitle() . ': ' . $shipMethod->getMethodTitle());
             $sgMethod->setDescription($rate->getMethodDescription() ?: '');
-            $sgMethod->setAmount($shipMethod->getPriceExclTax());
-            $sgMethod->setAmountWithTax($shipMethod->getPriceInclTax());
+            $sgMethod->setAmount($this->calculatePrice($rate->getPrice(), $taxPercent, $priceIncludesTaxes));
+            $sgMethod->setAmountWithTax($this->calculatePrice($rate->getPrice(), $taxPercent, $priceIncludesTaxes, true));
             $sgMethod->setTaxClass($this->quote->getCustomerTaxClassId());
             $sgMethod->setTaxPercent($taxPercent);
 
@@ -255,6 +252,23 @@ class Quote extends \Shopgate\Base\Helper\Quote
         }
 
         return $methods;
+    }
+
+    /**
+     * @param float $price
+     * @param float $taxPercent
+     * @param bool  $priceIncludesTaxes
+     * @param bool  $returnGross
+     *
+     * @return float
+     */
+    private function calculatePrice($price, $taxPercent, $priceIncludesTaxes = false, $returnGross = false): float
+    {
+        $calculatedPrice = $returnGross
+            ? ($priceIncludesTaxes ? $price : $price * (1 + ($taxPercent / 100)))
+            : ($priceIncludesTaxes ? $price / (1 + ($taxPercent / 100)) : $price);
+
+        return round($calculatedPrice, 4);
     }
 
     /**

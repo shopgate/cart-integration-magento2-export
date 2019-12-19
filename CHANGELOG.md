@@ -11,6 +11,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ### Fixed
 - Inventory handling for Magento version >= 2.3 
+- gross and net amount for shipping methods in check_cart
 
 ### Removed
 - Support for PHP < 7.1

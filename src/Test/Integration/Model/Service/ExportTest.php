@@ -376,6 +376,113 @@ class ExportTest extends TestCase
     }
 
     /**
+     * @param bool  $expected
+     * @param array $cart
+     *
+     * @dataProvider shippingProvider
+     *
+     *
+     * @magentoConfigFixture current_store tax/classes/shipping_tax_class 2
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsWithTax($cart)
+    {
+        $expectedAmount        = 15;
+        $expectedAmountWithTax = 16.2375;
+        $expectedTaxPercent    = 8.25;
+
+        $internalInfo = Zend_Json_Decoder::decode($cart['cart']['items'][0]['internal_order_info']);
+        $this->stockManager->setStockWebsite($internalInfo['product_id']);
+
+        /** @var \Shopgate\Export\Model\Service\Export $class */
+        $class  = Bootstrap::getObjectManager()->create('Shopgate\Export\Model\Service\Export');
+        $return = $class->checkCart($cart);
+        $shippingMethods = array_pop($return['shipping_methods']);
+
+        $this->assertEquals($expectedAmount, $shippingMethods['amount']);
+        $this->assertEquals($expectedAmountWithTax, $shippingMethods['amount_with_tax']);
+        $this->assertEquals($expectedTaxPercent, $shippingMethods['tax_percent']);
+    }
+
+    /**
+     * @param bool  $expected
+     * @param array $cart
+     *
+     * @dataProvider shippingProvider
+     *
+     * @magentoConfigFixture current_store tax/classes/shipping_tax_class 0
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsWithoutTax($cart)
+    {
+        $expectedAmount        = 15;
+        $expectedAmountWithTax = 15;
+        $expectedTaxPercent    = 0;
+
+        $internalInfo = Zend_Json_Decoder::decode($cart['cart']['items'][0]['internal_order_info']);
+        $this->stockManager->setStockWebsite($internalInfo['product_id']);
+
+        /** @var \Shopgate\Export\Model\Service\Export $class */
+        $class  = Bootstrap::getObjectManager()->create('Shopgate\Export\Model\Service\Export');
+        $return = $class->checkCart($cart);
+        $shippingMethods = array_pop($return['shipping_methods']);
+
+        $this->assertEquals($expectedAmount, $shippingMethods['amount']);
+        $this->assertEquals($expectedAmountWithTax, $shippingMethods['amount_with_tax']);
+        $this->assertEquals($expectedTaxPercent, $shippingMethods['tax_percent']);
+    }
+
+    public function shippingProvider()
+    {
+        return [
+            'shipping method' => [
+                'case'     => [
+                    'cart' => [
+                        'external_customer_number' => '1',
+                        'mail'                     => 'roni_cost@example.com',
+                        'delivery_address'         => [
+                            'gender'     => 'm',
+                            'first_name' => 'roni',
+                            'last_name'  => 'cost',
+                            'street_1'   => '1247  D Street',
+                            'city'       => 'Bloomfield Township',
+                            'zipcode'    => '48302',
+                            'country'    => 'US',
+                            'state'      => 'US-MI',
+                            'phone'      => '123456789'
+                        ],
+                        'items'                    => [
+                            [
+                                'item_number'          => '3',
+                                'item_number_public'   => null,
+                                'parent_item_number'   => '',
+                                'quantity'             => 1,
+                                'unit_amount_net'      => 34.0000,
+                                'unit_amount_with_tax' => 3,
+                                'unit_amount'          => 34.0000,
+                                'name'                 => 'Simple',
+                                'tax_percent'          => 20.00,
+                                'currency'             => 'EUR',
+                                'internal_order_info'  => '{"product_id":"3", "item_type":"simple"}',
+                                'is_free_shipping'     => '',
+                                'attributes'           => [],
+                                'inputs'               => [],
+                                'options'              => [],
+                            ],
+                        ],
+                    ]
+                ]
+            ]
+        ];
+    }
+
+    /**
      * @return array
      */
     public function couponProvider()
