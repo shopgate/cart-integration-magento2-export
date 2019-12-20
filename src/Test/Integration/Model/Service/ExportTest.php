@@ -376,24 +376,173 @@ class ExportTest extends TestCase
     }
 
     /**
-     * @param bool  $expected
-     * @param array $cart
-     *
-     * @dataProvider shippingProvider
-     *
-     *
      * @magentoConfigFixture current_store tax/classes/shipping_tax_class 2
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 0
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 0
      *
      * @throws CouldNotSaveException
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartShippingMethodsWithTax($cart)
+    public function testCheckCartShippingMethodsWithTaxNetNoCrossBoarder()
     {
-        $expectedAmount        = 15;
-        $expectedAmountWithTax = 16.2375;
-        $expectedTaxPercent    = 8.25;
+        $expectedAmounts = [
+            'amount' => 15,
+            'amount_with_tax' => 16.2375,
+            'tax_percent' => 8.25,
+        ];
 
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     *
+     * @magentoConfigFixture current_store tax/classes/shipping_tax_class 2
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 0
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 1
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsWithTaxNetAndCrossBoarder()
+    {
+        $expectedAmounts = [
+            'amount' => 15,
+            'amount_with_tax' => 16.2375,
+            'tax_percent' => 8.25,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     *
+     * @magentoConfigFixture current_store tax/classes/shipping_tax_class 2
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 1
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 0
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsWithTaxGross()
+    {
+        $expectedAmounts = [
+            'amount' => 13.8568,
+            'amount_with_tax' => 15,
+            'tax_percent' => 8.25,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @magentoConfigFixture current_store tax/classes/shipping_tax_class 2
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 1
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 1
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsWithTaxGrossAndBorderTrade()
+    {
+        $expectedAmounts = [
+            'amount' => 13.8568,
+            'amount_with_tax' => 15,
+            'tax_percent' => 8.25,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 0
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 0
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsNetWithouTaxNoCrossBoarder()
+    {
+        $expectedAmounts = [
+            'amount' => 15,
+            'amount_with_tax' => 16.2375,
+            'tax_percent' => 8.25,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 0
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 1
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsNetWithouTaxAndCrossBorder()
+    {
+        $expectedAmounts = [
+            'amount' => 15,
+            'amount_with_tax' => 15,
+            'tax_percent' => 0,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 1
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 0
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsNetWithTaxNoCrossBoarder()
+    {
+        $expectedAmounts = [
+            'amount' => 15,
+            'amount_with_tax' => 15,
+            'tax_percent' => 0,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 1
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 1
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsNetWithTaxNetAndBorderTrade()
+    {
+        $expectedAmounts = [
+            'amount' => 15,
+            'amount_with_tax' => 15,
+            'tax_percent' => 0,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @param array $expectedAmounts
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    private function runCheckCartShippingTest($expectedAmounts)
+    {
+        $cart = $this->getCartForShippingTests();
         $internalInfo = Zend_Json_Decoder::decode($cart['cart']['items'][0]['internal_order_info']);
         $this->stockManager->setStockWebsite($internalInfo['product_id']);
 
@@ -402,82 +551,69 @@ class ExportTest extends TestCase
         $return = $class->checkCart($cart);
         $shippingMethods = array_pop($return['shipping_methods']);
 
-        $this->assertEquals($expectedAmount, $shippingMethods['amount']);
-        $this->assertEquals($expectedAmountWithTax, $shippingMethods['amount_with_tax']);
-        $this->assertEquals($expectedTaxPercent, $shippingMethods['tax_percent']);
+        $this->assertEquals($expectedAmounts['amount'], $shippingMethods['amount']);
+        $this->assertEquals($expectedAmounts['amount_with_tax'], $shippingMethods['amount_with_tax']);
+        $this->assertEquals($expectedAmounts['tax_percent'], $shippingMethods['tax_percent']);
     }
 
     /**
-     * @param bool  $expected
-     * @param array $cart
-     *
-     * @dataProvider shippingProvider
-     *
      * @magentoConfigFixture current_store tax/classes/shipping_tax_class 0
      *
      * @throws CouldNotSaveException
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartShippingMethodsWithoutTax($cart)
+    public function testCheckCartShippingMethodsWithoutTax()
     {
-        $expectedAmount        = 15;
-        $expectedAmountWithTax = 15;
-        $expectedTaxPercent    = 0;
+        $expectedAmounts = [
+            'amount' => 15,
+            'amount_with_tax' => 15,
+            'tax_percent' => 0,
+        ];
 
-        $internalInfo = Zend_Json_Decoder::decode($cart['cart']['items'][0]['internal_order_info']);
-        $this->stockManager->setStockWebsite($internalInfo['product_id']);
-
-        /** @var \Shopgate\Export\Model\Service\Export $class */
-        $class  = Bootstrap::getObjectManager()->create('Shopgate\Export\Model\Service\Export');
-        $return = $class->checkCart($cart);
-        $shippingMethods = array_pop($return['shipping_methods']);
-
-        $this->assertEquals($expectedAmount, $shippingMethods['amount']);
-        $this->assertEquals($expectedAmountWithTax, $shippingMethods['amount_with_tax']);
-        $this->assertEquals($expectedTaxPercent, $shippingMethods['tax_percent']);
+        $this->runCheckCartShippingTest($expectedAmounts);
     }
 
-    public function shippingProvider()
+    /**
+     * @return array
+     */
+    public function getCartForShippingTests()
     {
         return [
-            'shipping method' => [
-                'case'     => [
-                    'cart' => [
-                        'external_customer_number' => '1',
-                        'mail'                     => 'roni_cost@example.com',
-                        'delivery_address'         => [
-                            'gender'     => 'm',
-                            'first_name' => 'roni',
-                            'last_name'  => 'cost',
-                            'street_1'   => '1247  D Street',
-                            'city'       => 'Bloomfield Township',
-                            'zipcode'    => '48302',
-                            'country'    => 'US',
-                            'state'      => 'US-MI',
-                            'phone'      => '123456789'
-                        ],
-                        'items'                    => [
-                            [
-                                'item_number'          => '3',
-                                'item_number_public'   => null,
-                                'parent_item_number'   => '',
-                                'quantity'             => 1,
-                                'unit_amount_net'      => 34.0000,
-                                'unit_amount_with_tax' => 3,
-                                'unit_amount'          => 34.0000,
-                                'name'                 => 'Simple',
-                                'tax_percent'          => 20.00,
-                                'currency'             => 'EUR',
-                                'internal_order_info'  => '{"product_id":"3", "item_type":"simple"}',
-                                'is_free_shipping'     => '',
-                                'attributes'           => [],
-                                'inputs'               => [],
-                                'options'              => [],
-                            ],
-                        ],
-                    ]
-                ]
+
+            'cart' => [
+                'external_customer_number' => '1',
+                'mail'                     => 'roni_cost@example.com',
+                'delivery_address'         => [
+                    'gender'     => 'm',
+                    'first_name' => 'roni',
+                    'last_name'  => 'cost',
+                    'street_1'   => '1247  D Street',
+                    'city'       => 'Bloomfield Township',
+                    'zipcode'    => '48302',
+                    'country'    => 'US',
+                    'state'      => 'US-MI',
+                    'phone'      => '123456789'
+                ],
+                'items'                    => [
+                    [
+                        'item_number'          => '3',
+                        'item_number_public'   => null,
+                        'parent_item_number'   => '',
+                        'quantity'             => 1,
+                        'unit_amount_net'      => 34.0000,
+                        'unit_amount_with_tax' => 3,
+                        'unit_amount'          => 34.0000,
+                        'name'                 => 'Simple',
+                        'tax_percent'          => 20.00,
+                        'currency'             => 'EUR',
+                        'internal_order_info'  => '{"product_id":"3", "item_type":"simple"}',
+                        'is_free_shipping'     => '',
+                        'attributes'           => [],
+                        'inputs'               => [],
+                        'options'              => [],
+                    ],
+                ],
             ]
         ];
     }
