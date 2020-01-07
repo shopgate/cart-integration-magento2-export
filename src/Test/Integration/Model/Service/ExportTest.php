@@ -34,6 +34,8 @@ use Zend_Json_Exception;
 
 /**
  * @coversDefaultClass \Shopgate\Export\Model\Service\Export
+ * @magentoAppIsolation enabled
+ * @magentoDbIsolation  enabled
  */
 class ExportTest extends TestCase
 {
@@ -465,12 +467,12 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartShippingMethodsNetWithouTaxNoCrossBoarder()
+    public function testCheckCartShippingMethodsNetWithoutTaxNoCrossBoarder()
     {
         $expectedAmounts = [
             'amount' => 15,
-            'amount_with_tax' => 16.2375,
-            'tax_percent' => 8.25,
+            'amount_with_tax' => 15,
+            'tax_percent' => 0,
         ];
 
         $this->runCheckCartShippingTest($expectedAmounts);
@@ -484,7 +486,7 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartShippingMethodsNetWithouTaxAndCrossBorder()
+    public function testCheckCartShippingMethodsNetWithoutTaxAndCrossBorder()
     {
         $expectedAmounts = [
             'amount' => 15,
