@@ -390,9 +390,9 @@ class ExportTest extends TestCase
     public function testCheckCartShippingMethodsWithTaxNetNoCrossBoarder(): void
     {
         $expectedAmounts = [
-            'amount' => 15,
+            'amount'          => 15,
             'amount_with_tax' => 16.2375,
-            'tax_percent' => 8.25,
+            'tax_percent'     => 8.25,
         ];
 
         $this->runCheckCartShippingTest($expectedAmounts);
@@ -411,9 +411,9 @@ class ExportTest extends TestCase
     public function testCheckCartShippingMethodsWithTaxNetAndCrossBoarder(): void
     {
         $expectedAmounts = [
-            'amount' => 15,
+            'amount'          => 15,
             'amount_with_tax' => 16.2375,
-            'tax_percent' => 8.25,
+            'tax_percent'     => 8.25,
         ];
 
         $this->runCheckCartShippingTest($expectedAmounts);
@@ -432,9 +432,9 @@ class ExportTest extends TestCase
     public function testCheckCartShippingMethodsWithTaxGross(): void
     {
         $expectedAmounts = [
-            'amount' => 13.8568,
+            'amount'          => 13.8568,
             'amount_with_tax' => 15,
-            'tax_percent' => 8.25,
+            'tax_percent'     => 8.25,
         ];
 
         $this->runCheckCartShippingTest($expectedAmounts);
@@ -452,9 +452,9 @@ class ExportTest extends TestCase
     public function testCheckCartShippingMethodsWithTaxGrossAndBorderTrade(): void
     {
         $expectedAmounts = [
-            'amount' => 13.8568,
+            'amount'          => 13.8568,
             'amount_with_tax' => 15,
-            'tax_percent' => 8.25,
+            'tax_percent'     => 8.25,
         ];
 
         $this->runCheckCartShippingTest($expectedAmounts);
@@ -471,9 +471,9 @@ class ExportTest extends TestCase
     public function testCheckCartShippingMethodsNetWithoutTaxNoCrossBoarder(): void
     {
         $expectedAmounts = [
-            'amount' => 15,
+            'amount'          => 15,
             'amount_with_tax' => 15,
-            'tax_percent' => 0,
+            'tax_percent'     => 0,
         ];
 
         $this->runCheckCartShippingTest($expectedAmounts);
@@ -490,9 +490,9 @@ class ExportTest extends TestCase
     public function testCheckCartShippingMethodsNetWithoutTaxAndCrossBorder(): void
     {
         $expectedAmounts = [
-            'amount' => 15,
+            'amount'          => 15,
             'amount_with_tax' => 15,
-            'tax_percent' => 0,
+            'tax_percent'     => 0,
         ];
 
         $this->runCheckCartShippingTest($expectedAmounts);
@@ -509,9 +509,9 @@ class ExportTest extends TestCase
     public function testCheckCartShippingMethodsNetWithTaxNoCrossBoarder(): void
     {
         $expectedAmounts = [
-            'amount' => 15,
+            'amount'          => 15,
             'amount_with_tax' => 15,
-            'tax_percent' => 0,
+            'tax_percent'     => 0,
         ];
 
         $this->runCheckCartShippingTest($expectedAmounts);
@@ -528,9 +528,27 @@ class ExportTest extends TestCase
     public function testCheckCartShippingMethodsNetWithTaxNetAndBorderTrade(): void
     {
         $expectedAmounts = [
-            'amount' => 15,
+            'amount'          => 15,
             'amount_with_tax' => 15,
-            'tax_percent' => 0,
+            'tax_percent'     => 0,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @magentoConfigFixture current_store tax/classes/shipping_tax_class 0
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsWithoutTax(): void
+    {
+        $expectedAmounts = [
+            'amount'          => 15,
+            'amount_with_tax' => 15,
+            'tax_percent'     => 0,
         ];
 
         $this->runCheckCartShippingTest($expectedAmounts);
@@ -558,24 +576,6 @@ class ExportTest extends TestCase
         $this->assertEquals($expectedAmounts['amount'], $shippingMethod['amount']);
         $this->assertEquals($expectedAmounts['amount_with_tax'], $shippingMethod['amount_with_tax']);
         $this->assertEquals($expectedAmounts['tax_percent'], $shippingMethod['tax_percent']);
-    }
-
-    /**
-     * @magentoConfigFixture current_store tax/classes/shipping_tax_class 0
-     *
-     * @throws CouldNotSaveException
-     * @throws NoSuchEntityException
-     * @throws Zend_Json_Exception
-     */
-    public function testCheckCartShippingMethodsWithoutTax(): void
-    {
-        $expectedAmounts = [
-            'amount' => 15,
-            'amount_with_tax' => 15,
-            'tax_percent' => 0,
-        ];
-
-        $this->runCheckCartShippingTest($expectedAmounts);
     }
 
     /**
