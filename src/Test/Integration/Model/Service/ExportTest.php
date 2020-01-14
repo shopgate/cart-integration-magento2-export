@@ -584,7 +584,6 @@ class ExportTest extends TestCase
     public function getCartForShippingTests(): array
     {
         return [
-
             'cart' => [
                 'external_customer_number' => '1',
                 'mail'                     => 'roni_cost@example.com',
