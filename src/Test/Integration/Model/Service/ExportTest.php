@@ -305,7 +305,7 @@ class ExportTest extends TestCase
                         'items'                    =>
                             [
                                 [
-                                    "item_number"                        => "66-51",
+                                    "item_number"                        => "62-51",
                                     "item_number_public"                 => null,
                                     "parent_item_number"                 => '',
                                     "quantity"                           => 1,
@@ -320,12 +320,12 @@ class ExportTest extends TestCase
                                     "is_free_shipping"                   => '',
                                     "attributes"                         => [
                                         [
-                                            'name'  => 'Color', //90
-                                            'value' => 'Black' //49
+                                            'name'  => 'Color', //93
+                                            'value' => 'Gray' //52
                                         ],
                                         [
-                                            'name'  => 'Size', //137
-                                            'value' => 'XS' //167
+                                            'name'  => 'Size', //157
+                                            'value' => 'S' //5595
                                         ],
                                     ],
                                     "inputs"                             => [],
