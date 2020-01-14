@@ -235,16 +235,18 @@ class Quote extends \Shopgate\Base\Helper\Quote
                 continue;
             }
 
-            $priceIncludesTaxes = $this->taxData->shippingPriceIncludesTax($this->quote->getStore());
+            $shippingPriceIncludesTax = $this->taxData->shippingPriceIncludesTax($this->quote->getStore());
 
             $sgMethod = new \ShopgateShippingMethod();
             $sgMethod->setId($rate->getCode());
             $sgMethod->setShippingGroup(strtoupper($rate->getCarrier()));
             $sgMethod->setSortOrder($key);
             $sgMethod->setTitle($shipMethod->getCarrierTitle() . ': ' . $shipMethod->getMethodTitle());
-            $sgMethod->setDescription($rate->getMethodDescription() ?: '');
-            $sgMethod->setAmount($this->calculatePrice($rate->getPrice(), $taxPercent, $priceIncludesTaxes));
-            $sgMethod->setAmountWithTax($this->calculatePrice($rate->getPrice(), $taxPercent, $priceIncludesTaxes, true));
+            $sgMethod->setDescription($rate->getMethodDescription() ? : '');
+            $sgMethod->setAmount($this->calculatePrice($rate->getPrice(), $taxPercent, $shippingPriceIncludesTax));
+            $sgMethod->setAmountWithTax(
+                $this->calculatePrice($rate->getPrice(), $taxPercent, $shippingPriceIncludesTax, true)
+            );
             $sgMethod->setTaxClass($this->quote->getCustomerTaxClassId());
             $sgMethod->setTaxPercent($taxPercent);
 
@@ -262,8 +264,12 @@ class Quote extends \Shopgate\Base\Helper\Quote
      *
      * @return float
      */
-    private function calculatePrice($price, $taxPercent, $priceIncludesTaxes = false, $returnGross = false): float
-    {
+    private function calculatePrice(
+        float $price,
+        float $taxPercent,
+        bool $priceIncludesTaxes = false,
+        bool $returnGross = false
+    ): float {
         $calculatedPrice = $returnGross
             ? ($priceIncludesTaxes ? $price : $price * (1 + ($taxPercent / 100)))
             : ($priceIncludesTaxes ? $price / (1 + ($taxPercent / 100)) : $price);

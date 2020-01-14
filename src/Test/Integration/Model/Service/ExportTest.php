@@ -29,6 +29,7 @@ use PHPUnit\Framework\TestCase;
 use Shopgate\Base\Tests\Bootstrap;
 use Shopgate\Base\Tests\Integration\Db\StockManager;
 use Shopgate\Export\Helper\Cart;
+use Shopgate\Export\Model\Service\Export as ExportModel;
 use Zend_Json_Decoder;
 use Zend_Json_Exception;
 
@@ -45,7 +46,7 @@ class ExportTest extends TestCase
      */
     protected $stockManager;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->stockManager = new StockManager();
     }
@@ -71,13 +72,13 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartItems($expected, $sgCart)
+    public function testCheckCartItems(int $expected, array $sgCart): void
     {
         $internalInfo = Zend_Json_Decoder::decode($sgCart['cart']['items'][0]['internal_order_info']);
         $this->stockManager->setStockWebsite($internalInfo['product_id']);
 
-        /** @var \Shopgate\Export\Model\Service\Export $class */
-        $class  = Bootstrap::getObjectManager()->create('Shopgate\Export\Model\Service\Export');
+        /** @var ExportModel $class */
+        $class  = Bootstrap::getObjectManager()->create(ExportModel::class);
         $return = $class->checkCart($sgCart);
         $item   = array_pop($return['items']);
 
@@ -89,7 +90,7 @@ class ExportTest extends TestCase
      *
      * @return array
      */
-    public function allProductProvider()
+    public function allProductProvider(): array
     {
         return array_merge(
             $this->simpleProductProvider(),
@@ -102,7 +103,7 @@ class ExportTest extends TestCase
     /**
      * @return array
      */
-    public function simpleProductProvider()
+    public function simpleProductProvider(): array
     {
         return [
             'simple product: success' => [
@@ -140,7 +141,7 @@ class ExportTest extends TestCase
     /**
      * @return array
      */
-    public function groupProductProvider()
+    public function groupProductProvider(): array
     {
         return [
             'group product: success' => [
@@ -183,7 +184,7 @@ class ExportTest extends TestCase
      *
      * @return array
      */
-    public function bundledProductProvider()
+    public function bundledProductProvider(): array
     {
         return [
             'bundled product: success'                             => [
@@ -292,7 +293,7 @@ class ExportTest extends TestCase
     /**
      * @return array
      */
-    public function configurableProductProvider()
+    public function configurableProductProvider(): array
     {
         return [
             'configurable product: success' => [
@@ -343,7 +344,7 @@ class ExportTest extends TestCase
      *
      * @after
      */
-    public function removeQuoteItems()
+    public function removeQuoteItems(): void
     {
         //todo-sg: does not clear quote correctly between tests
         /** @var Quote $quote */
@@ -364,12 +365,12 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartCoupons($expected, $cart)
+    public function testCheckCartCoupons(bool $expected, array $cart): void
     {
         $internalInfo = Zend_Json_Decoder::decode($cart['cart']['items'][0]['internal_order_info']);
         $this->stockManager->setStockWebsite($internalInfo['product_id']);
 
-        /** @var \Shopgate\Export\Model\Service\Export $class */
+        /** @var ExportModel $class */
         $class  = Bootstrap::getObjectManager()->create('Shopgate\Export\Model\Service\Export');
         $return = $class->checkCart($cart);
         $coupon = array_pop($return['external_coupons']);
@@ -386,7 +387,7 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartShippingMethodsWithTaxNetNoCrossBoarder()
+    public function testCheckCartShippingMethodsWithTaxNetNoCrossBoarder(): void
     {
         $expectedAmounts = [
             'amount' => 15,
@@ -407,7 +408,7 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartShippingMethodsWithTaxNetAndCrossBoarder()
+    public function testCheckCartShippingMethodsWithTaxNetAndCrossBoarder(): void
     {
         $expectedAmounts = [
             'amount' => 15,
@@ -428,7 +429,7 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartShippingMethodsWithTaxGross()
+    public function testCheckCartShippingMethodsWithTaxGross(): void
     {
         $expectedAmounts = [
             'amount' => 13.8568,
@@ -448,7 +449,7 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartShippingMethodsWithTaxGrossAndBorderTrade()
+    public function testCheckCartShippingMethodsWithTaxGrossAndBorderTrade(): void
     {
         $expectedAmounts = [
             'amount' => 13.8568,
@@ -467,7 +468,7 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartShippingMethodsNetWithoutTaxNoCrossBoarder()
+    public function testCheckCartShippingMethodsNetWithoutTaxNoCrossBoarder(): void
     {
         $expectedAmounts = [
             'amount' => 15,
@@ -486,7 +487,7 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartShippingMethodsNetWithoutTaxAndCrossBorder()
+    public function testCheckCartShippingMethodsNetWithoutTaxAndCrossBorder(): void
     {
         $expectedAmounts = [
             'amount' => 15,
@@ -505,7 +506,7 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartShippingMethodsNetWithTaxNoCrossBoarder()
+    public function testCheckCartShippingMethodsNetWithTaxNoCrossBoarder(): void
     {
         $expectedAmounts = [
             'amount' => 15,
@@ -524,7 +525,7 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartShippingMethodsNetWithTaxNetAndBorderTrade()
+    public function testCheckCartShippingMethodsNetWithTaxNetAndBorderTrade(): void
     {
         $expectedAmounts = [
             'amount' => 15,
@@ -542,20 +543,21 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    private function runCheckCartShippingTest($expectedAmounts)
+    private function runCheckCartShippingTest(array $expectedAmounts): void
     {
-        $cart = $this->getCartForShippingTests();
+        $cart         = $this->getCartForShippingTests();
         $internalInfo = Zend_Json_Decoder::decode($cart['cart']['items'][0]['internal_order_info']);
         $this->stockManager->setStockWebsite($internalInfo['product_id']);
 
-        /** @var \Shopgate\Export\Model\Service\Export $class */
-        $class  = Bootstrap::getObjectManager()->create('Shopgate\Export\Model\Service\Export');
-        $return = $class->checkCart($cart);
-        $shippingMethods = array_pop($return['shipping_methods']);
+        /** @var ExportModel $class */
+        $class           = Bootstrap::getObjectManager()->create(ExportModel::class);
+        $return          = $class->checkCart($cart);
+        $shippingMethod  = array_pop($return['shipping_methods']);
 
-        $this->assertEquals($expectedAmounts['amount'], $shippingMethods['amount']);
-        $this->assertEquals($expectedAmounts['amount_with_tax'], $shippingMethods['amount_with_tax']);
-        $this->assertEquals($expectedAmounts['tax_percent'], $shippingMethods['tax_percent']);
+        $this->assertCount(1, $return['shipping_methods']);
+        $this->assertEquals($expectedAmounts['amount'], $shippingMethod['amount']);
+        $this->assertEquals($expectedAmounts['amount_with_tax'], $shippingMethod['amount_with_tax']);
+        $this->assertEquals($expectedAmounts['tax_percent'], $shippingMethod['tax_percent']);
     }
 
     /**
@@ -565,7 +567,7 @@ class ExportTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Zend_Json_Exception
      */
-    public function testCheckCartShippingMethodsWithoutTax()
+    public function testCheckCartShippingMethodsWithoutTax(): void
     {
         $expectedAmounts = [
             'amount' => 15,
@@ -579,7 +581,7 @@ class ExportTest extends TestCase
     /**
      * @return array
      */
-    public function getCartForShippingTests()
+    public function getCartForShippingTests(): array
     {
         return [
 
@@ -623,7 +625,7 @@ class ExportTest extends TestCase
     /**
      * @return array
      */
-    public function couponProvider()
+    public function couponProvider(): array
     {
         return [
             'H20 + id3 == failure'  => [
