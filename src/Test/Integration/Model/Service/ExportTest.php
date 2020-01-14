@@ -371,7 +371,7 @@ class ExportTest extends TestCase
         $this->stockManager->setStockWebsite($internalInfo['product_id']);
 
         /** @var ExportModel $class */
-        $class  = Bootstrap::getObjectManager()->create('Shopgate\Export\Model\Service\Export');
+        $class  = Bootstrap::getObjectManager()->create(ExportModel::class);
         $return = $class->checkCart($cart);
         $coupon = array_pop($return['external_coupons']);
 
