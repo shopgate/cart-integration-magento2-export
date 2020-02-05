@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+## [2.9.17] - 2020-02-05
+### Added
+- Security enhancements
+- Limit for order collection set shipping completed and refactor filter
+
+### Fixed
+- Inventory handling for Magento version >= 2.3 
+- gross and net amount for shipping methods in check_cart
+
+### Removed
+- Support for PHP < 7.1
+- Support for Magento < 2.2 
 
 ## [2.9.16] - 2019-11-07
 ### Added
@@ -87,7 +99,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.16...HEAD
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.17...HEAD
+[2.9.17]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.16...2.9.17
 [2.9.16]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.15...2.9.16
 [2.9.15]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.14...2.9.15
 [2.9.14]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.13...2.9.14

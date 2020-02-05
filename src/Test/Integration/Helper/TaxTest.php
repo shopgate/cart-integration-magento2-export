@@ -20,21 +20,24 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-namespace Shopgate\Export\Tests\Integration\Helper;
+namespace Shopgate\Export\Test\Integration\Helper;
 
 use Magento\Quote\Model\Quote\AddressFactory;
+use Magento\Quote\Model\QuoteFactory;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Tax\Model\Config as TaxConfig;
+use PHPUnit\Framework\TestCase;
 use Shopgate\Base\Tests\Bootstrap;
 use Shopgate\Base\Tests\Integration\Db\ConfigManager;
+use Shopgate\Export\Helper\Tax;
 
-class TaxTest extends \PHPUnit\Framework\TestCase
+class TaxTest extends TestCase
 {
     /** @var ConfigManager */
     protected $cfgManager;
-    /** @var \Shopgate\Export\Helper\Tax */
+    /** @var Tax */
     protected $class;
-    /** @var \Magento\Quote\Model\QuoteFactory */
+    /** @var QuoteFactory */
     protected $quoteFactory;
     /** @var AddressFactory */
     protected $addressFactory;

@@ -20,16 +20,25 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-namespace Integration\Model\Service;
+namespace Shopgate\Export\Test\Integration;
 
+use Magento\Framework\Exception\CouldNotSaveException;
+use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\Quote\Model\Quote;
+use PHPUnit\Framework\TestCase;
 use Shopgate\Base\Tests\Bootstrap;
 use Shopgate\Base\Tests\Integration\Db\StockManager;
 use Shopgate\Export\Helper\Cart;
+use Shopgate\Export\Model\Service\Export as ExportModel;
+use Zend_Json_Decoder;
+use Zend_Json_Exception;
 
 /**
- * @coversDefaultClass Shopgate\Export\Model\Service\Export
+ * @coversDefaultClass \Shopgate\Export\Model\Service\Export
+ * @magentoAppIsolation enabled
+ * @magentoDbIsolation  enabled
  */
-class Export extends \PHPUnit\Framework\TestCase
+class ExportTest extends TestCase
 {
 
     /**
@@ -37,7 +46,7 @@ class Export extends \PHPUnit\Framework\TestCase
      */
     protected $stockManager;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->stockManager = new StockManager();
     }
@@ -53,25 +62,23 @@ class Export extends \PHPUnit\Framework\TestCase
      * @covers       ::checkCartRaw
      * @covers       Cart::__construct
      * @covers       Cart::loadSupportedMethods
-     * @covers       Cart::loadQuoteFields
      * @covers       Cart::getItems
      * @covers       Quote::setItems
      * @covers       Quote::setCustomer
-     * @covers       Quote::cleanup
      *
      * @dataProvider allProductProvider
      *
-     * @throws \Magento\Framework\Exception\CouldNotSaveException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     * @throws \Zend_Json_Exception
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
      */
-    public function testCheckCartItems($expected, $sgCart)
+    public function testCheckCartItems(int $expected, array $sgCart): void
     {
-        $internalInfo = \Zend_Json_Decoder::decode($sgCart['cart']['items'][0]['internal_order_info']);
+        $internalInfo = Zend_Json_Decoder::decode($sgCart['cart']['items'][0]['internal_order_info']);
         $this->stockManager->setStockWebsite($internalInfo['product_id']);
 
-        /** @var \Shopgate\Export\Model\Service\Export $class */
-        $class  = Bootstrap::getObjectManager()->create('Shopgate\Export\Model\Service\Export');
+        /** @var ExportModel $class */
+        $class  = Bootstrap::getObjectManager()->create(ExportModel::class);
         $return = $class->checkCart($sgCart);
         $item   = array_pop($return['items']);
 
@@ -83,7 +90,7 @@ class Export extends \PHPUnit\Framework\TestCase
      *
      * @return array
      */
-    public function allProductProvider()
+    public function allProductProvider(): array
     {
         return array_merge(
             $this->simpleProductProvider(),
@@ -96,7 +103,7 @@ class Export extends \PHPUnit\Framework\TestCase
     /**
      * @return array
      */
-    public function simpleProductProvider()
+    public function simpleProductProvider(): array
     {
         return [
             'simple product: success' => [
@@ -134,7 +141,7 @@ class Export extends \PHPUnit\Framework\TestCase
     /**
      * @return array
      */
-    public function groupProductProvider()
+    public function groupProductProvider(): array
     {
         return [
             'group product: success' => [
@@ -177,7 +184,7 @@ class Export extends \PHPUnit\Framework\TestCase
      *
      * @return array
      */
-    public function bundledProductProvider()
+    public function bundledProductProvider(): array
     {
         return [
             'bundled product: success'                             => [
@@ -286,7 +293,7 @@ class Export extends \PHPUnit\Framework\TestCase
     /**
      * @return array
      */
-    public function configurableProductProvider()
+    public function configurableProductProvider(): array
     {
         return [
             'configurable product: success' => [
@@ -298,7 +305,7 @@ class Export extends \PHPUnit\Framework\TestCase
                         'items'                    =>
                             [
                                 [
-                                    "item_number"                        => "66-51",
+                                    "item_number"                        => "62-51",
                                     "item_number_public"                 => null,
                                     "parent_item_number"                 => '',
                                     "quantity"                           => 1,
@@ -313,12 +320,12 @@ class Export extends \PHPUnit\Framework\TestCase
                                     "is_free_shipping"                   => '',
                                     "attributes"                         => [
                                         [
-                                            'name'  => 'Color', //90
-                                            'value' => 'Black' //49
+                                            'name'  => 'Color', //93
+                                            'value' => 'Gray' //52
                                         ],
                                         [
-                                            'name'  => 'Size', //137
-                                            'value' => 'XS' //167
+                                            'name'  => 'Size', //157
+                                            'value' => 'S' //5595
                                         ],
                                     ],
                                     "inputs"                             => [],
@@ -337,10 +344,10 @@ class Export extends \PHPUnit\Framework\TestCase
      *
      * @after
      */
-    public function removeQuoteItems()
+    public function removeQuoteItems(): void
     {
         //todo-sg: does not clear quote correctly between tests
-        /** @var \Magento\Quote\Model\Quote $quote */
+        /** @var Quote $quote */
         $quote = Bootstrap::getObjectManager()->get('Magento\Quote\Model\Quote');
         $quote->removeAllItems();
         $quote->isDeleted(false);
@@ -354,17 +361,17 @@ class Export extends \PHPUnit\Framework\TestCase
      *
      * @dataProvider couponProvider
      *
-     * @throws \Magento\Framework\Exception\CouldNotSaveException
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
-     * @throws \Zend_Json_Exception
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
      */
-    public function testCheckCartCoupons($expected, $cart)
+    public function testCheckCartCoupons(bool $expected, array $cart): void
     {
-        $internalInfo = \Zend_Json_Decoder::decode($cart['cart']['items'][0]['internal_order_info']);
+        $internalInfo = Zend_Json_Decoder::decode($cart['cart']['items'][0]['internal_order_info']);
         $this->stockManager->setStockWebsite($internalInfo['product_id']);
 
-        /** @var \Shopgate\Export\Model\Service\Export $class */
-        $class  = Bootstrap::getObjectManager()->create('Shopgate\Export\Model\Service\Export');
+        /** @var ExportModel $class */
+        $class  = Bootstrap::getObjectManager()->create(ExportModel::class);
         $return = $class->checkCart($cart);
         $coupon = array_pop($return['external_coupons']);
 
@@ -372,9 +379,252 @@ class Export extends \PHPUnit\Framework\TestCase
     }
 
     /**
+     * @magentoConfigFixture current_store tax/classes/shipping_tax_class 2
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 0
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 0
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsWithTaxNetNoCrossBoarder(): void
+    {
+        $expectedAmounts = [
+            'amount'          => 15,
+            'amount_with_tax' => 16.2375,
+            'tax_percent'     => 8.25,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     *
+     * @magentoConfigFixture current_store tax/classes/shipping_tax_class 2
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 0
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 1
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsWithTaxNetAndCrossBoarder(): void
+    {
+        $expectedAmounts = [
+            'amount'          => 15,
+            'amount_with_tax' => 16.2375,
+            'tax_percent'     => 8.25,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     *
+     * @magentoConfigFixture current_store tax/classes/shipping_tax_class 2
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 1
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 0
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsWithTaxGross(): void
+    {
+        $expectedAmounts = [
+            'amount'          => 13.8568,
+            'amount_with_tax' => 15,
+            'tax_percent'     => 8.25,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @magentoConfigFixture current_store tax/classes/shipping_tax_class 2
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 1
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 1
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsWithTaxGrossAndBorderTrade(): void
+    {
+        $expectedAmounts = [
+            'amount'          => 13.8568,
+            'amount_with_tax' => 15,
+            'tax_percent'     => 8.25,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 0
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 0
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsNetWithoutTaxNoCrossBoarder(): void
+    {
+        $expectedAmounts = [
+            'amount'          => 15,
+            'amount_with_tax' => 15,
+            'tax_percent'     => 0,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 0
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 1
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsNetWithoutTaxAndCrossBorder(): void
+    {
+        $expectedAmounts = [
+            'amount'          => 15,
+            'amount_with_tax' => 15,
+            'tax_percent'     => 0,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 1
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 0
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsNetWithTaxNoCrossBoarder(): void
+    {
+        $expectedAmounts = [
+            'amount'          => 15,
+            'amount_with_tax' => 15,
+            'tax_percent'     => 0,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @magentoConfigFixture current_store tax/calculation/shipping_includes_tax 1
+     * @magentoConfigFixture current_store tax/calculation/cross_border_trade_enabled 1
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsNetWithTaxNetAndBorderTrade(): void
+    {
+        $expectedAmounts = [
+            'amount'          => 15,
+            'amount_with_tax' => 15,
+            'tax_percent'     => 0,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @magentoConfigFixture current_store tax/classes/shipping_tax_class 0
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    public function testCheckCartShippingMethodsWithoutTax(): void
+    {
+        $expectedAmounts = [
+            'amount'          => 15,
+            'amount_with_tax' => 15,
+            'tax_percent'     => 0,
+        ];
+
+        $this->runCheckCartShippingTest($expectedAmounts);
+    }
+
+    /**
+     * @param array $expectedAmounts
+     *
+     * @throws CouldNotSaveException
+     * @throws NoSuchEntityException
+     * @throws Zend_Json_Exception
+     */
+    private function runCheckCartShippingTest(array $expectedAmounts): void
+    {
+        $cart         = $this->getCartForShippingTests();
+        $internalInfo = Zend_Json_Decoder::decode($cart['cart']['items'][0]['internal_order_info']);
+        $this->stockManager->setStockWebsite($internalInfo['product_id']);
+
+        /** @var ExportModel $class */
+        $class           = Bootstrap::getObjectManager()->create(ExportModel::class);
+        $return          = $class->checkCart($cart);
+        $shippingMethod  = array_pop($return['shipping_methods']);
+
+        $this->assertCount(1, $return['shipping_methods']);
+        $this->assertEquals($expectedAmounts['amount'], $shippingMethod['amount']);
+        $this->assertEquals($expectedAmounts['amount_with_tax'], $shippingMethod['amount_with_tax']);
+        $this->assertEquals($expectedAmounts['tax_percent'], $shippingMethod['tax_percent']);
+    }
+
+    /**
      * @return array
      */
-    public function couponProvider()
+    public function getCartForShippingTests(): array
+    {
+        return [
+            'cart' => [
+                'external_customer_number' => '1',
+                'mail'                     => 'roni_cost@example.com',
+                'delivery_address'         => [
+                    'gender'     => 'm',
+                    'first_name' => 'roni',
+                    'last_name'  => 'cost',
+                    'street_1'   => '1247  D Street',
+                    'city'       => 'Bloomfield Township',
+                    'zipcode'    => '48302',
+                    'country'    => 'US',
+                    'state'      => 'US-MI',
+                    'phone'      => '123456789'
+                ],
+                'items'                    => [
+                    [
+                        'item_number'          => '3',
+                        'item_number_public'   => null,
+                        'parent_item_number'   => '',
+                        'quantity'             => 1,
+                        'unit_amount_net'      => 34.0000,
+                        'unit_amount_with_tax' => 3,
+                        'unit_amount'          => 34.0000,
+                        'name'                 => 'Simple',
+                        'tax_percent'          => 20.00,
+                        'currency'             => 'EUR',
+                        'internal_order_info'  => '{"product_id":"3", "item_type":"simple"}',
+                        'is_free_shipping'     => '',
+                        'attributes'           => [],
+                        'inputs'               => [],
+                        'options'              => [],
+                    ],
+                ],
+            ]
+        ];
+    }
+
+    /**
+     * @return array
+     */
+    public function couponProvider(): array
     {
         return [
             'H20 + id3 == failure'  => [

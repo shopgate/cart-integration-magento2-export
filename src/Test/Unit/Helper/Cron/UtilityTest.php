@@ -23,12 +23,15 @@ namespace Shopgate\Export\Test\Unit\Helper\Cron;
 
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
 use Magento\Sales\Model\Order;
+use PHPUnit\Framework\TestCase;
+use PHPUnit_Framework_MockObject_MockObject;
 use Shopgate\Export\Helper\Cron\Utility as CronHelper;
+use ShopgateOrderItem;
 
 /**
  * @coversDefaultClass \Shopgate\Export\Helper\Product\Utility
  */
-class UtilityTest extends \PHPUnit\Framework\TestCase
+class UtilityTest extends TestCase
 {
     /** @var ObjectManager */
     private $objectManager;
@@ -41,7 +44,7 @@ class UtilityTest extends \PHPUnit\Framework\TestCase
     public function setUp()
     {
         $this->objectManager = new ObjectManager($this);
-        /** @var \Shopgate\Export\Helper\Cron\Utility $cronHelper */
+        /** @var CronHelper $cronHelper */
         $this->cronHelper = $this->objectManager->getObject(CronHelper::class);
     }
 
@@ -53,16 +56,16 @@ class UtilityTest extends \PHPUnit\Framework\TestCase
      */
     public function testHasShippedItems($getQtyShipped, $expectedResult)
     {
-        /** @var Order|\PHPUnit_Framework_MockObject_MockObject $orderStub */
+        /** @var Order|PHPUnit_Framework_MockObject_MockObject $orderStub */
         $orderStub = $this->getTestDouble(Order::class);
-        /** @var Order\Item|\PHPUnit_Framework_MockObject_MockObject $orderItemStub */
+        /** @var Order\Item|PHPUnit_Framework_MockObject_MockObject $orderItemStub */
         $orderItemStub = $this->getTestDouble(Order\Item::class);
 
         $orderItemStub->method('getQtyShipped')
-            ->willReturn($getQtyShipped);
+                      ->willReturn($getQtyShipped);
 
         $orderStub->method('getItemsCollection')
-            ->willReturn([$orderItemStub]);
+                  ->willReturn([$orderItemStub]);
 
         $result = $this->cronHelper->hasShippedItems($orderStub);
         $this->assertEquals($expectedResult, $result);
@@ -75,12 +78,14 @@ class UtilityTest extends \PHPUnit\Framework\TestCase
     {
         $productId = 2;
 
-        /** @var \ShopgateOrderItem|\PHPUnit_Framework_MockObject_MockObject $orderItemStub */
-        $orderItemStub = $this->getTestDouble(\ShopgateOrderItem::class);
+        /** @var ShopgateOrderItem|PHPUnit_Framework_MockObject_MockObject $orderItemStub */
+        $orderItemStub = $this->getTestDouble(ShopgateOrderItem::class);
         $orderItemStub->method('getInternalOrderInfo')
-            ->willReturn([
-                'product_id' => $productId
-            ]);
+                      ->willReturn(
+                          [
+                              'product_id' => $productId
+                          ]
+                      );
 
         $result = $this->cronHelper->findItemByProductId([$orderItemStub], $productId);
 
@@ -95,12 +100,14 @@ class UtilityTest extends \PHPUnit\Framework\TestCase
      */
     public function testFindItemByProductIdFails($searchedProductId, $productId)
     {
-        /** @var \ShopgateOrderItem|\PHPUnit_Framework_MockObject_MockObject $orderItemStub */
-        $orderItemStub = $this->getTestDouble(\ShopgateOrderItem::class);
+        /** @var ShopgateOrderItem|PHPUnit_Framework_MockObject_MockObject $orderItemStub */
+        $orderItemStub = $this->getTestDouble(ShopgateOrderItem::class);
         $orderItemStub->method('getInternalOrderInfo')
-            ->willReturn([
-                'product_id' => $productId
-            ]);
+                      ->willReturn(
+                          [
+                              'product_id' => $productId
+                          ]
+                      );
 
         $result = $this->cronHelper->findItemByProductId([$orderItemStub], $searchedProductId);
 
@@ -113,9 +120,9 @@ class UtilityTest extends \PHPUnit\Framework\TestCase
     public function findItemProvider()
     {
         return [
-            'Should not find product by Id, because of null as product id' => [null, 2],
+            'Should not find product by Id, because of null as product id'         => [null, 2],
             'Should not find product by Id, because of empty string as product id' => ['', 2],
-            'Should not find product by Id, because of id mismatch' => [1, 2]
+            'Should not find product by Id, because of id mismatch'                => [1, 2]
         ];
     }
 
@@ -126,20 +133,20 @@ class UtilityTest extends \PHPUnit\Framework\TestCase
     {
         return [
             'null items to ship' => [null, false],
-            '0 items to ship' => [0, false],
-            '1 item to ship' => [1, true]
+            '0 items to ship'    => [0, false],
+            '1 item to ship'     => [1, true]
         ];
     }
 
     /**
      * @param string $class
      *
-     * @return \PHPUnit_Framework_MockObject_MockObject
+     * @return PHPUnit_Framework_MockObject_MockObject
      */
     private function getTestDouble($class)
     {
         return $this->getMockBuilder($class)
-            ->disableOriginalConstructor()
-            ->getMock();
+                    ->disableOriginalConstructor()
+                    ->getMock();
     }
 }

@@ -19,18 +19,19 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
-namespace Shopgate\Export\Tests\Integration\Helper\Product;
+namespace Shopgate\Export\Test\Integration\Helper\Product;
 
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Catalog\Model\ProductFactory;
 use Magento\Store\Model\StoreManagerInterface;
+use PHPUnit\Framework\TestCase;
 use Shopgate\Base\Tests\Bootstrap;
 use Shopgate\Export\Helper\Product\Utility;
 
 /**
  * @coversDefaultClass Shopgate\Export\Helper\Product\Utility
  */
-class HelperTest extends \PHPUnit\Framework\TestCase
+class HelperTest extends TestCase
 {
     /** @var StoreManagerInterface */
     protected $storeManager;

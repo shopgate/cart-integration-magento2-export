@@ -22,25 +22,30 @@
 
 namespace Shopgate\Export\Helper\Product;
 
+use Exception;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Api\Data\ProductCustomOptionValuesInterface;
+use Magento\Catalog\Model\Category;
 use Magento\Catalog\Model\Product;
 use Magento\Catalog\Model\Product as MageProduct;
 use Magento\Catalog\Model\Product\Option;
 use Magento\Catalog\Model\Product\Visibility;
-use Magento\CatalogInventory\Api\Data\StockItemInterfaceFactory;
-use Magento\CatalogInventory\Model\ResourceModel\Stock\Item as StockItemResource;
 use Magento\Cms\Model\Template\FilterProvider;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManager;
 use Magento\Tax\Model\Config as TaxConfig;
 use Magento\Tax\Model\TaxCalculation;
 use Shopgate\Base\Api\Config\CoreInterface;
 use Shopgate\Export\Api\ExportInterface;
+use Shopgate\Export\Helper\Product\Stock\Utility as StockUtility;
 use Shopgate\Export\Model\Config\Source\Description;
 use Shopgate\Export\Model\Export\Utility as ExportUtility;
+use Shopgate\Export\Model\Shopgate\Product\StockItem;
 use Shopgate_Model_Catalog_CategoryPath;
 use Shopgate_Model_Catalog_Input;
 use Shopgate_Model_Catalog_Option;
+use Shopgate_Model_Catalog_Product;
 use Shopgate_Model_Catalog_Relation;
 use Shopgate_Model_Catalog_Validation;
 use Shopgate_Model_Catalog_Visibility;
@@ -48,11 +53,11 @@ use Shopgate_Model_Catalog_Visibility;
 class Utility
 {
     /** Identifier manufacturer */
-    const DEFAULT_ATTRIBUTE_MANUFACTURER = 'manufacturer';
+    public const DEFAULT_ATTRIBUTE_MANUFACTURER = 'manufacturer';
     /** Identifier price type percent */
-    const DEFAULT_PRICE_TYPE_PERCENT = 'percent';
+    public const DEFAULT_PRICE_TYPE_PERCENT = 'percent';
     /** Default description linebreak format */
-    const DEFAULT_DESCRIPTION_LINEBREAK_PATTERN = '%s<br /><br />%s';
+    private const DEFAULT_DESCRIPTION_LINEBREAK_PATTERN = '%s<br /><br />%s';
 
     /** @var array */
     protected $inputTypes = [
@@ -70,16 +75,12 @@ class Utility
     ];
     /** @var array */
     protected $weightUnits = [
-        'kgs'  => \Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_KG,
-        'g'    => \Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_GRAM,
-        'auto' => \Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_DEFAULT,
-        'lb'   => \Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_POUND,
-        'oz'   => \Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_OUNCE
+        'kgs'  => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_KG,
+        'g'    => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_GRAM,
+        'auto' => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_DEFAULT,
+        'lb'   => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_POUND,
+        'oz'   => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_OUNCE
     ];
-    /** @var StockItemResource */
-    protected $stockItemResource;
-    /** @var StockItemInterfaceFactory */
-    protected $stockItemFactory;
     /** @var StoreManager */
     protected $storeManager;
     /** @var TaxCalculation */
@@ -94,38 +95,27 @@ class Utility
     protected $filter;
     /** @var CoreInterface */
     protected $sgCore;
+    /** @var StockUtility  */
+    protected $stockUtility;
 
-    /**
-     * @param StockItemResource           $stockItemResource
-     * @param StockItemInterfaceFactory   $stockItemFactory
-     * @param StoreManager                $storeManager
-     * @param TaxCalculation              $taxCalculation
-     * @param ExportUtility               $utility
-     * @param CategoryRepositoryInterface $categoryRepository
-     * @param TaxConfig                   $taxConfig
-     * @param FilterProvider              $filter
-     * @param CoreInterface               $sgCore
-     */
     public function __construct(
-        StockItemResource $stockItemResource,
-        StockItemInterfaceFactory $stockItemFactory,
         StoreManager $storeManager,
         TaxCalculation $taxCalculation,
         ExportUtility $utility,
         CategoryRepositoryInterface $categoryRepository,
         TaxConfig $taxConfig,
         FilterProvider $filter,
-        CoreInterface $sgCore
+        CoreInterface $sgCore,
+        StockUtility $stockUtility
     ) {
-        $this->stockItemResource  = $stockItemResource;
-        $this->stockItemFactory   = $stockItemFactory;
         $this->storeManager       = $storeManager;
         $this->taxCalculation     = $taxCalculation;
         $this->utility            = $utility;
-        $this->taxConfig          = $taxConfig;
         $this->categoryRepository = $categoryRepository;
+        $this->taxConfig          = $taxConfig;
         $this->filter             = $filter;
         $this->sgCore             = $sgCore;
+        $this->stockUtility       = $stockUtility;
     }
 
     /**
@@ -133,23 +123,22 @@ class Utility
      *
      * @return bool
      */
-    public function isVisibleInCategories($product)
+    public function isVisibleInCategories($product): bool
     {
         $validVisibilities = [
             Visibility::VISIBILITY_BOTH,
             Visibility::VISIBILITY_IN_CATALOG
         ];
 
-        return in_array($product->getVisibility(), $validVisibilities);
+        return in_array($product->getVisibility(), $validVisibilities, true);
     }
 
     /**
      * @param MageProduct $product
      *
-     * @return string
-     * @throws \Magento\Framework\Exception\LocalizedException
+     * @return string|null
      */
-    public function getManufacturer($product)
+    public function getManufacturer($product): ?string
     {
         $manufacturer = $product->getManufacturer();
 
@@ -169,7 +158,7 @@ class Utility
      *
      * @return Shopgate_Model_Catalog_Visibility
      */
-    public function setVisibility($product)
+    public function setVisibility($product): Shopgate_Model_Catalog_Visibility
     {
         $visibility = new Shopgate_Model_Catalog_Visibility();
         switch ($product->getVisibility()) {
@@ -198,19 +187,12 @@ class Utility
     /**
      * @param MageProduct $product
      *
-     * @return \Magento\CatalogInventory\Api\Data\StockItemInterface
+     * @return StockItem
+     * @throws LocalizedException
      */
-    public function getStockItem($product)
+    public function getStockItem($product): StockItem
     {
-        $stockItem = $this->stockItemFactory->create();
-
-        $this->stockItemResource->loadByProductId(
-            $stockItem,
-            $product->getId(),
-            $this->storeManager->getWebsite()->getId()
-        );
-
-        return $stockItem;
+        return $this->stockUtility->getStockItem($product);
     }
 
     /**
@@ -220,25 +202,17 @@ class Utility
      */
     public function mapInputType($mageType)
     {
-        if (isset($this->inputTypes[$mageType])) {
-            return $this->inputTypes[$mageType];
-        }
-
-        return false;
+        return $this->inputTypes[$mageType] ?? false;
     }
 
     /**
-     * @param $weightUnit
+     * @param string $weightUnit
      *
      * @return string
      */
-    public function getWeightUnit($weightUnit)
+    public function getWeightUnit($weightUnit): string
     {
-        if (isset($this->weightUnits[$weightUnit])) {
-            return $this->weightUnits[$weightUnit];
-        }
-
-        return $weightUnit;
+        return $this->weightUnits[$weightUnit] ?? $weightUnit;
     }
 
     /**
@@ -247,7 +221,7 @@ class Utility
      *
      * @return Shopgate_Model_Catalog_Validation
      */
-    public function buildInputValidation($inputType, $option)
+    public function buildInputValidation($inputType, $option): Shopgate_Model_Catalog_Validation
     {
         $validation = new Shopgate_Model_Catalog_Validation();
 
@@ -262,8 +236,6 @@ class Utility
                 $validation->setValue($option->getFileExtension());
                 break;
             case Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_DATE:
-                $validationType = Shopgate_Model_Catalog_Validation::DEFAULT_VALIDATION_VARIABLE_DATE;
-                break;
             case Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_DATETIME:
                 $validationType = Shopgate_Model_Catalog_Validation::DEFAULT_VALIDATION_VARIABLE_DATE;
                 break;
@@ -304,7 +276,7 @@ class Utility
      */
     public function getOptionValuePrice($option, $item)
     {
-        if ($option->getPriceType() == self::DEFAULT_PRICE_TYPE_PERCENT) {
+        if ($option->getPriceType() === self::DEFAULT_PRICE_TYPE_PERCENT) {
             return $item->getFinalPrice() * ($option->getPrice() / 100);
         }
 
@@ -317,7 +289,7 @@ class Utility
      *
      * @return Shopgate_Model_Catalog_Relation
      */
-    public function createRelationProducts(array $relationIds, $type)
+    public function createRelationProducts(array $relationIds, $type): Shopgate_Model_Catalog_Relation
     {
         $relationModel = new Shopgate_Model_Catalog_Relation();
         $relationModel->setType($type);
@@ -332,7 +304,7 @@ class Utility
      *
      * @return array
      */
-    public function buildInputOptions($option, $item)
+    public function buildInputOptions($option, $item): array
     {
         $optionValues = [];
 
@@ -353,7 +325,7 @@ class Utility
      *
      * @return float
      */
-    public function getTaxRate($item)
+    public function getTaxRate($item): float
     {
         return $this->taxCalculation->getDefaultCalculatedRate($item->getTaxClassId());
     }
@@ -364,19 +336,18 @@ class Utility
      *
      * @return string
      */
-    public function getDeepLinkUrl($item, $parentItem = null)
+    public function getDeepLinkUrl($item, $parentItem = null): string
     {
-        $deepLink = $parentItem && $item->getVisibility() == Visibility::VISIBILITY_NOT_VISIBLE
+        return $parentItem && (int) $item->getVisibility() === Visibility::VISIBILITY_NOT_VISIBLE
             ? $this->utility->parseUrl($parentItem->getProductUrl())
             : $this->utility->parseUrl($item->getProductUrl());
-
-        return $deepLink;
     }
 
     /**
      * @return bool
+     * @throws NoSuchEntityException
      */
-    public function priceIncludesTax()
+    public function priceIncludesTax(): bool
     {
         return $this->taxConfig->priceIncludesTax($this->storeManager->getStore());
     }
@@ -389,7 +360,7 @@ class Utility
      *
      * @return Shopgate_Model_Catalog_CategoryPath
      */
-    public function getExportCategory($categoryId, $position = null)
+    public function getExportCategory($categoryId, $position = null): Shopgate_Model_Catalog_CategoryPath
     {
         $category = new Shopgate_Model_Catalog_CategoryPath();
         $category->setSortOrder($position);
@@ -403,11 +374,11 @@ class Utility
      * @param int | string $categoryId
      *
      * @return int
-     * @throws \Magento\Framework\Exception\NoSuchEntityException
+     * @throws NoSuchEntityException
      */
-    public function getPositionInCategory($productId, $categoryId)
+    public function getPositionInCategory($productId, $categoryId): int
     {
-        /** @var \Magento\Catalog\Model\Category $category */
+        /** @var Category $category */
         $category  = $this->categoryRepository->get($categoryId);
         $positions = $category->getProductsPosition();
 
@@ -421,9 +392,9 @@ class Utility
      * @param MageProduct $product
      *
      * @return string
-     * @throws \Exception
+     * @throws Exception
      */
-    public function getIndividualDescription(Product $product)
+    public function getIndividualDescription(Product $product): string
     {
         $descriptionConfig = $this->sgCore->getConfigByPath(ExportInterface::PATH_PROD_DESCRIPTION);
 
@@ -449,6 +420,6 @@ class Utility
                 $description = $product->getDescription();
         }
 
-        return $this->filter->getPageFilter()->filter((string)$description);
+        return $this->filter->getPageFilter()->filter($description);
     }
 }

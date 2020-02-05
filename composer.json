@@ -3,7 +3,7 @@
   "description": "Shopgate export module for Magento 2, handles all export functionality",
   "license": "Apache-2.0",
   "type": "magento2-module",
-  "version": "2.9.16",
+  "version": "2.9.17",
   "authors": [
     {
       "name": "Konstantin Kiritsenko"
@@ -22,6 +22,7 @@
     }
   ],
   "require": {
+    "php": ">=7.1",
     "shopgate/cart-integration-magento2-base": "~2.9.20"
   },
   "autoload": {
@@ -30,7 +31,7 @@
     ],
     "psr-4": {
       "Shopgate\\Export\\": "src/",
-      "Shopgate\\Export\\Tests\\": "tests/"
+      "Shopgate\\Export\\Test\\": "src/Test/"
     }
   }
 }

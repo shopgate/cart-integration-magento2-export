@@ -23,11 +23,14 @@ namespace Shopgate\Export\Test\Unit\Helper\Export\Product;
 
 use Magento\Catalog\Model\Product;
 use Magento\Framework\TestFramework\Unit\Helper\ObjectManager;
+use PHPUnit\Framework\TestCase;
+use Shopgate\Export\Helper\Product\Utility;
+use Shopgate_Model_Catalog_Relation;
 
 /**
- * @coversDefaultClass \Shopgate\Export\Helper\Product\Utility
+ * @coversDefaultClass Utility
  */
-class HelperTest extends \PHPUnit\Framework\TestCase
+class HelperTest extends TestCase
 {
 
     /**
@@ -35,7 +38,7 @@ class HelperTest extends \PHPUnit\Framework\TestCase
      */
     private $objectManager;
     /**
-     * @var \Shopgate\Export\Helper\Product\Utility
+     * @var Utility
      */
     private $helper;
 
@@ -146,7 +149,7 @@ class HelperTest extends \PHPUnit\Framework\TestCase
     public function testCreateRelationProducts($relatedIds, $type)
     {
         $relationModel = $this->helper->createRelationProducts($relatedIds, $type);
-        $this->assertInstanceOf(\Shopgate_Model_Catalog_Relation::class, $relationModel);
+        $this->assertInstanceOf(Shopgate_Model_Catalog_Relation::class, $relationModel);
         $this->assertEquals($type, $relationModel->getType());
         $this->assertEquals($relatedIds, $relationModel->getValues());
     }
