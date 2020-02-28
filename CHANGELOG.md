@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- stock class compatibility with Magento 2.3.1
+
 ## [2.9.17] - 2020-02-05
 ### Added
 - Security enhancements
