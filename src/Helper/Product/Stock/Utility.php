@@ -104,7 +104,7 @@ class Utility
     {
         /** @var StockItem $shopgateStockItem */
         $shopgateStockItem = $this->shopgateStockItemFactory->create();
-        if (version_compare($this->getCurrentVersion(), '2.3.1', '>=')) {
+        if (version_compare($this->getCurrentVersion(), '2.3.2', '>=')) {
             /** @var GetStockItemDataInterface $getStockItemData */
             /** @var GetStockIdForCurrentWebsite $websiteStockId */
             /** @var GetStockItemConfiguration $stockItemConfig */
