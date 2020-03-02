@@ -23,6 +23,7 @@
 namespace Shopgate\Export\Helper\Product\Stock;
 
 use Magento\Catalog\Model\Product as MageProduct;
+use Magento\CatalogInventory\Api\Data\StockItemInterface;
 use Magento\CatalogInventory\Api\Data\StockItemInterfaceFactory;
 use Magento\CatalogInventory\Api\StockConfigurationInterface;
 use Magento\CatalogInventory\Api\StockRegistryInterface;
@@ -59,15 +60,6 @@ class Utility
     /** @var StoreManager */
     protected $storeManager;
 
-    /** @var GetStockIdForCurrentWebsite */
-    protected $getStockIdForCurrentWebsite;
-
-    /** @var GetStockItemDataInterface */
-    protected $getStockItemData;
-
-    /** @var GetStockItemConfiguration */
-    protected $getStockItemConfiguration;
-
     /** @var StockConfigurationInterface */
     protected $stockConfiguration;
 
@@ -100,13 +92,6 @@ class Utility
         $this->storeManager             = $storeManager;
         $this->stockConfiguration       = $stockConfiguration;
         $this->stockRegistry            = $stockRegistry;
-
-        if (version_compare($this->getCurrentVersion(), '2.3.0', '>=')) {
-            $om                                = ObjectManager::getInstance();
-            $this->getStockItemData            = $om->get(GetStockItemDataInterface::class);
-            $this->getStockIdForCurrentWebsite = $om->get(GetStockIdForCurrentWebsite::class);
-            $this->getStockItemConfiguration   = $om->get(GetStockItemConfiguration::class);
-        }
     }
 
     /**
@@ -119,10 +104,17 @@ class Utility
     {
         /** @var StockItem $shopgateStockItem */
         $shopgateStockItem = $this->shopgateStockItemFactory->create();
-        if (version_compare($this->getCurrentVersion(), '2.3.0', '>=')) {
-            $stockId         = $this->getStockIdForCurrentWebsite->execute();
-            $stockItemData   = $this->getStockItemData->execute($product->getSku(), $stockId);
-            $stockItemConfig = $this->getStockItemConfiguration->execute($product->getSku());
+        if (version_compare($this->getCurrentVersion(), '2.3.2', '>=')) {
+            /** @var GetStockItemDataInterface $getStockItemData */
+            /** @var GetStockIdForCurrentWebsite $websiteStockId */
+            /** @var GetStockItemConfiguration $stockItemConfig */
+            $objectManager    = ObjectManager::getInstance();
+            $getStockItemData = $objectManager->get(GetStockItemDataInterface::class);
+            $websiteStockId   = $objectManager->get(GetStockIdForCurrentWebsite::class);
+            $stockItemConfig  = $objectManager->get(GetStockItemConfiguration::class);
+            $stockId          = $websiteStockId->execute();
+            $stockItemData    = $getStockItemData->execute($product->getSku(), $stockId);
+            $stockItemConfig  = $stockItemConfig->execute($product->getSku());
 
             $shopgateStockItem->setStockQuantity((int) $stockItemData['quantity']);
             $shopgateStockItem->setIsSaleable((bool) $stockItemData['is_salable']);
@@ -134,6 +126,7 @@ class Utility
             return $shopgateStockItem;
         }
 
+        /** @var StockItemInterface $stockItem */
         $stockItem      = $this->stockItemFactory->create();
         $defaultScopeId = $this->stockConfiguration->getDefaultScopeId();
         $defaultStockId = $this->stockRegistry->getStock($defaultScopeId)->getStockId();
@@ -142,7 +135,7 @@ class Utility
         $this->stockItemResource->loadByProductId(
             $stockItem,
             $product->getId(),
-            $stockId ?: $defaultStockId
+            $stockId ? : $defaultStockId
         );
 
         $useStock = false;
