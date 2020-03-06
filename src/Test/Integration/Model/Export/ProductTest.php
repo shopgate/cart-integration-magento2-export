@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright Shopgate Inc.
  *
@@ -19,6 +20,8 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
+declare(strict_types=1);
+
 namespace Shopgate\Export\Test\Integration\Model\Export;
 
 use Exception;
@@ -26,8 +29,17 @@ use Magento\Catalog\Api\ProductRepositoryInterface;
 use Magento\Customer\Model\GroupManagement;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\TestFramework\ObjectManager;
+use Magento\Framework\ObjectManagerInterface;
+use Magento\TestFramework\Helper\Bootstrap;
 use PHPUnit\Framework\TestCase;
+use Shopgate\Base\Api\Config\CoreInterface;
+use Shopgate\Base\Model\Service\Config\Core;
+use Shopgate\Base\Model\Utility\SgLogger;
+use Shopgate\Base\Model\Utility\SgLoggerInterface;
+use Shopgate\Base\Tests\Integration\Db\ConfigManager;
+use Shopgate\Export\Api\ExportInterface;
+use Shopgate\Export\Model\Config\Source\ChildDescription;
+use Shopgate\Export\Model\Config\Source\Description;
 use Shopgate\Export\Model\Export\Product as SubjectUnderTest;
 use Shopgate_Model_Catalog_TierPrice;
 
@@ -35,13 +47,12 @@ use Shopgate_Model_Catalog_TierPrice;
  * @magentoAppIsolation enabled
  * @magentoDbIsolation  enabled
  * @magentoAppArea      frontend
- * @magentoDataFixture  ../../../../vendor/shopgate/cart-integration-magento2-export/src/Test/Integration/fixtures/product_with_tier_pricing.php
  */
 class ProductTest extends TestCase
 {
     /** @var SubjectUnderTest */
     protected $subjectUnderTest;
-    /** * @var \Magento\Framework\App\ObjectManager */
+    /** @var ObjectManagerInterface */
     protected $objectManager;
     /** @var ProductRepositoryInterface */
     private $productRepository;
@@ -51,9 +62,13 @@ class ProductTest extends TestCase
      */
     public function setUp()
     {
-        $this->objectManager     = ObjectManager::getInstance();
-        $this->subjectUnderTest  = $this->objectManager->create(SubjectUnderTest::class);
-        $this->productRepository = $this->objectManager->create(ProductRepositoryInterface::class);
+        $this->objectManager = Bootstrap::getObjectManager();
+        $core                = $this->objectManager->get(Core::class);
+        $logger              = $this->objectManager->get(SgLogger::class);
+        $this->objectManager->addSharedInstance($core, CoreInterface::class);
+        $this->objectManager->addSharedInstance($logger, SgLoggerInterface::class);
+        $this->subjectUnderTest  = $this->objectManager->get(SubjectUnderTest::class);
+        $this->productRepository = $this->objectManager->get(ProductRepositoryInterface::class);
     }
 
     /**
@@ -63,6 +78,7 @@ class ProductTest extends TestCase
      * 2) 1000-20$
      * 3) 1000-50%
      *
+     * @magentoDataFixture  ../../../../vendor/shopgate/cart-integration-magento2-export/src/Test/Integration/fixtures/product_with_tier_pricing.php
      * @throws Exception
      */
     public function testNonRuleTierPrices(): void
@@ -78,7 +94,163 @@ class ProductTest extends TestCase
     }
 
     /**
+     * Basic description tests
+     *
+     * @param string $sku
+     * @param string $expected
+     * @param array  $configs
+     *
+     * @throws NoSuchEntityException
      * @throws Exception
+     * @magentoDataFixture  ../../../../vendor/shopgate/cart-integration-magento2-export/src/Test/Integration/fixtures/product_with_description.php
+     * @dataProvider        descriptionProvider
+     */
+    public function testSetDescription(string $sku, string $expected, array $configs): void
+    {
+        /** @var ConfigManager $configManager */
+        $configManager = $this->objectManager->get(ConfigManager::class);
+        foreach ($configs as $path => $value) {
+            $configManager->setConfigValue($path, $value);
+        }
+        $product = $this->productRepository->get($sku);
+        $this->subjectUnderTest->setItem($product)->setDescription();
+        $description = $this->subjectUnderTest->getDescription();
+        $this->assertSame($expected, $description);
+    }
+
+    /**
+     * @return array
+     */
+    public function descriptionProvider(): array
+    {
+        return [
+            '> long description by default'         => [
+                'sku'                  => 'simple-test-product-two',
+                'expected description' => 'Long Description1',
+                'configs'              => []
+            ],
+            '> both, long description first'        => [
+                'sku'                  => 'simple-test-product-two',
+                'expected description' => 'Long Description1<br /><br />Short Description2',
+                'configs'              => [
+                    ExportInterface::PATH_PROD_DESCRIPTION => Description::ID_DESCRIPTION_AND_SHORT_DESCRIPTION
+                ]
+            ],
+            '> both, short description first'       => [
+                'sku'                  => 'simple-test-product-two',
+                'expected description' => 'Short Description2<br /><br />Long Description1',
+                'configs'              => [
+                    ExportInterface::PATH_PROD_DESCRIPTION => Description::ID_SHORT_DESCRIPTION_AND_DESCRIPTION
+                ]
+            ],
+            '> short description only'              => [
+                'sku'                  => 'simple-test-product-two',
+                'expected description' => 'Short Description2',
+                'configs'              => [
+                    ExportInterface::PATH_PROD_DESCRIPTION => Description::ID_SHORT_DESCRIPTION
+                ]
+            ],
+            '> configurable child description only' => [
+                'sku'                  => 'MH01-XS-Black',
+                'expected description' => '<p>Ideal for cold-weather training or work outdoors, the Chaz Hoodie' .
+                    ' promises superior warmth with every wear. Thick material blocks out the wind as ribbed' .
+                    ' cuffs and bottom band seal in body heat.</p>
+<p>&bull; Two-tone gray heather hoodie.<br />&bull; Drawstring-adjustable hood. <br />&bull; Machine wash/dry.</p>',
+                'configs'              => [
+                    ExportInterface::PATH_PROD_CHILD_DESCRIPTION => ChildDescription::ID_CHILD_ONLY
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * @magentoDataFixture  ../../../../vendor/shopgate/cart-integration-magento2-export/src/Test/Integration/fixtures/product_with_tier_pricing.php
+     * @throws NoSuchEntityException
+     * @throws Exception
+     */
+    public function testNoDescription(): void
+    {
+        $product = $this->productRepository->get('simple-test-product');
+        $this->subjectUnderTest->setItem($product)->setDescription();
+        $description = $this->subjectUnderTest->getDescription();
+        $this->assertSame('', $description);
+    }
+
+    /**
+     * Tests using parent + child product descriptions
+     *
+     * @param string $sku
+     * @param string $expected
+     * @param array  $configs
+     *
+     * @throws NoSuchEntityException
+     * @throws Exception
+     * @dataProvider        parentProvider
+     * @magentoDataFixture  ../../../../vendor/shopgate/cart-integration-magento2-export/src/Test/Integration/fixtures/add_description_to_configurable.php
+     */
+    public function testSetParentDescription(string $sku, string $expected, array $configs): void
+    {
+        /** @var ConfigManager $configManager */
+        $configManager = $this->objectManager->get(ConfigManager::class);
+        foreach ($configs as $path => $value) {
+            $configManager->setConfigValue($path, $value);
+        }
+        $parent  = $this->productRepository->get('MH01');
+        $product = $this->productRepository->get($sku);
+        /** @noinspection PhpParamsInspection */
+        $this->subjectUnderTest->setParentItem($parent);
+        $this->subjectUnderTest->setItem($product)->setDescription();
+        $description = $this->subjectUnderTest->getDescription();
+        $this->assertSame($expected, $description);
+    }
+
+    /**
+     * @return array
+     */
+    public function parentProvider(): array
+    {
+        $parentDescription = 'Parent Long';
+        $childDescription  = '<p>Ideal for cold-weather training or work outdoors, the Chaz Hoodie' .
+            ' promises superior warmth with every wear. Thick material blocks out the wind as ribbed' .
+            ' cuffs and bottom band seal in body heat.</p>
+<p>&bull; Two-tone gray heather hoodie.<br />&bull; Drawstring-adjustable hood. <br />&bull; Machine wash/dry.</p>';
+
+        return [
+            '> configurable, both, parent first'                    => [
+                'sku'                  => 'MH01-XS-Black',
+                'expected description' => $parentDescription . $childDescription,
+                'configs'              => [
+                    ExportInterface::PATH_PROD_CHILD_DESCRIPTION => ChildDescription::ID_BOTH_PARENT_FIRST
+                ]
+            ],
+            '> configurable, both, child first'                     => [
+                'sku'                  => 'MH01-XS-Black',
+                'expected description' => $childDescription . $parentDescription,
+                'configs'              => [
+                    ExportInterface::PATH_PROD_CHILD_DESCRIPTION => ChildDescription::ID_BOTH_CHILD_FIRST
+                ]
+            ],
+            '> configurable, parent description only'               => [
+                'sku'                  => 'MH01-XS-Black',
+                'expected description' => $parentDescription,
+                'configs'              => [
+                    ExportInterface::PATH_PROD_CHILD_DESCRIPTION => ChildDescription::ID_PARENT_ONLY
+                ]
+            ],
+            '> configurable, both, child first + short description' => [
+                'sku'                  => 'MH01-XS-Black',
+                'expected description' => "{$childDescription}<br /><br />{$parentDescription}<br /><br />Parent Short",
+                'configs'              => [
+                    ExportInterface::PATH_PROD_CHILD_DESCRIPTION => ChildDescription::ID_BOTH_CHILD_FIRST,
+                    ExportInterface::PATH_PROD_DESCRIPTION       => Description::ID_DESCRIPTION_AND_SHORT_DESCRIPTION
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * @throws Exception
+     * @magentoDataFixture  ../../../../vendor/shopgate/cart-integration-magento2-export/src/Test/Integration/fixtures/product_with_tier_pricing.php
      */
     public function testGroupUids(): void
     {
@@ -109,6 +281,7 @@ class ProductTest extends TestCase
     }
 
     /**
+     * @magentoDataFixture  ../../../../vendor/shopgate/cart-integration-magento2-export/src/Test/Integration/fixtures/product_with_tier_pricing.php
      * @throws Exception
      */
     public function testSetWeight(): void
@@ -202,8 +375,8 @@ class ProductTest extends TestCase
     public function inventoryDetailDataProvider(): array
     {
         return [
-            ['24-MB01' , '100', '10000', '1', '0', '1', '1'], // Simple
-            ['MH01' , '0', '10000', '1', '0', '1', '1'] // Config
+            ['24-MB01', '100', '10000', '1', '0', '1', '1'], // Simple
+            ['MH01', '0', '10000', '1', '0', '1', '1'] // Config
         ];
     }
 

@@ -62,11 +62,6 @@ class Product extends Shopgate_Model_Catalog_Product
     protected $item;
     /** @var MageProduct */
     protected $parent;
-    /** @var Type */
-    private $type;
-    /** @var SgLoggerInterface */
-    private $logger;
-
     /**
      * @var array
      */
@@ -102,6 +97,10 @@ class Product extends Shopgate_Model_Catalog_Product
         'setDisplayType',
         'setAttributes'
     ];
+    /** @var Type */
+    private $type;
+    /** @var SgLoggerInterface */
+    private $logger;
     /** @var CoreInterface */
     private $scopeConfig;
     /** @var StoreManagerInterface */
@@ -114,8 +113,6 @@ class Product extends Shopgate_Model_Catalog_Product
     private $categoryRepository;
 
     /**
-     * Product constructor.
-     *
      * @param CoreInterface               $scopeConfig
      * @param StoreManagerInterface       $storeManager
      * @param HelperProduct               $helperProduct
@@ -146,7 +143,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set product id
      */
-    public function setUid()
+    public function setUid(): void
     {
         parent::setUid($this->item->getId());
     }
@@ -154,7 +151,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set last updated update date
      */
-    public function setLastUpdate()
+    public function setLastUpdate(): void
     {
         parent::setLastUpdate(date(Zend_Date::ISO_8601, strtotime($this->item->getUpdatedAt())));
     }
@@ -162,7 +159,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set category name
      */
-    public function setName()
+    public function setName(): void
     {
         parent::setName($this->item->getName());
     }
@@ -170,7 +167,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set tax percent
      */
-    public function setTaxPercent()
+    public function setTaxPercent(): void
     {
         parent::setTaxPercent($this->helperProduct->getTaxRate($this->item));
     }
@@ -178,7 +175,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set taxClassId
      */
-    public function setTaxClass()
+    public function setTaxClass(): void
     {
         $taxClassId = $this->item->getTaxClassId();
         if ($taxClassId) {
@@ -189,7 +186,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set currency
      */
-    public function setCurrency()
+    public function setCurrency(): void
     {
         /** @var Store $store */
         $store = $this->storeManager->getStore();
@@ -199,7 +196,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set price
      */
-    public function setPrice()
+    public function setPrice(): void
     {
         $isGross   = $this->helperProduct->priceIncludesTax();
         $priceType = $isGross
@@ -233,23 +230,28 @@ class Product extends Shopgate_Model_Catalog_Product
 
     /**
      * Set description
+     *
+     * @throws Exception
      */
-    public function setDescription()
+    public function setDescription(): void
     {
         $description = $this->helperProduct->getIndividualDescription($this->item);
         if ($this->parent) {
-            $type = $this->scopeConfig->getConfigByPath(ExportInterface::PATH_PROD_CHILD_DESCRIPTION);
+            $type              = $this->scopeConfig->getConfigByPath(ExportInterface::PATH_PROD_CHILD_DESCRIPTION);
+            $parentDescription = $this->helperProduct->getIndividualDescription($this->parent);
             switch ($type->getValue()) {
                 case ChildDescription::ID_CHILD_ONLY:
                     //intentionally omitted
                     break;
                 case ChildDescription::ID_BOTH_PARENT_FIRST:
-                    $description = $this->helperProduct->getIndividualDescription($this->parent) . $description;
+                    $description = $parentDescription . $description;
                     break;
                 case ChildDescription::ID_BOTH_CHILD_FIRST:
-                    $description .= $this->helperProduct->getIndividualDescription($this->parent);
+                    $description .= $parentDescription;
                     break;
                 case ChildDescription::ID_PARENT_ONLY:
+                    $description = $parentDescription;
+                    break;
                 default:
                     $description = '';
                     break;
@@ -262,7 +264,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set deep link
      */
-    public function setDeeplink()
+    public function setDeeplink(): void
     {
         parent::setDeeplink($this->helperProduct->getDeepLinkUrl($this->item));
     }
@@ -270,7 +272,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set promotion sort order
      */
-    public function setPromotionSortOrder()
+    public function setPromotionSortOrder(): void
     {
         //ToDo implement promotion logic in Magento
         parent::setPromotionSortOrder(false);
@@ -279,7 +281,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set internal order info
      */
-    public function setInternalOrderInfo()
+    public function setInternalOrderInfo(): void
     {
         $internalOrderInfo = [
             'store_view_id' => $this->item->getStoreId(),
@@ -297,7 +299,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set age rating
      */
-    public function setAgeRating()
+    public function setAgeRating(): void
     {
         parent::setAgeRating(false);
     }
@@ -305,7 +307,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set weight
      */
-    public function setWeight()
+    public function setWeight(): void
     {
         parent::setWeight(
             floatval(str_replace(',', '.', $this->item->getWeight()))
@@ -315,7 +317,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set weight unit
      */
-    public function setWeightUnit()
+    public function setWeightUnit(): void
     {
         $weightUnit = $this->helperProduct->getWeightUnit(
             $this->scopeConfig->getConfigByPath(Data::XML_PATH_WEIGHT_UNIT)->getValue()
@@ -327,7 +329,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set shipping
      */
-    public function setShipping()
+    public function setShipping(): void
     {
         $shipping = new Shopgate_Model_Catalog_Shipping();
         $shipping->setAdditionalCostsPerUnit(0);
@@ -344,7 +346,7 @@ class Product extends Shopgate_Model_Catalog_Product
      * low so that they position lower in Shopgate
      * Mobile. In Shopgate position 0 is last.
      */
-    public function setCategoryPaths()
+    public function setCategoryPaths(): void
     {
         if (!$this->helperProduct->isVisibleInCategories($this->item)) {
             return;
@@ -356,8 +358,8 @@ class Product extends Shopgate_Model_Catalog_Product
         foreach ($this->item->getCategoryIds() as $categoryId) {
             try {
                 /** @var \Magento\Catalog\Model\Category $category */
-                $category = $this->categoryRepository->get($categoryId);
-                $position = $this->helperProduct->getPositionInCategory($this->item->getId(), $categoryId);
+                $category            = $this->categoryRepository->get($categoryId);
+                $position            = $this->helperProduct->getPositionInCategory($this->item->getId(), $categoryId);
                 $result[$categoryId] = $this->helperProduct->getExportCategory($categoryId, $sortInflate - $position);
 
                 $anchors = $category->getAnchorsAbove();
@@ -381,7 +383,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set manufacturer
      */
-    public function setManufacturer()
+    public function setManufacturer(): void
     {
         $title = $this->helperProduct->getManufacturer($this->item);
 
@@ -397,7 +399,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set visibility
      */
-    public function setVisibility()
+    public function setVisibility(): void
     {
         parent::setVisibility(
             $this->helperProduct->setVisibility($this->item)
@@ -421,7 +423,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set images
      */
-    public function setImages()
+    public function setImages(): void
     {
         $images        = [];
         $galleryImages = $this->item->getMediaGalleryImages();
@@ -455,7 +457,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set identifiers
      */
-    public function setIdentifiers()
+    public function setIdentifiers(): void
     {
         $identifierItemObject = new Shopgate_Model_Catalog_Identifier();
         $identifierItemObject->setType('SKU');
@@ -468,7 +470,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set tags
      */
-    public function setTags()
+    public function setTags(): void
     {
         $result = [];
         $tags   = explode(',', $this->item->getMetaKeyword());
@@ -487,7 +489,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set relations
      */
-    public function setRelations()
+    public function setRelations(): void
     {
         $result      = [];
         $relationIds = array_merge(
@@ -508,7 +510,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set properties
      */
-    public function setProperties()
+    public function setProperties(): void
     {
         $result          = [];
         $forceAttributes = explode(
@@ -537,7 +539,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set options
      */
-    public function setInputs()
+    public function setInputs(): void
     {
         $result = [];
 
@@ -582,7 +584,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * set attribute groups
      */
-    public function setAttributeGroups()
+    public function setAttributeGroups(): void
     {
         if ($this->item->getTypeId() == Configurable::TYPE_CODE) {
             $configurableAttributes = $this->item
@@ -603,7 +605,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set the attributes + values for children
      */
-    public function setAttributes()
+    public function setAttributes(): void
     {
         $attributes = [];
         if ($this->getIsChild()
@@ -634,7 +636,7 @@ class Product extends Shopgate_Model_Catalog_Product
      * Generate children.
      * Skip check if it's already a child.
      */
-    public function setChildren()
+    public function setChildren(): void
     {
         if ($this->parent) {
             return;
@@ -659,7 +661,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * @param MageProduct $parent
      */
-    public function setParentItem(MageProduct $parent)
+    public function setParentItem(MageProduct $parent): void
     {
         $this->parent = $parent;
     }
@@ -667,7 +669,7 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Set displayType
      */
-    public function setDisplayType()
+    public function setDisplayType(): void
     {
         switch ($this->item->getTypeId()) {
             case Grouped::TYPE_CODE:
