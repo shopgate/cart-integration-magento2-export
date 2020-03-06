@@ -95,9 +95,19 @@ class Utility
     protected $filter;
     /** @var CoreInterface */
     protected $sgCore;
-    /** @var StockUtility  */
+    /** @var StockUtility */
     protected $stockUtility;
 
+    /**
+     * @param StoreManager                $storeManager
+     * @param TaxCalculation              $taxCalculation
+     * @param ExportUtility               $utility
+     * @param CategoryRepositoryInterface $categoryRepository
+     * @param TaxConfig                   $taxConfig
+     * @param FilterProvider              $filter
+     * @param CoreInterface               $sgCore
+     * @param StockUtility                $stockUtility
+     */
     public function __construct(
         StoreManager $storeManager,
         TaxCalculation $taxCalculation,
@@ -402,24 +412,24 @@ class Utility
             case Description::ID_DESCRIPTION_AND_SHORT_DESCRIPTION:
                 $description = sprintf(
                     self::DEFAULT_DESCRIPTION_LINEBREAK_PATTERN,
-                    $product->getDescription(),
-                    $product->getShortDescription()
+                    $product->getData('description'),
+                    $product->getData('short_description')
                 );
                 break;
             case Description::ID_SHORT_DESCRIPTION_AND_DESCRIPTION:
                 $description = sprintf(
                     self::DEFAULT_DESCRIPTION_LINEBREAK_PATTERN,
-                    $product->getShortDescription(),
-                    $product->getDescription()
+                    $product->getData('short_description'),
+                    $product->getData('description')
                 );
                 break;
             case Description::ID_SHORT_DESCRIPTION:
-                $description = $product->getShortDescription();
+                $description = $product->getData('short_description');
                 break;
             default:
-                $description = $product->getDescription();
+                $description = $product->getData('description');
         }
 
-        return $this->filter->getPageFilter()->filter($description);
+        return $this->filter->getPageFilter()->filter((string) $description);
     }
 }
