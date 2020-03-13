@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [Unreleased]
 ### Fixed
 - Description export when it's empty
+- Image export for child products
 
 ## [2.9.18] - 2020-03-02
 ### Fixed

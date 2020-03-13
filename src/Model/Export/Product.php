@@ -23,6 +23,7 @@ namespace Shopgate\Export\Model\Export;
 
 use Exception;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
+use Magento\Catalog\Helper\Image as ImageHelper;
 use Magento\Catalog\Model\Product as MageProduct;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\GroupManagement;
@@ -62,9 +63,9 @@ class Product extends Shopgate_Model_Catalog_Product
     protected $item;
     /** @var MageProduct */
     protected $parent;
-    /**
-     * @var array
-     */
+    /** @var ImageHelper */
+    private $imageHelper;
+    /** @var array */
     protected $fireMethods = [
         'setLastUpdate',
         'setUid',
@@ -119,6 +120,7 @@ class Product extends Shopgate_Model_Catalog_Product
      * @param ExportFactory               $exportFactory
      * @param CategoryRepositoryInterface $categoryRepository
      * @param Type                        $type
+     * @param ImageHelper                 $imageHelper
      * @param SgLoggerInterface           $logger
      */
     public function __construct(
@@ -128,6 +130,7 @@ class Product extends Shopgate_Model_Catalog_Product
         ExportFactory $exportFactory,
         CategoryRepositoryInterface $categoryRepository,
         Type $type,
+        ImageHelper $imageHelper,
         SgLoggerInterface $logger
     ) {
         parent::__construct();
@@ -137,6 +140,7 @@ class Product extends Shopgate_Model_Catalog_Product
         $this->exportFactory      = $exportFactory;
         $this->categoryRepository = $categoryRepository;
         $this->type               = $type;
+        $this->imageHelper        = $imageHelper;
         $this->logger             = $logger;
     }
 
@@ -449,6 +453,11 @@ class Product extends Shopgate_Model_Catalog_Product
             }
 
             ksort($images);
+        }
+        if (empty($images)) {
+            $url        = $this->imageHelper->init($this->item, 'product_base_image')->getUrl();
+            $imageModel = (new Shopgate_Model_Media_Image())->setUrl($url);
+            $images     = [$imageModel];
         }
 
         parent::setImages($images);
