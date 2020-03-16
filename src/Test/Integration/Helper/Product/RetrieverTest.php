@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright Shopgate Inc.
  *
@@ -19,32 +20,43 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
+declare(strict_types=1);
+
 namespace Shopgate\Export\Test\Integration\Helper\Product;
 
+use Magento\Catalog\Api\ProductRepositoryInterface;
+use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
+use Magento\TestFramework\ObjectManager;
 use PHPUnit\Framework\TestCase;
 use Shopgate\Base\Tests\Bootstrap;
 use Shopgate\Export\Helper\Product\Retriever;
 use Shopgate\Export\Model\Export\Product;
 
 /**
- * @coversDefaultClass \Shopgate\Export\Helper\Product\Retriever
+ * @magentoAppArea frontend
  */
 class RetrieverTest extends TestCase
 {
+    /** @var ProductRepositoryInterface */
+    private $productRepository;
+    /** @var ObjectManager */
+    private $objectManager;
     /** @var StoreManagerInterface */
-    protected $storeManager;
+    private $storeManager;
     /** @var Retriever */
-    protected $class;
+    private $subjectUnderTest;
 
     /**
      * Init store manager + current class
      */
     public function setUp()
     {
-        $objManager         = Bootstrap::getObjectManager();
-        $this->storeManager = $objManager->create('Magento\Store\Model\StoreManagerInterface');
-        $this->class        = $objManager->create('Shopgate\Export\Helper\Product\Retriever');
+        $this->objectManager     = Bootstrap::getObjectManager();
+        $this->storeManager      = $this->objectManager->get(StoreManagerInterface::class);
+        $this->productRepository = $this->objectManager->get(ProductRepositoryInterface::class);
+        $this->subjectUnderTest  = $this->objectManager->get(Retriever::class);
     }
 
     /**
@@ -53,12 +65,12 @@ class RetrieverTest extends TestCase
      *
      * @param int $uid
      *
-     * @covers ::getItems
      * @dataProvider uidProvider
+     * @throws LocalizedException
      */
-    public function testGetProductsByUid($uid)
+    public function testGetProductsByUid($uid): void
     {
-        $sgProducts = $this->class->getItems(null, null, [$uid]);
+        $sgProducts = $this->subjectUnderTest->getItems(null, null, [$uid]);
 
         foreach ($sgProducts as $sgProduct) {
             /** @var Product $sgProduct */
@@ -67,11 +79,56 @@ class RetrieverTest extends TestCase
     }
 
     /**
+     * Pull configurable product and the children data
+     *
+     * @throws NoSuchEntityException
+     * @throws LocalizedException
+     */
+    public function testGetConfigurable(): void
+    {
+        $this->storeManager->setCurrentStore(1);
+        $configurable = $this->productRepository->get('MH01');
+        $sgProducts   = $this->subjectUnderTest->getItems(null, null, [$configurable->getId()]);
+        $this->assertCount(1, $sgProducts);
+        /** @var Product $parent */
+        $parent       = array_pop($sgProducts);
+        $parentImages = $parent->getImages();
+        $this->assertEquals($configurable->getId(), $parent->getUid());
+        $this->assertCount(3, $parentImages);
+        $parentImageOne = array_shift($parentImages);
+        $this->assertContains(
+            'http://localhost/pub/media/catalog/product/m/h/mh01-gray_main_1',
+            $parentImageOne->getUrl()
+        );
+
+        /** @var Product[] $children */
+        $children = $parent->getChildren();
+        $this->assertCount(15, $children);
+        $xsBlack       = array_shift($children);
+        $xsBlackImages = $xsBlack->getImages();
+        $this->assertCount(1, $xsBlackImages);
+        $xsBlackImageOne = array_shift($xsBlackImages);
+        $this->assertContains(
+            'http://localhost/pub/media/catalog/product/m/h/mh01-black_main_1',
+            $xsBlackImageOne->getUrl()
+        );
+
+        $xsGray       = array_shift($children);
+        $xsGrayImages = $xsGray->getImages();
+        $this->assertCount(3, $xsGrayImages);
+        $xsGrayImageThree = array_pop($xsGrayImages);
+        $this->assertContains(
+            'http://localhost/pub/media/catalog/product/m/h/mh01-gray_back_1',
+            $xsGrayImageThree->getUrl()
+        );
+    }
+
+    /**
      * Provider for product uids
      *
      * @return array
      */
-    public function uidProvider()
+    public function uidProvider(): array
     {
         return [[21], [23]];
     }
@@ -81,12 +138,12 @@ class RetrieverTest extends TestCase
      * @param $limit
      * @param $offset
      *
-     * @covers ::getItems
      * @dataProvider limitProvider
+     * @throws LocalizedException
      */
-    public function testGetItemsLimit($expected, $limit, $offset)
+    public function testGetItemsLimit($expected, $limit, $offset): void
     {
-        $sgProducts = $this->class->getItems($limit, $offset, []);
+        $sgProducts = $this->subjectUnderTest->getItems($limit, $offset, []);
         $this->assertCount($expected, $sgProducts);
     }
 
@@ -95,7 +152,7 @@ class RetrieverTest extends TestCase
      *
      * @return array
      */
-    public function limitProvider()
+    public function limitProvider(): array
     {
         return [
             'first 5'             => [5, 5, 0],

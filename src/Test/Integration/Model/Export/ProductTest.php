@@ -394,4 +394,20 @@ class ProductTest extends TestCase
             'grouped product order for bundled '    => ['bundle', '24-WG080']
         ];
     }
+
+    /**
+     * Simple test that runs against a single child product
+     *
+     * @throws NoSuchEntityException
+     */
+    public function testImages(): void
+    {
+        $parent  = $this->productRepository->get('MH01');
+        $product = $this->productRepository->get('MH01-XS-Gray');
+        /** @noinspection PhpParamsInspection */
+        $this->subjectUnderTest->setParentItem($parent);
+        $this->subjectUnderTest->setItem($product)->setImages();
+        $images = $this->subjectUnderTest->getImages();
+        $this->assertCount(3, $images);
+    }
 }
