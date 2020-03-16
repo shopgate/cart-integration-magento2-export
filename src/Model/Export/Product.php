@@ -23,8 +23,8 @@ namespace Shopgate\Export\Model\Export;
 
 use Exception;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
-use Magento\Catalog\Helper\Image as ImageHelper;
 use Magento\Catalog\Model\Product as MageProduct;
+use Magento\Catalog\Model\Product\Gallery\ReadHandler as GalleryReadHandler;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\GroupManagement;
 use Magento\Directory\Helper\Data;
@@ -56,6 +56,7 @@ use Shopgate_Model_Catalog_TierPrice;
 use Shopgate_Model_Media_Image;
 use Zend_Date;
 use Zend_Json;
+use function is_object;
 
 class Product extends Shopgate_Model_Catalog_Product
 {
@@ -63,8 +64,6 @@ class Product extends Shopgate_Model_Catalog_Product
     protected $item;
     /** @var MageProduct */
     protected $parent;
-    /** @var ImageHelper */
-    private $imageHelper;
     /** @var array */
     protected $fireMethods = [
         'setLastUpdate',
@@ -112,6 +111,8 @@ class Product extends Shopgate_Model_Catalog_Product
     private $exportFactory;
     /** @var CategoryRepositoryInterface */
     private $categoryRepository;
+    /** @var GalleryReadHandler */
+    private $galleryReadHandler;
 
     /**
      * @param CoreInterface               $scopeConfig
@@ -120,8 +121,8 @@ class Product extends Shopgate_Model_Catalog_Product
      * @param ExportFactory               $exportFactory
      * @param CategoryRepositoryInterface $categoryRepository
      * @param Type                        $type
-     * @param ImageHelper                 $imageHelper
      * @param SgLoggerInterface           $logger
+     * @param GalleryReadHandler          $galleryReadHandler
      */
     public function __construct(
         CoreInterface $scopeConfig,
@@ -130,8 +131,8 @@ class Product extends Shopgate_Model_Catalog_Product
         ExportFactory $exportFactory,
         CategoryRepositoryInterface $categoryRepository,
         Type $type,
-        ImageHelper $imageHelper,
-        SgLoggerInterface $logger
+        SgLoggerInterface $logger,
+        GalleryReadHandler $galleryReadHandler
     ) {
         parent::__construct();
         $this->scopeConfig        = $scopeConfig;
@@ -140,8 +141,8 @@ class Product extends Shopgate_Model_Catalog_Product
         $this->exportFactory      = $exportFactory;
         $this->categoryRepository = $categoryRepository;
         $this->type               = $type;
-        $this->imageHelper        = $imageHelper;
         $this->logger             = $logger;
+        $this->galleryReadHandler = $galleryReadHandler;
     }
 
     /**
@@ -429,14 +430,15 @@ class Product extends Shopgate_Model_Catalog_Product
      */
     public function setImages(): void
     {
-        $images        = [];
+        $images = [];
+        $this->galleryReadHandler->execute($this->item);
         $galleryImages = $this->item->getMediaGalleryImages();
 
         if (is_object($galleryImages)) {
             foreach ($galleryImages as $image) {
                 $smallImage = $this->item->getData('small_image');
 
-                /** @var $image DataObject */
+                /** @var DataObject $image */
                 $imageModel = new Shopgate_Model_Media_Image();
                 $imageModel->setUid($image->getData('id'));
                 $imageModel->setUrl($image->getData('url'));
@@ -453,11 +455,6 @@ class Product extends Shopgate_Model_Catalog_Product
             }
 
             ksort($images);
-        }
-        if (empty($images)) {
-            $url        = $this->imageHelper->init($this->item, 'product_base_image')->getUrl();
-            $imageModel = (new Shopgate_Model_Media_Image())->setUrl($url);
-            $images     = [$imageModel];
         }
 
         parent::setImages($images);
@@ -550,8 +547,10 @@ class Product extends Shopgate_Model_Catalog_Product
      */
     public function setInputs(): void
     {
+        if (!$this->item->getOptions()) {
+            return;
+        }
         $result = [];
-
         foreach ($this->item->getOptions() as $option) {
             /** @var MageProduct\Option $option */
             $inputType = $this->helperProduct->mapInputType($option->getType());
@@ -622,8 +621,7 @@ class Product extends Shopgate_Model_Catalog_Product
         ) {
             /** @var Configurable $productTypeInstance */
             $productTypeInstance    = $this->parent->getTypeInstance();
-            $configurableAttributes = $productTypeInstance
-                ->getConfigurableAttributes($this->parent);
+            $configurableAttributes = $productTypeInstance->getConfigurableAttributes($this->parent);
             foreach ($configurableAttributes as $attribute) {
                 /** @var Configurable\Attribute $attribute */
                 $attributeValue = $this->item
@@ -644,6 +642,8 @@ class Product extends Shopgate_Model_Catalog_Product
     /**
      * Generate children.
      * Skip check if it's already a child.
+     *
+     * @throws Exception
      */
     public function setChildren(): void
     {
