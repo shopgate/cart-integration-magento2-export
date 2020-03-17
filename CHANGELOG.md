@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 
+## [2.9.19] - 2020-03-17
+### Fixed
+- Description export when it's empty
+- Image export for child products
+
 ## [2.9.18] - 2020-03-02
 ### Fixed
 - stock class compatibility with Magento 2.3.1
@@ -104,7 +109,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.18...HEAD
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.19...HEAD
+[2.9.19]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.18...2.9.19
 [2.9.18]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.17...2.9.18
 [2.9.17]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.16...2.9.17
 [2.9.16]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.15...2.9.16

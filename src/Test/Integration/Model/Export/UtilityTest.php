@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright Shopgate Inc.
  *
@@ -19,6 +20,8 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
+declare(strict_types=1);
+
 namespace Shopgate\Export\Test\Integration\Model\Export;
 
 use PHPUnit\Framework\TestCase;
@@ -28,7 +31,7 @@ use Shopgate\Base\Tests\Integration\Db\ConfigManager;
 use Shopgate\Export\Model\Export\Utility;
 
 /**
- * @coversDefaultClass Shopgate\Export\Model\Export\Utility
+ * @coversDefaultClass \Shopgate\Export\Model\Export\Utility
  */
 class UtilityTest extends TestCase
 {
@@ -44,7 +47,7 @@ class UtilityTest extends TestCase
     {
         $this->cfgManager = new ConfigManager;
         $objManager       = Bootstrap::getObjectManager();
-        $this->class      = $objManager->create('Shopgate\Export\Model\Export\Utility');
+        $this->class      = $objManager->create(Utility::class);
     }
 
     /**
@@ -59,7 +62,7 @@ class UtilityTest extends TestCase
      * @covers ::parseUrl
      * @dataProvider parseUrlProvider
      */
-    public function testParseUrl($expected, $url, $user, $password)
+    public function testParseUrl($expected, $url, $user, $password): void
     {
         $this->cfgManager->setConfigValue(SgCoreInterface::PATH_HTUSER, $user);
         $this->cfgManager->setConfigValue(SgCoreInterface::PATH_HTPASS, $password);
@@ -72,7 +75,7 @@ class UtilityTest extends TestCase
     /**
      * @return array
      */
-    public function parseUrlProvider()
+    public function parseUrlProvider(): array
     {
         return [
             [

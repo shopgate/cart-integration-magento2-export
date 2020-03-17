@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright Shopgate Inc.
  *
@@ -19,13 +20,19 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
+declare(strict_types=1);
+
 namespace Shopgate\Export\Helper\Product;
 
+use Exception;
 use Magento\Catalog\Model\Product\Attribute\Source\Status;
 use Magento\Catalog\Model\Product\Type;
 use Magento\Catalog\Model\Product\Visibility;
-use Magento\Catalog\Model\ProductFactory;
+use Magento\Catalog\Model\ProductRepository;
+use Magento\Catalog\Model\ResourceModel\Product\Collection;
+use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Framework\Exception\LocalizedException;
 use Magento\GroupedProduct\Model\Product\Type\Grouped;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Base\Model\Utility\SgProfiler;
@@ -35,34 +42,39 @@ use Shopgate\Export\Model\Export\ProductFactory as ExportFactory;
 class Retriever
 {
     /**  @const ALLOWED_PRODUCT_TYPES   Supported product types for export */
-    const ALLOWED_PRODUCT_TYPES = [Type::TYPE_SIMPLE, Configurable::TYPE_CODE, Grouped::TYPE_CODE];
+    public const ALLOWED_PRODUCT_TYPES = [Type::TYPE_SIMPLE, Configurable::TYPE_CODE, Grouped::TYPE_CODE];
     /** @var SgLoggerInterface */
     private $log;
     /** @var SgProfiler */
     private $profiler;
-    /** @var ProductFactory */
-    private $productFactory;
     /** @var ExportFactory */
     private $exportFactory;
+    /** @var ProductRepository */
+    private $productRepository;
+    /** @var CollectionFactory */
+    private $collectionFactory;
 
     /**
      * @param SgLoggerInterface $logger
-     * @param ProductFactory    $productFactory
      * @param ExportFactory     $exportFactory
      * @param SgProfiler        $profiler
+     * @param ProductRepository $productRepository
+     * @param CollectionFactory $productCollectionFactory
      *
      * @codeCoverageIgnore
      */
     public function __construct(
         SgLoggerInterface $logger,
-        ProductFactory $productFactory,
         ExportFactory $exportFactory,
-        SgProfiler $profiler
+        SgProfiler $profiler,
+        ProductRepository $productRepository,
+        CollectionFactory $productCollectionFactory
     ) {
-        $this->log            = $logger;
-        $this->productFactory = $productFactory;
-        $this->exportFactory  = $exportFactory;
-        $this->profiler       = $profiler;
+        $this->log               = $logger;
+        $this->exportFactory     = $exportFactory;
+        $this->profiler          = $profiler;
+        $this->productRepository = $productRepository;
+        $this->collectionFactory = $productCollectionFactory;
     }
 
     /**
@@ -72,16 +84,17 @@ class Retriever
      * @param int[]      $skipItemIds
      *
      * @return array
+     * @throws LocalizedException
      */
-    public function getItems($limit = null, $offset = null, array $uids = [], array $skipItemIds = [])
+    public function getItems($limit = null, $offset = null, array $uids = [], array $skipItemIds = []): array
     {
         $this->log->access('Start Product Export...');
         $this->log->debug('Start Product Export...');
         $profiler = $this->profiler->start();
         $export   = [];
 
-        /** @var \Magento\Catalog\Model\ResourceModel\Product\Collection $productCollection */
-        $productCollection = $this->productFactory->create()->getCollection();
+        /** @var Collection $productCollection */
+        $productCollection = $this->collectionFactory->create();
         $productCollection->addAttributeToFilter(
             'visibility',
             [
@@ -108,17 +121,16 @@ class Retriever
 
         foreach ($productCollection as $product) {
             $this->log->debug("Start Collection Product Load With ID: {$product->getId()}");
-            $product = $this->productFactory->create()->load($product->getId());
+            $item = $this->productRepository->getById($product->getId());
 
             /** @var Product $productExportModel */
             $productExportModel = $this->exportFactory->create();
             try {
-                $productExportModel->setItem($product);
+                $productExportModel->setItem($item);
                 $export[] = $productExportModel->generateData();
-                $product->clearInstance();
-            } catch (\Exception $e) {
+            } catch (Exception $error) {
                 $this->log->error(
-                    "Skipping export of product with id: {$product->getId()}, message: " . $e->getMessage()
+                    "Skipping export of product with id: {$item->getId()}, message: " . $error->getMessage()
                 );
             }
         }
