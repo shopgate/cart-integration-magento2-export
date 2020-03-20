@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Copyright Shopgate Inc.
  *
@@ -19,6 +20,8 @@
  * @license   http://www.apache.org/licenses/LICENSE-2.0 Apache License, Version 2.0
  */
 
+declare(strict_types=1);
+
 namespace Shopgate\Export\Test\Integration\Helper\Product;
 
 use Magento\Catalog\Model\Product\Visibility;
@@ -29,7 +32,7 @@ use Shopgate\Base\Tests\Bootstrap;
 use Shopgate\Export\Helper\Product\Utility;
 
 /**
- * @coversDefaultClass Shopgate\Export\Helper\Product\Utility
+ * @coversDefaultClass \Shopgate\Export\Helper\Product\Utility
  */
 class HelperTest extends TestCase
 {
@@ -46,66 +49,9 @@ class HelperTest extends TestCase
     public function setUp()
     {
         $objManager           = Bootstrap::getObjectManager();
-        $this->storeManager   = $objManager->create('Magento\Store\Model\StoreManagerInterface');
-        $this->class          = $objManager->create('Shopgate\Export\Helper\Product\Utility');
-        $this->productFactory = $objManager->create('Magento\Catalog\Model\ProductFactory');
-    }
-
-    /**
-     * Provider for testVisibilitiesInCategories
-     *
-     * @return array
-     */
-    public function visibilitiesInCategoriesProvider()
-    {
-        return [
-            'VISIBILITY_BOTH'        => [Visibility::VISIBILITY_BOTH, true],
-            'VISIBILITY_IN_CATALOG'  => [Visibility::VISIBILITY_IN_CATALOG, true],
-            'VISIBILITY_NOT_VISIBLE' => [Visibility::VISIBILITY_NOT_VISIBLE, false],
-            'VISIBILITY_IN_SEARCH'   => [Visibility::VISIBILITY_IN_SEARCH, false]
-        ];
-    }
-
-    /**
-     * @param int  $visibility
-     * @param bool $expectedResult
-     *
-     * @dataProvider visibilitiesInCategoriesProvider
-     * @covers ::isVisibleInCategories
-     */
-    public function testVisibilitiesInCategories($visibility, $expectedResult)
-    {
-        $product = $this->productFactory->create()->load(1);
-        $product->setVisibility($visibility);
-        $this->assertEquals($expectedResult, $this->class->isVisibleInCategories($product));
-    }
-
-    /**
-     * Provider for testSetVisibility
-     */
-    public function setVisibilityProvider()
-    {
-        return [
-            'visibility level for visibility_both'        => [Visibility::VISIBILITY_BOTH, 'catalog_and_search'],
-            'visibility level for visibility_in_catalog'  => [Visibility::VISIBILITY_IN_CATALOG, 'catalog'],
-            'visibility level for visibility_not_visible' => [Visibility::VISIBILITY_NOT_VISIBLE, 'nothing'],
-            'visibility level for visibility_in_search'   => [Visibility::VISIBILITY_IN_SEARCH, 'search'],
-            'visibility level not defined visibility'     => ['Test', null]
-        ];
-    }
-
-    /**
-     * @param string $visibilityString
-     * @param bool   $expectedResult
-     *
-     * @dataProvider setVisibilityProvider
-     * @covers ::setVisibility
-     */
-    public function testSetVisibility($visibilityString, $expectedResult)
-    {
-        $product = $this->productFactory->create()->load(1);
-        $product->setVisibility($visibilityString);
-        $this->assertEquals($expectedResult, $this->class->setVisibility($product)->getLevel());
+        $this->storeManager   = $objManager->create(StoreManagerInterface::class);
+        $this->class          = $objManager->create(Utility::class);
+        $this->productFactory = $objManager->create(ProductFactory::class);
     }
 
     /**
@@ -119,12 +65,12 @@ class HelperTest extends TestCase
      *
      * @dataProvider getDeepLinkUrlProvider
      */
-    public function testGetDeepLinkUrl($expectedLink, $parentId, $childId, $visibility)
+    public function testGetDeepLinkUrl($expectedLink, $parentId, $childId, $visibility): void
     {
         $product = $this->productFactory->create()->load($childId);
         $product->setVisibility($visibility);
 
-        if (!is_null($parentId)) {
+        if ($parentId !== null) {
             $parent = $this->productFactory->create()->load($parentId);
         } else {
             $parent = null;
@@ -137,7 +83,7 @@ class HelperTest extends TestCase
     /**
      * @return array (expected url, parent id, child id, visibility)
      */
-    public function getDeepLinkUrlProvider()
+    public function getDeepLinkUrlProvider(): array
     {
         return [
             'parent with invisible child' => [

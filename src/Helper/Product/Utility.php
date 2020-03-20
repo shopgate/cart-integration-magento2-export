@@ -49,6 +49,7 @@ use Shopgate_Model_Catalog_Product;
 use Shopgate_Model_Catalog_Relation;
 use Shopgate_Model_Catalog_Validation;
 use Shopgate_Model_Catalog_Visibility;
+use function in_array;
 
 class Utility
 {
@@ -140,7 +141,7 @@ class Utility
             Visibility::VISIBILITY_IN_CATALOG
         ];
 
-        return in_array($product->getVisibility(), $validVisibilities, false);
+        return in_array((int) $product->getVisibility(), $validVisibilities, true);
     }
 
     /**
