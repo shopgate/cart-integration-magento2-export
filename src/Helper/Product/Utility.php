@@ -140,7 +140,7 @@ class Utility
             Visibility::VISIBILITY_IN_CATALOG
         ];
 
-        return in_array($product->getVisibility(), $validVisibilities, true);
+        return in_array($product->getVisibility(), $validVisibilities, false);
     }
 
     /**
