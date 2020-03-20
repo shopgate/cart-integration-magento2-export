@@ -410,4 +410,29 @@ class ProductTest extends TestCase
         $images = $this->subjectUnderTest->getImages();
         $this->assertCount(3, $images);
     }
+
+    /**
+     * @throws NoSuchEntityException
+     */
+    public function testChildNotVisibleInCategory(): void
+    {
+        $parent  = $this->productRepository->get('MH01');
+        $product = $this->productRepository->get('MH01-XS-Gray');
+        /** @noinspection PhpParamsInspection */
+        $this->subjectUnderTest->setParentItem($parent);
+        $this->subjectUnderTest->setItem($product)->setCategoryPaths();
+        $categoryPaths = $this->subjectUnderTest->getCategoryPaths();
+        $this->assertCount(0, $categoryPaths, 'child not supposed to be in any category');
+    }
+
+    /**
+     * @throws NoSuchEntityException
+     */
+    public function testConfigurableIsVisible(): void
+    {
+        $product = $this->productRepository->get('MH01');
+        $this->subjectUnderTest->setItem($product)->setCategoryPaths();
+        $categoryPaths = $this->subjectUnderTest->getCategoryPaths();
+        $this->assertCount(4, $categoryPaths, 'configurable should be in the categories');
+    }
 }
