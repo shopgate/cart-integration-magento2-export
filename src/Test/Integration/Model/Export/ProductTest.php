@@ -435,4 +435,34 @@ class ProductTest extends TestCase
         $categoryPaths = $this->subjectUnderTest->getCategoryPaths();
         $this->assertCount(4, $categoryPaths, 'configurable should be in the categories');
     }
+
+    /**
+     * @throws NoSuchEntityException
+     */
+    public function testSetAttributeGroups(): void
+    {
+        $parent = $this->productRepository->get('MH01');
+        $this->subjectUnderTest->setItem($parent)->setAttributeGroups();
+        $attributeGroups = $this->subjectUnderTest->getAttributeGroups();
+        [$sizeGroup, $colorGroup] = $attributeGroups;
+        $this->assertSame('Size', $sizeGroup->getLabel());
+        $this->assertSame('Color', $colorGroup->getLabel());
+    }
+
+    /**
+     * @throws NoSuchEntityException
+     */
+    public function testSetAttributes(): void
+    {
+        $parent  = $this->productRepository->get('MH01');
+        $product = $this->productRepository->get('MH01-XS-Gray');
+        /** @noinspection PhpParamsInspection */
+        $this->subjectUnderTest->setParentItem($parent);
+        $this->subjectUnderTest->setIsChild(true);
+        $this->subjectUnderTest->setItem($product)->setAttributes();
+        $attributes = $this->subjectUnderTest->getAttributes();
+        [$sizeAttribute, $colorAttribute] = $attributes;
+        $this->assertSame('XS', $sizeAttribute->getLabel());
+        $this->assertSame('Gray', $colorAttribute->getLabel());
+    }
 }

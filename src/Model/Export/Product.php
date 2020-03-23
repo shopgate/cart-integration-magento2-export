@@ -600,19 +600,17 @@ class Product extends Shopgate_Model_Catalog_Product
      */
     public function setAttributeGroups(): void
     {
-        if ($this->item->getTypeId() == Configurable::TYPE_CODE) {
-            $configurableAttributes = $this->item
-                ->getTypeInstance()
-                ->getConfigurableAttributes($this->item);
-            $attributeGroups        = [];
-            foreach ($configurableAttributes as $attribute) {
-                /* @var $attribute Configurable\Attribute */
+        if ($this->item->getTypeId() === Configurable::TYPE_CODE) {
+            $result = [];
+            $groups = $this->item->getTypeInstance()->getConfigurableAttributes($this->item);
+            foreach ($groups as $attribute) {
+                /* @var Configurable\Attribute $attribute */
                 $attributeItem = new Shopgate_Model_Catalog_AttributeGroup();
                 $attributeItem->setUid($attribute->getAttributeId());
                 $attributeItem->setLabel($attribute->getProductAttribute()->getFrontend()->getLabel());
-                $attributeGroups[] = $attributeItem;
+                $result[] = $attributeItem;
             }
-            parent::setAttributeGroups($attributeGroups);
+            parent::setAttributeGroups($result);
         }
     }
 
