@@ -30,6 +30,7 @@ use Magento\Customer\Model\GroupManagement;
 use Magento\Directory\Helper\Data;
 use Magento\Framework\DataObject;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\GroupedProduct\Model\Product\Type\Grouped;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
@@ -190,6 +191,9 @@ class Product extends Shopgate_Model_Catalog_Product
 
     /**
      * Set currency
+     *
+     * @throws NoSuchEntityException
+     * @throws LocalizedException
      */
     public function setCurrency(): void
     {
@@ -200,6 +204,8 @@ class Product extends Shopgate_Model_Catalog_Product
 
     /**
      * Set price
+     *
+     * @throws NoSuchEntityException
      */
     public function setPrice(): void
     {
@@ -594,19 +600,17 @@ class Product extends Shopgate_Model_Catalog_Product
      */
     public function setAttributeGroups(): void
     {
-        if ($this->item->getTypeId() == Configurable::TYPE_CODE) {
-            $configurableAttributes = $this->item
-                ->getTypeInstance()
-                ->getConfigurableAttributes($this->item);
-            $attributeGroups        = [];
-            foreach ($configurableAttributes as $attribute) {
-                /* @var $attribute Configurable\Attribute */
+        if ($this->item->getTypeId() === Configurable::TYPE_CODE) {
+            $result = [];
+            $groups = $this->item->getTypeInstance()->getConfigurableAttributes($this->item);
+            foreach ($groups as $attribute) {
+                /* @var Configurable\Attribute $attribute */
                 $attributeItem = new Shopgate_Model_Catalog_AttributeGroup();
                 $attributeItem->setUid($attribute->getAttributeId());
                 $attributeItem->setLabel($attribute->getProductAttribute()->getFrontend()->getLabel());
-                $attributeGroups[] = $attributeItem;
+                $result[] = $attributeItem;
             }
-            parent::setAttributeGroups($attributeGroups);
+            parent::setAttributeGroups($result);
         }
     }
 
@@ -620,19 +624,33 @@ class Product extends Shopgate_Model_Catalog_Product
             && $this->parent->getTypeId() === Configurable::TYPE_CODE
         ) {
             /** @var Configurable $productTypeInstance */
-            $productTypeInstance    = $this->parent->getTypeInstance();
-            $configurableAttributes = $productTypeInstance->getConfigurableAttributes($this->parent);
-            foreach ($configurableAttributes as $attribute) {
+            $productTypeInstance = $this->parent->getTypeInstance();
+            $parentAttributes    = $productTypeInstance->getConfigurableAttributes($this->parent);
+            foreach ($parentAttributes as $attribute) {
                 /** @var Configurable\Attribute $attribute */
-                $attributeValue = $this->item
-                    ->getResource()
-                    ->getAttribute($attribute->getProductAttribute()->getAttributeCode())
-                    ->getFrontend()
-                    ->getValue($this->item);
+                $code            = $attribute->getProductAttribute()->getAttributeCode();
+                $customAttribute = $this->item->getCustomAttribute($code);
+                if (!$customAttribute) {
+                    $error = "SG: could not locate child (ID: {$this->item->getId()}) attribute code: {$code}";
+                    $this->logger->error($error);
+                    continue;
+                }
+                $optionId     = $customAttribute->getValue();
+                $options      = $attribute->getOptions();
+                $optionLabels = array_filter(
+                    $options,
+                    static function ($option) use ($optionId) {
+                        return $option['value_index'] === $optionId;
+                    }
+                );
+                $option       = array_pop($optionLabels);
+                if (!isset($option['label'])) {
+                    continue;
+                }
 
                 $itemAttribute = new Shopgate_Model_Catalog_Attribute();
                 $itemAttribute->setGroupUid($attribute->getAttributeId());
-                $itemAttribute->setLabel($attributeValue);
+                $itemAttribute->setLabel($option['label']);
                 $attributes[] = $itemAttribute;
             }
         }
