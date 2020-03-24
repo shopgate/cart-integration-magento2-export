@@ -14,6 +14,11 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Description export when it's empty
 - Image export for child products
 
+## [2.9.19] - 2020-03-17
+### Fixed
+- Description export when it's empty
+- Image export for child products
+
 ## [2.9.18] - 2020-03-02
 ### Fixed
 - stock class compatibility with Magento 2.3.1
