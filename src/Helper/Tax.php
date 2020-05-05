@@ -93,7 +93,7 @@ class Tax
             $quote->getCustomerTaxClassId()
         );
 
-        if (!isset($taxClasses[$defaultTaxClass])) {
+        if (!isset($taxClasses[$defaultTaxClass]) || empty($quote->getShippingAddress()->getAppliedTaxes())) {
             $this->logger->debug('Default class: ' . $defaultTaxClass);
             $this->logger->debug('Returned only these tax classes: ' . print_r($taxClasses, true));
 

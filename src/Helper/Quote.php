@@ -223,9 +223,10 @@ class Quote extends \Shopgate\Base\Helper\Quote
         $methods = [];
         $this->quote->setData('totals_collected_flag', false);
         $this->quoteRepository->save($this->quote);
-        $taxPercent = $this->taxHelper->getShippingTaxPercent($this->quote);
-        $address    = $this->quote->getShippingAddress();
-        $rates      = $address->setCollectShippingRates(true)->collectShippingRates()->getAllShippingRates();
+        $taxPercent      = $this->taxHelper->getShippingTaxPercent($this->quote);
+        $address         = $this->quote->getShippingAddress();
+        $rates           = $address->setCollectShippingRates(true)->collectShippingRates()->getAllShippingRates();
+        $showGrossAmount = !empty($address->getAppliedTaxes());
 
         /** @var \Magento\Quote\Model\Quote\Address\Rate $rate */
         foreach ($rates as $key => $rate) {
@@ -245,7 +246,7 @@ class Quote extends \Shopgate\Base\Helper\Quote
             $sgMethod->setDescription($rate->getMethodDescription() ? : '');
             $sgMethod->setAmount($this->calculatePrice($rate->getPrice(), $taxPercent, $shippingPriceIncludesTax));
             $sgMethod->setAmountWithTax(
-                $this->calculatePrice($rate->getPrice(), $taxPercent, $shippingPriceIncludesTax, true)
+                $this->calculatePrice($rate->getPrice(), $taxPercent, $shippingPriceIncludesTax, $showGrossAmount)
             );
             $sgMethod->setTaxClass($this->quote->getCustomerTaxClassId());
             $sgMethod->setTaxPercent($taxPercent);
