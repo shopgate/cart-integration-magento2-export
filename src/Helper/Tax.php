@@ -105,7 +105,7 @@ class Tax
             $quote->getStoreId()
         )->getValue();
 
-        // customer group can be auto assigned based on vat id an magento's auto group assignment feature
+        // customer group can be auto assigned based on vat id and magento's auto group assignment feature
         if ($this->customerSession->getCustomerGroupId() !== null) {
             $groupId    = $this->customerSession->getCustomerGroupId();
             $taxClassId = $this->groupRepository->getById($groupId)->getTaxClassId();
