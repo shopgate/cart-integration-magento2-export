@@ -22,6 +22,10 @@
 
 namespace Shopgate\Export\Helper;
 
+use Magento\Customer\Api\GroupRepositoryInterface;
+use Magento\Customer\Model\Session;
+use Magento\Framework\Exception;
+use Magento\Tax\Helper\Data as TaxHelper;
 use Magento\Tax\Model\Calculation;
 use Magento\Tax\Model\Config as TaxConfig;
 use Shopgate\Base\Api\Config\CoreInterface;
@@ -33,27 +37,37 @@ class Tax
     private $config;
     /** @var Calculation */
     private $calculation;
-    /** @var \Magento\Tax\Helper\Data */
+    /** @var TaxHelper */
     private $taxHelper;
     /** @var SgLoggerInterface */
     private $logger;
+    /** @var Session */
+    private $customerSession;
+    /** @var GroupRepositoryInterface */
+    private $groupRepository;
 
     /**
      * @param CoreInterface            $sgCore
      * @param Calculation              $calculation
-     * @param \Magento\Tax\Helper\Data $taxHelper
+     * @param TaxHelper                $taxHelper
      * @param SgLoggerInterface        $logger
+     * @param Session                  $customerSession
+     * @param GroupRepositoryInterface $groupRepository
      */
     public function __construct(
         CoreInterface $sgCore,
         Calculation $calculation,
-        \Magento\Tax\Helper\Data $taxHelper,
-        SgLoggerInterface $logger
+        TaxHelper $taxHelper,
+        SgLoggerInterface $logger,
+        Session $customerSession,
+        GroupRepositoryInterface $groupRepository
     ) {
-        $this->config      = $sgCore;
-        $this->calculation = $calculation;
-        $this->taxHelper   = $taxHelper;
-        $this->logger      = $logger;
+        $this->config          = $sgCore;
+        $this->calculation     = $calculation;
+        $this->taxHelper       = $taxHelper;
+        $this->logger          = $logger;
+        $this->customerSession = $customerSession;
+        $this->groupRepository = $groupRepository;
     }
 
     /**
@@ -80,20 +94,30 @@ class Tax
      * @param \Magento\Quote\Model\Quote $quote
      *
      * @return float
+     * @throws Exception\LocalizedException
+     * @throws Exception\NoSuchEntityException
      */
     public function getShippingTaxPercent(\Magento\Quote\Model\Quote $quote)
     {
+        $taxClassId      = $quote->getCustomerTaxClassId();
         $defaultTaxClass = $this->config->getConfigByPath(
             TaxConfig::CONFIG_XML_PATH_SHIPPING_TAX_CLASS,
             $quote->getStoreId()
         )->getValue();
+
+        // customer group can be auto assigned based on vat id and magento's auto group assignment feature
+        if ($this->customerSession->getCustomerGroupId() !== null) {
+            $groupId    = $this->customerSession->getCustomerGroupId();
+            $taxClassId = $this->groupRepository->getById($groupId)->getTaxClassId();
+        }
+
         $taxClasses      = $this->calculation->getTaxRates(
             $quote->getBillingAddress()->getData(),
             $quote->getShippingAddress()->getData(),
-            $quote->getCustomerTaxClassId()
+            $taxClassId
         );
 
-        if (!isset($taxClasses[$defaultTaxClass])) {
+        if (!isset($taxClasses[$defaultTaxClass]) || empty($quote->getShippingAddress()->getAppliedTaxes())) {
             $this->logger->debug('Default class: ' . $defaultTaxClass);
             $this->logger->debug('Returned only these tax classes: ' . print_r($taxClasses, true));
 

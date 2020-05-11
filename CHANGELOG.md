@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- Shipping tax amount in combination with auto assignment of customer groups based on vat id
+
 ## [2.9.20] - 2020-03-24
 ### Fixed
 - Missing categories in item export
