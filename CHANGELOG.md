@@ -7,7 +7,6 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [Unreleased]
 ### Fixed
 - Shipping tax amount in combination with auto assignment of customer groups based on vat id
-- Freeshipping coupons are now taken into account during order import
 - Detection of enabled multi stock inventory functionality
 
 ## [2.9.20] - 2020-03-24
