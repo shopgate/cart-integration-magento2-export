@@ -503,16 +503,27 @@ class Product extends Shopgate_Model_Catalog_Product
      */
     public function setRelations(): void
     {
-        $result      = [];
-        $relationIds = array_merge(
-            $this->item->getCrossSellProductIds(),
-            $this->item->getUpSellProductIds(),
-            $this->item->getRelatedProductIds()
-        );
-        if (!empty($relationIds)) {
+        $result            = [];
+        $crossSellIds      = $this->item->getCrossSellProductIds();
+        $upSellIds         = $this->item->getUpSellProductIds();
+        $relatedProductIds = $this->item->getRelatedProductIds();
+
+        if (!empty($crossSellIds)) {
             $result[] = $this->helperProduct->createRelationProducts(
-                $relationIds,
+                $crossSellIds,
+                Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_CROSSSELL
+            );
+        }
+        if (!empty($upSellIds)) {
+            $result[] = $this->helperProduct->createRelationProducts(
+                $upSellIds,
                 Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_UPSELL
+            );
+        }
+        if (!empty($relatedProductIds)) {
+            $result[] = $this->helperProduct->createRelationProducts(
+                $relatedProductIds,
+                Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_RELATION
             );
         }
 
