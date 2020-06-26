@@ -26,6 +26,7 @@ use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Model\Product as MageProduct;
 use Magento\Catalog\Model\Product\Gallery\ReadHandler as GalleryReadHandler;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
+use Magento\Catalog\Model\Product\Type\Simple;
 use Magento\Customer\Model\GroupManagement;
 use Magento\Directory\Helper\Data;
 use Magento\Framework\DataObject;
@@ -498,25 +499,93 @@ class Product extends Shopgate_Model_Catalog_Product
         parent::setTags($result);
     }
 
+    private function isProductTypeSupported ($typeInstance)
+    {
+        if ($typeInstance instanceof Simple) {
+            return true;
+        }
+
+        if ($typeInstance instanceof Configurable) {
+            return true;
+        }
+
+        if ($typeInstance instanceof Grouped) {
+            return true;
+        }
+
+        return false;
+    }
+
     /**
      * Set relations
      */
     public function setRelations(): void
     {
         $result      = [];
-        $relationIds = array_merge(
-            $this->item->getCrossSellProductIds(),
-            $this->item->getUpSellProductIds(),
-            $this->item->getRelatedProductIds()
+        $products = array_merge(
+            $this->item->getCrossSellProducts(),
+            $this->item->getUpSellProducts(),
+            $this->item->getRelatedProducts()
         );
-        if (!empty($relationIds)) {
-            $result[] = $this->helperProduct->createRelationProducts(
-                $relationIds,
-                Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_UPSELL
-            );
+
+        if (empty($products)) {
+            parent::setRelations($result);
+            return;
         }
 
+        $relationsToLookup = [];
+        $relationIds = [];
+        foreach($products as $product) {
+            $type = $product->getTypeInstance();
+            if (!$this->isProductTypeSupported($type)) {
+                continue;
+            }
+
+            // for simple type we want to check if it has a parent in a way - other way would be to check it's visibility if available - TODO
+            if ($type instanceof Simple) {
+                $relationsToLookup[$product->getId()] = true;
+                continue;
+            }
+            $relationIds[] = $product->getId();
+        }
+
+        $uids = [];
+        if (!empty($relationsToLookup)) {
+            // check configurable
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $rows = $objectManager->create('Shopgate\Export\Model\ResourceModel\ConfigurableProduct')->getParentAndChildIdsByChildIds(array_keys($relationsToLookup));
+            $uids = array_merge($uids, $this->generateUidsFromResult($rows, $relationsToLookup));
+        }
+
+        if (!empty($relationsToLookup)) {
+            //check grouped
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $rows = $objectManager->create('Shopgate\Export\Model\ResourceModel\LinkedProduct')->getLinkRelationByLinkedProductIds(array_keys($relationsToLookup), \Shopgate\Export\Model\ResourceModel\LinkedProduct::GROUPED);
+            $uids = array_merge($uids, $this->generateUidsFromResult($rows, $relationsToLookup));
+        }
+
+        $result[] = $this->helperProduct->createRelationProducts(
+            array_merge(array_map(function ($el) { return (string) $el; }, array_keys($relationsToLookup)), array_values($uids)),
+            Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_UPSELL
+        );
+
         parent::setRelations($result);
+    }
+
+    private function generateUidsFromResult($rows, &$relationsToFilterOut)
+    {
+        $uids = [];
+        // we'll reference first parent we find
+        foreach ($rows as $row) {
+            if (!empty($uids[$row['product_id']])) {
+                continue;
+            }
+
+            $uids[$row['product_id']] = "{$row['parent_id']}-{$row['product_id']}";
+            unset($relationsToFilterOut[$row['product_id']]);
+        }
+
+        return $uids;
     }
 
     /**
