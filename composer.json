@@ -3,7 +3,7 @@
   "description": "Shopgate export module for Magento 2, handles all export functionality",
   "license": "Apache-2.0",
   "type": "magento2-module",
-  "version": "2.9.21-rc.1",
+  "version": "2.9.20",
   "authors": [
     {
       "name": "Konstantin Kiritsenko"
