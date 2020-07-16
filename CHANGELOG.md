@@ -9,7 +9,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - Now exporting upsell, crosssell and simple relation individually instead of everything as upsell only
 
 ### Fixed
-- Shipping tax amount in combination with auto assignment of customer groups based on vat id
+- Shipping and Discount tax amount in combination with auto assignment of customer groups based on vat id
 - Detection of enabled multi stock inventory functionality
 
 ## [2.9.20] - 2020-03-24

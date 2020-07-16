@@ -118,8 +118,10 @@ class Quote extends \Shopgate\Base\Helper\Quote
         /** @var bool $invalidateCRP return an invalidated Cart Rule Coupon only if it was actually requested */
         $invalidateCRP     = false;
         $discountAmount    = $this->quote->getSubtotal() - $this->quote->getSubtotalWithDiscount();
-        $couponsIncludeTax = $this->taxHelper->couponInclTax();
+        $quoteTaxes        = $this->quote->getTotals()['tax'];
+        $couponsIncludeTax = $this->taxHelper->couponInclTax() || $quoteTaxes->getValue() > 0;
         $quoteCurrency     = $this->quote->getStoreCurrencyCode();
+
         foreach ($this->sgBase->getExternalCoupons() as $coupon) {
             if ($coupon->getCode() === self::CART_RULE_COUPON_CODE) {
                 $invalidateCRP = true;
