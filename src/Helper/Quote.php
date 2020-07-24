@@ -118,8 +118,10 @@ class Quote extends \Shopgate\Base\Helper\Quote
         /** @var bool $invalidateCRP return an invalidated Cart Rule Coupon only if it was actually requested */
         $invalidateCRP     = false;
         $discountAmount    = $this->quote->getSubtotal() - $this->quote->getSubtotalWithDiscount();
-        $couponsIncludeTax = $this->taxHelper->couponInclTax();
+        $quoteTaxes        = $this->quote->getTotals()['tax'];
+        $couponsIncludeTax = $this->taxHelper->couponInclTax() || $quoteTaxes->getValue() > 0;
         $quoteCurrency     = $this->quote->getStoreCurrencyCode();
+
         foreach ($this->sgBase->getExternalCoupons() as $coupon) {
             if ($coupon->getCode() === self::CART_RULE_COUPON_CODE) {
                 $invalidateCRP = true;
@@ -223,9 +225,10 @@ class Quote extends \Shopgate\Base\Helper\Quote
         $methods = [];
         $this->quote->setData('totals_collected_flag', false);
         $this->quoteRepository->save($this->quote);
-        $taxPercent = $this->taxHelper->getShippingTaxPercent($this->quote);
-        $address    = $this->quote->getShippingAddress();
-        $rates      = $address->setCollectShippingRates(true)->collectShippingRates()->getAllShippingRates();
+        $taxPercent      = $this->taxHelper->getShippingTaxPercent($this->quote);
+        $address         = $this->quote->getShippingAddress();
+        $rates           = $address->setCollectShippingRates(true)->collectShippingRates()->getAllShippingRates();
+        $showGrossAmount = !empty($address->getAppliedTaxes());
 
         /** @var \Magento\Quote\Model\Quote\Address\Rate $rate */
         foreach ($rates as $key => $rate) {
@@ -245,7 +248,7 @@ class Quote extends \Shopgate\Base\Helper\Quote
             $sgMethod->setDescription($rate->getMethodDescription() ? : '');
             $sgMethod->setAmount($this->calculatePrice($rate->getPrice(), $taxPercent, $shippingPriceIncludesTax));
             $sgMethod->setAmountWithTax(
-                $this->calculatePrice($rate->getPrice(), $taxPercent, $shippingPriceIncludesTax, true)
+                $this->calculatePrice($rate->getPrice(), $taxPercent, $shippingPriceIncludesTax, $showGrossAmount)
             );
             $sgMethod->setTaxClass($this->quote->getCustomerTaxClassId());
             $sgMethod->setTaxPercent($taxPercent);
