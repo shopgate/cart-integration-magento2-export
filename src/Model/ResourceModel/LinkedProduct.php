@@ -2,7 +2,8 @@
 
 namespace Shopgate\Export\Model\ResourceModel;
 
-class LinkedProduct extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb {
+class LinkedProduct extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
+{
     public const GROUPED = \Magento\GroupedProduct\Model\ResourceModel\Product\Link::LINK_TYPE_GROUPED;
     public const CROSSSELL = \Magento\Catalog\Model\Product\Link::LINK_TYPE_CROSSSELL;
     public const RELATED = \Magento\Catalog\Model\Product\Link::LINK_TYPE_RELATED;
@@ -30,7 +31,7 @@ class LinkedProduct extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
         $connection = $this->getConnection();
         $select = $connection->select()->from(
             $this->getMainTable(),
-            ['product_id', 'linked_product_id AS parent_id']
+            ['product_id AS parent_id', 'linked_product_id AS product_id']
         )->where(
             'linked_product_id IN(?)',
             $linkedProductIds

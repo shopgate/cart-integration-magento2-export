@@ -8,7 +8,8 @@ use Magento\ConfigurableProduct\Model\AttributeOptionProviderInterface;
 use Magento\ConfigurableProduct\Model\ResourceModel\Attribute\OptionProvider;
 use Magento\Framework\App\ScopeResolverInterface;
 
-class ConfigurableProduct extends \Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable {
+class ConfigurableProduct extends \Magento\ConfigurableProduct\Model\ResourceModel\Product\Type\Configurable
+{
     /** @var OptionProvider $optionProvider */
     private $optionProvider;
     public function __construct(

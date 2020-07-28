@@ -499,7 +499,7 @@ class Product extends Shopgate_Model_Catalog_Product
         parent::setTags($result);
     }
 
-    private function isProductTypeSupported ($typeInstance)
+    private function isProductTypeSupported($typeInstance)
     {
         if ($typeInstance instanceof Simple) {
             return true;
@@ -565,7 +565,11 @@ class Product extends Shopgate_Model_Catalog_Product
         }
 
         $result[] = $this->helperProduct->createRelationProducts(
-            array_merge(array_map(function ($el) { return (string) $el; }, array_keys($relationsToLookup)), array_values($uids)),
+            array_merge(
+                array_map(function ($el) { return (string) $el; }, array_keys($relationsToLookup)),
+                array_values($uids),
+                $relationIds
+            ),
             Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_UPSELL
         );
 
