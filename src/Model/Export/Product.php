@@ -535,7 +535,7 @@ class Product extends Shopgate_Model_Catalog_Product
 
         $relationsToLookup = [];
         $relationIds = [];
-        foreach($products as $product) {
+        foreach ($products as $product) {
             $type = $product->getTypeInstance();
             if (!$this->isProductTypeSupported($type)) {
                 continue;
@@ -566,7 +566,9 @@ class Product extends Shopgate_Model_Catalog_Product
 
         $result[] = $this->helperProduct->createRelationProducts(
             array_merge(
-                array_map(function ($el) { return (string) $el; }, array_keys($relationsToLookup)),
+                array_map(function ($el) {
+                    return (string) $el;
+                }, array_keys($relationsToLookup)),
                 array_values($uids),
                 $relationIds
             ),
