@@ -521,78 +521,67 @@ class Product extends Shopgate_Model_Catalog_Product
      */
     public function setRelations(): void
     {
-        $result      = [];
-        $products = array_merge(
-            $this->item->getCrossSellProducts(),
-            $this->item->getUpSellProducts(),
-            $this->item->getRelatedProducts()
-        );
+        $crossSell       = $this->item->getCrossSellProducts();
+        $upsell          = $this->item->getUpSellProducts();
+        $relatedProducts = $this->item->getRelatedProducts();
 
-        if (empty($products)) {
-            parent::setRelations($result);
+        if (empty($crossSell) && empty($upsell) && empty($relatedProducts)) {
+            parent::setRelations([]);
             return;
         }
 
-        $relationsToLookup = [];
-        $relationIds = [];
-        foreach ($products as $product) {
-            $type = $product->getTypeInstance();
-            if (!$this->isProductTypeSupported($type)) {
-                continue;
-            }
+        // in order to avoid making to many sql requests here we reaggregate all relations and decompose them at the end
 
-            // for simple type we want to check if it has a parent in a way - other way would be to check it's visibility if available - TODO
-            if ($type instanceof Simple) {
-                $relationsToLookup[$product->getId()] = true;
-                continue;
-            }
-            $relationIds[] = $product->getId();
-        }
+        $result = [];
+        $relation = new Product\Relation($crossSell, $upsell, $relatedProducts);
 
-        $uids = [];
-        if (!empty($relationsToLookup)) {
+        if ($relation->hasUnprocessedRelations()) {
             // check configurable
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $rows = $objectManager->create('Shopgate\Export\Model\ResourceModel\ConfigurableProduct')->getParentAndChildIdsByChildIds(array_keys($relationsToLookup));
-            $uids = array_merge($uids, $this->generateUidsFromResult($rows, $relationsToLookup));
+            $rows = $objectManager->create('Shopgate\Export\Model\ResourceModel\ConfigurableProduct')->getParentAndChildIdsByChildIds($relation->getUnprocessedRelationIds());
+            $relation->processRelations($rows);
         }
 
-        if (!empty($relationsToLookup)) {
+        if ($relation->hasUnprocessedRelations()) {
             //check grouped
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $rows = $objectManager->create('Shopgate\Export\Model\ResourceModel\LinkedProduct')->getLinkRelationByLinkedProductIds(array_keys($relationsToLookup), \Shopgate\Export\Model\ResourceModel\LinkedProduct::GROUPED);
-            $uids = array_merge($uids, $this->generateUidsFromResult($rows, $relationsToLookup));
+            $rows = $objectManager->create('Shopgate\Export\Model\ResourceModel\LinkedProduct')->getLinkRelationByLinkedProductIds($relation->getUnprocessedRelationIds(), \Shopgate\Export\Model\ResourceModel\LinkedProduct::GROUPED);
+            $relation->processRelations($rows);
         }
 
-        $result[] = $this->helperProduct->createRelationProducts(
-            array_merge(
-                array_map(function ($el) {
-                    return (string) $el;
-                }, array_keys($relationsToLookup)),
-                array_values($uids),
-                $relationIds
-            ),
-            Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_UPSELL
-        );
+        if ($relation->hasUnprocessedRelations()) {
+            // all the relations not resolved, we put as they so far were (direct id -> uid)
+            $relation->processRemainingRelationsAsDirectLinks();
+        }
+
+        $crossSellIds = $relation->getCrossSellIds();
+        $upsellIds = $relation->getUpsellIds();
+        $relatedProductIds = $relation->getRelatedProductIds();
+
+        if (!empty($crossSellIds)) {
+            $result[] = $this->helperProduct->createRelationProducts(
+                $crossSellIds,
+                Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_CROSSSELL
+            );
+        }
+
+        if (!empty($upsellIds)) {
+            $result[] = $this->helperProduct->createRelationProducts(
+                $upsellIds,
+                Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_UPSELL
+            );
+        }
+
+        if (!empty($relatedProductIds)) {
+            $result[] = $this->helperProduct->createRelationProducts(
+                $relatedProductIds,
+                Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_RELATION
+            );
+        }
 
         parent::setRelations($result);
     }
 
-    private function generateUidsFromResult($rows, &$relationsToFilterOut)
-    {
-        $uids = [];
-        // we'll reference first parent we find
-        foreach ($rows as $row) {
-            if (!empty($uids[$row['product_id']])) {
-                continue;
-            }
-
-            $uids[$row['product_id']] = "{$row['parent_id']}-{$row['product_id']}";
-            unset($relationsToFilterOut[$row['product_id']]);
-        }
-
-        return $uids;
-    }
 
     /**
      * Set properties

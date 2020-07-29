@@ -570,9 +570,9 @@ class ExportTest extends TestCase
         /** @var ExportModel $class */
         $class           = Bootstrap::getObjectManager()->create(ExportModel::class);
         $return          = $class->checkCart($cart);
-        $shippingMethod  = array_pop($return['shipping_methods']);
-
         $this->assertCount(1, $return['shipping_methods']);
+
+        $shippingMethod  = array_pop($return['shipping_methods']);
         $this->assertEquals($expectedAmounts['amount'], $shippingMethod['amount']);
         $this->assertEquals($expectedAmounts['amount_with_tax'], $shippingMethod['amount_with_tax']);
         $this->assertEquals($expectedAmounts['tax_percent'], $shippingMethod['tax_percent']);
@@ -603,7 +603,7 @@ class ExportTest extends TestCase
                         'item_number'          => '3',
                         'item_number_public'   => null,
                         'parent_item_number'   => '',
-                        'quantity'             => 1,
+                        'quantity'             => 3,
                         'unit_amount_net'      => 34.0000,
                         'unit_amount_with_tax' => 3,
                         'unit_amount'          => 34.0000,

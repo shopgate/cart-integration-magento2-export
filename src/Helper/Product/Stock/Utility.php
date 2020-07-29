@@ -30,8 +30,8 @@ use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\CatalogInventory\Model\ResourceModel\Stock\Item as StockItemResource;
 use Magento\CatalogInventory\Model\Stock;
 use Magento\Framework\App\ObjectManager;
-use Magento\Framework\App\ProductMetadataInterface;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Module\Manager as ModuleManager;
 use Magento\InventoryCatalog\Model\GetStockIdForCurrentWebsite;
 use Magento\InventoryExportStock\Model\GetStockItemConfiguration;
 use Magento\InventorySalesApi\Model\GetStockItemDataInterface;
@@ -48,9 +48,6 @@ class Utility
     /** @var ShopgateStockItemFactory */
     protected $shopgateStockItemFactory;
 
-    /** @var ProductMetadataInterface */
-    protected $productMetadata;
-
     /** @var StockItemResource */
     protected $stockItemResource;
 
@@ -66,32 +63,35 @@ class Utility
     /** @var StockRegistryInterface */
     protected $stockRegistry;
 
+    /** @var ModuleManager */
+    protected $moduleManager;
+
     /**
      * @param SgLoggerInterface         $logger
      * @param ShopgateStockItemFactory  $productStockItemFactory
-     * @param ProductMetadataInterface  $productMetadata
      * @param StockItemInterfaceFactory $stockItemFactory
      * @param StockItemResource         $stockItemResource
      * @param StoreManager              $storeManager
+     * @param ModuleManager             $moduleManager
      */
     public function __construct(
         SgLoggerInterface $logger,
         ShopgateStockItemFactory $productStockItemFactory,
-        ProductMetadataInterface $productMetadata,
         StockItemInterfaceFactory $stockItemFactory,
         StockItemResource $stockItemResource,
         StoreManager $storeManager,
         StockConfigurationInterface $stockConfiguration,
-        StockRegistryInterface $stockRegistry
+        StockRegistryInterface $stockRegistry,
+        ModuleManager $moduleManager
     ) {
         $this->log                      = $logger;
         $this->shopgateStockItemFactory = $productStockItemFactory;
-        $this->productMetadata          = $productMetadata;
         $this->stockItemResource        = $stockItemResource;
         $this->stockItemFactory         = $stockItemFactory;
         $this->storeManager             = $storeManager;
         $this->stockConfiguration       = $stockConfiguration;
         $this->stockRegistry            = $stockRegistry;
+        $this->moduleManager            = $moduleManager;
     }
 
     /**
@@ -104,7 +104,7 @@ class Utility
     {
         /** @var StockItem $shopgateStockItem */
         $shopgateStockItem = $this->shopgateStockItemFactory->create();
-        if (version_compare($this->getCurrentVersion(), '2.3.2', '>=')) {
+        if ($this->moduleManager->isEnabled('Magento_InventorySalesApi')) {
             /** @var GetStockItemDataInterface $getStockItemData */
             /** @var GetStockIdForCurrentWebsite $websiteStockId */
             /** @var GetStockItemConfiguration $stockItemConfig */
@@ -157,13 +157,5 @@ class Utility
         $shopgateStockItem->setIsSaleable(!$useStock ? : $product->getIsSalable());
 
         return $shopgateStockItem;
-    }
-
-    /**
-     * @return string
-     */
-    protected function getCurrentVersion(): string
-    {
-        return $this->productMetadata->getVersion();
     }
 }
