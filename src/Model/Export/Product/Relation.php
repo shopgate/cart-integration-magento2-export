@@ -6,6 +6,9 @@ use Magento\Catalog\Model\Product\Type\Simple;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\GroupedProduct\Model\Product\Type\Grouped;
 
+/**
+ * This class is a composit part of \Shopgate\Export\Model\Export\Product class and serves in iterative assembling, processing and disassembling of product relations.
+ */
 class Relation
 {
     private const CROSS_SELL = 'cross_sell';
@@ -13,9 +16,13 @@ class Relation
     private const RELATED = 'related';
     private const CLASSIFIERS = [self::CROSS_SELL, self::UPSELL, self::RELATED];
 
+    /** Lookup assigned classifiers by productId */
     private $classifierLookup = [];
+    /** Lookup relations in combination productId and classifier */
     private $relationsLookup = [];
+    /** Direct relation ids for which no lookup is needed */
     private $relationIds = [];
+    /** Collects product ids during iterative processing of relations */
     private $productIdsByClassifier = [];
 
     public function __construct(array $crossSell, array $upsell, array $relatedProducts)
@@ -38,7 +45,7 @@ class Relation
         return $this->productIdsByClassifier[self::RELATED];
     }
 
-    public function processRelations($rows) : void
+    public function processRelations(array $rows) : void
     {
         if (empty($rows)) {
             return;
@@ -101,7 +108,9 @@ class Relation
             $this->classifierLookup = array_merge_recursive($this->classifierLookup, $lookupClassifier);
         }
 
+        // it may happen that we have relationIds multiple times due to the possibility of them belonging to multiple of relation types/classifiers.
         $this->relationIds = array_unique($this->relationIds);
+        // on the init itself we assign direct relations to appropriate relation type/class.
         $this->productIdsByClassifier = [
             self::CROSS_SELL => $this->filterIdsByClassifier($this->relationIds, self::CROSS_SELL),
             self::UPSELL => $this->filterIdsByClassifier($this->relationIds, self::UPSELL),
