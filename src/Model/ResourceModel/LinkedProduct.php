@@ -4,10 +4,10 @@ namespace Shopgate\Export\Model\ResourceModel;
 
 class LinkedProduct extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
 {
-    public const GROUPED = \Magento\GroupedProduct\Model\ResourceModel\Product\Link::LINK_TYPE_GROUPED;
+    public const GROUPED   = \Magento\GroupedProduct\Model\ResourceModel\Product\Link::LINK_TYPE_GROUPED;
     public const CROSSSELL = \Magento\Catalog\Model\Product\Link::LINK_TYPE_CROSSSELL;
-    public const RELATED = \Magento\Catalog\Model\Product\Link::LINK_TYPE_RELATED;
-    public const UPSELL = \Magento\Catalog\Model\Product\Link::LINK_TYPE_UPSELL;
+    public const RELATED   = \Magento\Catalog\Model\Product\Link::LINK_TYPE_RELATED;
+    public const UPSELL    = \Magento\Catalog\Model\Product\Link::LINK_TYPE_UPSELL;
 
     /**
      * Define main table name and attributes table
@@ -20,7 +20,7 @@ class LinkedProduct extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     }
 
     /**
-     * Retrieve parent ids array by required child
+     * Retrieve parent ids array by required children ids
      *
      * @param int|array $linkedProductIds
      * @param int $typeId
@@ -29,7 +29,7 @@ class LinkedProduct extends \Magento\Framework\Model\ResourceModel\Db\AbstractDb
     public function getLinkRelationByLinkedProductIds($linkedProductIds, $typeId)
     {
         $connection = $this->getConnection();
-        $select = $connection->select()->from(
+        $select     = $connection->select()->from(
             $this->getMainTable(),
             ['product_id AS parent_id', 'linked_product_id AS product_id']
         )->where(

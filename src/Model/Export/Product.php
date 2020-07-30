@@ -26,7 +26,6 @@ use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Model\Product as MageProduct;
 use Magento\Catalog\Model\Product\Gallery\ReadHandler as GalleryReadHandler;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
-use Magento\Catalog\Model\Product\Type\Simple;
 use Magento\Customer\Model\GroupManagement;
 use Magento\Directory\Helper\Data;
 use Magento\Framework\DataObject;
@@ -499,23 +498,6 @@ class Product extends Shopgate_Model_Catalog_Product
         parent::setTags($result);
     }
 
-    private function isProductTypeSupported($typeInstance)
-    {
-        if ($typeInstance instanceof Simple) {
-            return true;
-        }
-
-        if ($typeInstance instanceof Configurable) {
-            return true;
-        }
-
-        if ($typeInstance instanceof Grouped) {
-            return true;
-        }
-
-        return false;
-    }
-
     /**
      * Set relations
      */
@@ -532,20 +514,22 @@ class Product extends Shopgate_Model_Catalog_Product
 
         // in order to avoid making to many sql requests here we reaggregate all relations and decompose them at the end
 
-        $result = [];
+        $result   = [];
         $relation = new Product\Relation($crossSell, $upsell, $relatedProducts);
 
         if ($relation->hasUnprocessedRelations()) {
             // check configurable
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $rows = $objectManager->create('Shopgate\Export\Model\ResourceModel\ConfigurableProduct')->getParentAndChildIdsByChildIds($relation->getUnprocessedRelationIds());
+            $rows = $objectManager->create('Shopgate\Export\Model\ResourceModel\ConfigurableProduct')
+                ->getParentAndChildIdsByChildIds($relation->getUnprocessedRelationIds());
             $relation->processRelations($rows);
         }
 
         if ($relation->hasUnprocessedRelations()) {
             //check grouped
             $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
-            $rows = $objectManager->create('Shopgate\Export\Model\ResourceModel\LinkedProduct')->getLinkRelationByLinkedProductIds($relation->getUnprocessedRelationIds(), \Shopgate\Export\Model\ResourceModel\LinkedProduct::GROUPED);
+            $rows = $objectManager->create('Shopgate\Export\Model\ResourceModel\LinkedProduct')
+                ->getLinkRelationByLinkedProductIds($relation->getUnprocessedRelationIds(), \Shopgate\Export\Model\ResourceModel\LinkedProduct::GROUPED);
             $relation->processRelations($rows);
         }
 

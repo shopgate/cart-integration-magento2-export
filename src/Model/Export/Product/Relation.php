@@ -11,40 +11,69 @@ use Magento\GroupedProduct\Model\Product\Type\Grouped;
  */
 class Relation
 {
-    private const CROSS_SELL = 'cross_sell';
-    private const UPSELL = 'upsell';
-    private const RELATED = 'related';
-    private const CLASSIFIERS = [self::CROSS_SELL, self::UPSELL, self::RELATED];
+    private const CROSS_SELL        = 'cross_sell';
+    private const UPSELL            = 'upsell';
+    private const RELATED           = 'related';
+    private const CLASSIFIERS       = [self::CROSS_SELL, self::UPSELL, self::RELATED];
 
     /** Lookup assigned classifiers by productId */
-    private $classifierLookup = [];
+    private $classifierLookup       = [];
     /** Lookup relations in combination productId and classifier */
-    private $relationsLookup = [];
+    private $relationsLookup        = [];
     /** Direct relation ids for which no lookup is needed */
-    private $relationIds = [];
+    private $relationIds            = [];
     /** Collects product ids during iterative processing of relations */
     private $productIdsByClassifier = [];
-
+    
+    /**
+     * __construct
+     *
+     * @param  array $crossSell Cross-Sell magento products
+     * @param  array $upsell Upsell magento products
+     * @param  array $relatedProducts Related magento products
+     * @return void
+     */
     public function __construct(array $crossSell, array $upsell, array $relatedProducts)
     {
         $this->init($crossSell, $upsell, $relatedProducts);
     }
-
+    
+    /**
+     * getCrossSellIds
+     *
+     * @return array
+     */
     public function getCrossSellIds() : array
     {
         return $this->productIdsByClassifier[self::CROSS_SELL];
     }
-
+    
+    /**
+     * getUpsellIds
+     *
+     * @return array
+     */
     public function getUpsellIds() : array
     {
         return $this->productIdsByClassifier[self::UPSELL];
     }
-
+    
+    /**
+     * getRelatedProductIds
+     *
+     * @return array
+     */
     public function getRelatedProductIds() : array
     {
         return $this->productIdsByClassifier[self::RELATED];
     }
-
+    
+    /**
+     * processRelations
+     *
+     * @param  array $rows Rows with relations ['product_id', 'parent_id']
+     * @return void
+     */
     public function processRelations(array $rows) : void
     {
         if (empty($rows)) {
@@ -69,17 +98,32 @@ class Relation
             }
         }
     }
-
+    
+    /**
+     * hasUnprocessedRelations
+     *
+     * @return bool
+     */
     public function hasUnprocessedRelations() : bool
     {
         return !empty($this->relationsLookup);
     }
-
+    
+    /**
+     * getUnprocessedRelationIds
+     *
+     * @return int[]
+     */
     public function getUnprocessedRelationIds() : array
     {
         return array_unique(array_values($this->relationsLookup));
     }
-
+    
+    /**
+     * processRemainingRelationsAsDirectLinks
+     *
+     * @return void
+     */
     public function processRemainingRelationsAsDirectLinks() : void
     {
         $remainingIds = $this->getUnprocessedRelationIds();
@@ -91,7 +135,15 @@ class Relation
         }
         $this->relationsLookup = [];
     }
-
+    
+    /**
+     * init
+     *
+     * @param  array $crossSell
+     * @param  array $upsell
+     * @param  array $relatedProducts
+     * @return void
+     */
     private function init(array $crossSell, array $upsell, array $relatedProducts) : void
     {
         $products = [
@@ -117,21 +169,42 @@ class Relation
             self::RELATED => $this->filterIdsByClassifier($this->relationIds, self::RELATED)
         ];
     }
-
+    
+    /**
+     * filterIdsByClassifier
+     *
+     * @param  int[] $ids
+     * @param  string $classifier
+     * @return array
+     */
     private function filterIdsByClassifier(array $ids, string $classifier) : array
     {
         return array_filter($ids, function ($id) use ($classifier) {
             return in_array($classifier, $this->classifierLookup[$this->productIdToString($id)]);
         });
     }
-
+    
+    /**
+     * filterByProductIds
+     *
+     * @param  array $rows
+     * @param  int[] $productIds
+     * @return array
+     */
     private function filterByProductIds(array $rows, array $productIds) : array
     {
         return array_filter($rows, function ($row) use ($productIds) {
             return in_array($row['product_id'], $productIds);
         });
     }
-
+    
+    /**
+     * extractRelations
+     *
+     * @param  array $products
+     * @param  string $classifier
+     * @return array
+     */
     private function extractRelations(array $products, string $classifier) : array
     {
         $relationIds = [];
@@ -158,17 +231,36 @@ class Relation
 
         return [$relationIds, $relationsLookup, $classifierLookup];
     }
-
+    
+    /**
+     * productIdToString
+     *
+     * @param  int $id
+     * @return string
+     */
     private function productIdToString($id) : string
     {
         return 'p' . $id;
     }
-
+    
+    /**
+     * productIdToRelation
+     *
+     * @param  int $id
+     * @param  string $classifier
+     * @return string
+     */
     private function productIdToRelation($id, $classifier) : string
     {
         return $id . '-' . $classifier;
     }
-
+    
+    /**
+     * generateUidsFromResult
+     *
+     * @param  array $rows
+     * @return array
+     */
     private function generateUidsFromResult(array $rows) : array
     {
         $uids = [];
@@ -183,7 +275,13 @@ class Relation
 
         return $uids;
     }
-
+    
+    /**
+     * isProductTypeSupported
+     *
+     * @param  object $typeInstance
+     * @return bool
+     */
     private function isProductTypeSupported($typeInstance) : bool
     {
         if ($typeInstance instanceof Simple) {

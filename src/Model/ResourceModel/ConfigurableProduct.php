@@ -12,6 +12,10 @@ class ConfigurableProduct extends \Magento\ConfigurableProduct\Model\ResourceMod
 {
     /** @var OptionProvider $optionProvider */
     private $optionProvider;
+
+    /**
+     * @inheritdoc
+     */
     public function __construct(
         DbContext $context,
         ProductRelation $catalogProductRelation,
@@ -25,7 +29,7 @@ class ConfigurableProduct extends \Magento\ConfigurableProduct\Model\ResourceMod
     }
 
     /**
-     * Retrieve parent ids array by required child ids.
+     * Retrieve parent ids array by required children ids.
      * (basically same as getParentIdsByChild but allows fetching more than single column from result)
      *
      * @param int|array $childIds
