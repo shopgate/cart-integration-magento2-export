@@ -566,7 +566,6 @@ class Product extends Shopgate_Model_Catalog_Product
         parent::setRelations($result);
     }
 
-
     /**
      * Set properties
      */
