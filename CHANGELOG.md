@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Changed
+- Now taking care to only export relations to products of types Shopgate supports and for configurable and grouped products there is a parent reference in the `uid` instead of direct product id
+
 ## [2.9.21] - 2020-07-24
 ### Changed
 - Now exporting upsell, crosssell and simple relation individually instead of everything as upsell only

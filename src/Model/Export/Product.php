@@ -503,10 +503,44 @@ class Product extends Shopgate_Model_Catalog_Product
      */
     public function setRelations(): void
     {
-        $result            = [];
-        $crossSellIds      = $this->item->getCrossSellProductIds();
-        $upSellIds         = $this->item->getUpSellProductIds();
-        $relatedProductIds = $this->item->getRelatedProductIds();
+        $crossSell       = $this->item->getCrossSellProducts();
+        $upsell          = $this->item->getUpSellProducts();
+        $relatedProducts = $this->item->getRelatedProducts();
+
+        if (empty($crossSell) && empty($upsell) && empty($relatedProducts)) {
+            parent::setRelations([]);
+            return;
+        }
+
+        // in order to avoid making to many sql requests here we reaggregate all relations and decompose them at the end
+
+        $result   = [];
+        $relation = new Product\Relation($crossSell, $upsell, $relatedProducts);
+
+        if ($relation->hasUnprocessedRelations()) {
+            // check configurable
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $rows = $objectManager->create('Shopgate\Export\Model\ResourceModel\ConfigurableProduct')
+                ->getParentAndChildIdsByChildIds($relation->getUnprocessedRelationIds());
+            $relation->processRelations($rows);
+        }
+
+        if ($relation->hasUnprocessedRelations()) {
+            //check grouped
+            $objectManager = \Magento\Framework\App\ObjectManager::getInstance();
+            $rows = $objectManager->create('Shopgate\Export\Model\ResourceModel\LinkedProduct')
+                ->getLinkRelationByLinkedProductIds($relation->getUnprocessedRelationIds(), \Shopgate\Export\Model\ResourceModel\LinkedProduct::GROUPED);
+            $relation->processRelations($rows);
+        }
+
+        if ($relation->hasUnprocessedRelations()) {
+            // all the relations not resolved, we put as they so far were (direct id -> uid)
+            $relation->processRemainingRelationsAsDirectLinks();
+        }
+
+        $crossSellIds      = $relation->getCrossSellIds();
+        $upsellIds         = $relation->getUpsellIds();
+        $relatedProductIds = $relation->getRelatedProductIds();
 
         if (!empty($crossSellIds)) {
             $result[] = $this->helperProduct->createRelationProducts(
@@ -514,12 +548,14 @@ class Product extends Shopgate_Model_Catalog_Product
                 Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_CROSSSELL
             );
         }
-        if (!empty($upSellIds)) {
+
+        if (!empty($upsellIds)) {
             $result[] = $this->helperProduct->createRelationProducts(
-                $upSellIds,
+                $upsellIds,
                 Shopgate_Model_Catalog_Relation::DEFAULT_RELATION_TYPE_UPSELL
             );
         }
+
         if (!empty($relatedProductIds)) {
             $result[] = $this->helperProduct->createRelationProducts(
                 $relatedProductIds,
