@@ -538,8 +538,8 @@ class Product extends Shopgate_Model_Catalog_Product
             $relation->processRemainingRelationsAsDirectLinks();
         }
 
-        $crossSellIds = $relation->getCrossSellIds();
-        $upsellIds = $relation->getUpsellIds();
+        $crossSellIds      = $relation->getCrossSellIds();
+        $upsellIds         = $relation->getUpsellIds();
         $relatedProductIds = $relation->getRelatedProductIds();
 
         if (!empty($crossSellIds)) {
