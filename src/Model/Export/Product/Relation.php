@@ -207,8 +207,8 @@ class Relation
      */
     private function extractRelations(array $products, string $classifier) : array
     {
-        $relationIds = [];
-        $relationsLookup = [];
+        $relationIds      = [];
+        $relationsLookup  = [];
         $classifierLookup = [];
         foreach ($products as $product) {
             $type = $product->getTypeInstance();
