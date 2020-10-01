@@ -5,8 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [2.9.22] - 2020-10-02
 ### Fixed
-- export of products crasing when using new inventory management (`Cannot instantiate interface Magento\InventorySalesApi\Model\GetStockItemDataInterface`)
+- export of products crashing when using new inventory management (`Cannot instantiate interface Magento\InventorySalesApi\Model\GetStockItemDataInterface`)
 
 ### Changed
 - Now taking care to only export relations to products of types Shopgate supports and for configurable and grouped products there is a parent reference in the `uid` instead of direct product id
@@ -132,6 +134,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - check_cart call
 
 [Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.21...HEAD
+[2.9.22]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.21...2.9.22
 [2.9.21]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.20...2.9.21
 [2.9.20]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.19...2.9.20
 [2.9.19]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.18...2.9.19
