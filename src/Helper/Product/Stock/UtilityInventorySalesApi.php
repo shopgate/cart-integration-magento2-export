@@ -61,8 +61,7 @@ class UtilityInventorySalesApi implements Utility
         GetStockItemDataInterface $getStockItemData,
         GetStockIdForCurrentWebsite $websiteStockId,
         GetStockItemConfiguration $stockItemConfig
-    )
-    {
+    ) {
         $this->log = $logger;
         $this->shopgateStockItemFactory = $productStockItemFactory;
         $this->getStockItemData = $getStockItemData;
