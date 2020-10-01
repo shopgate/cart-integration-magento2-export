@@ -38,7 +38,8 @@ use Magento\Tax\Model\Config as TaxConfig;
 use Magento\Tax\Model\TaxCalculation;
 use Shopgate\Base\Api\Config\CoreInterface;
 use Shopgate\Export\Api\ExportInterface;
-use Shopgate\Export\Helper\Product\Stock\Utility as StockUtility;
+use Shopgate\Export\Helper\Product\Stock\Factory;
+use Shopgate\Export\Helper\Product\Stock\UtilityInventorySalesApi as StockUtility;
 use Shopgate\Export\Model\Config\Source\Description;
 use Shopgate\Export\Model\Export\Utility as ExportUtility;
 use Shopgate\Export\Model\Shopgate\Product\StockItem;
@@ -107,7 +108,7 @@ class Utility
      * @param TaxConfig                   $taxConfig
      * @param FilterProvider              $filter
      * @param CoreInterface               $sgCore
-     * @param StockUtility                $stockUtility
+     * @param Factory                     $stockUtilityFactory
      */
     public function __construct(
         StoreManager $storeManager,
@@ -117,7 +118,7 @@ class Utility
         TaxConfig $taxConfig,
         FilterProvider $filter,
         CoreInterface $sgCore,
-        StockUtility $stockUtility
+        Factory $stockUtilityFactory
     ) {
         $this->storeManager       = $storeManager;
         $this->taxCalculation     = $taxCalculation;
@@ -126,7 +127,7 @@ class Utility
         $this->taxConfig          = $taxConfig;
         $this->filter             = $filter;
         $this->sgCore             = $sgCore;
-        $this->stockUtility       = $stockUtility;
+        $this->stockUtility       = $stockUtilityFactory->getUtility();
     }
 
     /**
