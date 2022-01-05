@@ -18,6 +18,7 @@ $fixers = array(
 $finder = Finder::create()
     ->exclude('vendor')
     ->exclude('vendors')
+    ->exclude('release')
     ->in(__DIR__);
 
 $config = new Config();
