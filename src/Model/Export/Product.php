@@ -585,7 +585,7 @@ class Product extends Shopgate_Model_Catalog_Product
                 if (!empty($value) && ($this->item->hasData($code) || $forceExport)) {
                     $propertyModel = new Shopgate_Model_Catalog_Property();
                     $propertyModel->setUid($attribute->getAttributeId());
-                    $propertyModel->setLabel($attribute->getDefaultFrontendLabel());
+                    $propertyModel->setLabel($attribute->getStoreLabel());
                     $propertyModel->setValue($value);
                     $result[] = $propertyModel;
                 }
