@@ -1,6 +1,5 @@
 .editorconfig
 .vscode
-.github
 .htaccess
 .htaccess.sample
 .user.ini
@@ -10,6 +9,5 @@
 composer.lock
 vendor
 release/shopgate_*
-release/validate_m2_package.php
 .idea
 magento2
