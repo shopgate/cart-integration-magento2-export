@@ -116,12 +116,12 @@ class Product extends Shopgate_Model_Catalog_Product
     private $galleryReadHandler;
     /** @var Encoder */
     private $encoder;
-
+    
     /**
      * @param CoreInterface               $scopeConfig
      * @param StoreManagerInterface       $storeManager
      * @param HelperProduct               $helperProduct
-     * @param ProductFactory              $exportFactory
+     * @param ExportFactory               $exportFactory
      * @param CategoryRepositoryInterface $categoryRepository
      * @param Type                        $type
      * @param SgLoggerInterface           $logger
