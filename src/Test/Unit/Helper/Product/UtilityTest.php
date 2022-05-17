@@ -36,9 +36,9 @@ use Shopgate\Export\Helper\Product\Utility;
 class UtilityTest extends TestCase
 {
     /** @var ObjectManager */
-    private ObjectManager $objectManager;
+    private $objectManager;
     /** @var Utility */
-    private Utility $subjectUnderTest;
+    private $subjectUnderTest;
 
     /**
      * Basic setup
