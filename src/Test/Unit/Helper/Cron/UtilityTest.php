@@ -34,9 +34,9 @@ use ShopgateOrderItem;
 class UtilityTest extends TestCase
 {
     /** @var ObjectManager */
-    private ObjectManager $objectManager;
+    private $objectManager;
     /** @var CronHelper */
-    private CronHelper $cronHelper;
+    private $cronHelper;
 
     /**
      * Load object manager for initialization

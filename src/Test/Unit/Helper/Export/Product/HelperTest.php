@@ -33,9 +33,9 @@ use Shopgate_Model_Catalog_Relation;
 class HelperTest extends TestCase
 {
     /** @var ObjectManager */
-    private ObjectManager $objectManager;
+    private $objectManager;
     /** @var Utility */
-    private Utility $helper;
+    private $helper;
 
     /**
      * Load object manager for initialization
