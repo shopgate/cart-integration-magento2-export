@@ -36,14 +36,14 @@ use Shopgate\Export\Helper\Product\Utility;
 class UtilityTest extends TestCase
 {
     /** @var ObjectManager */
-    private $objectManager;
+    private ObjectManager $objectManager;
     /** @var Utility */
-    private $subjectUnderTest;
+    private Utility $subjectUnderTest;
 
     /**
      * Basic setup
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->objectManager    = new ObjectManager($this);
         $this->subjectUnderTest = $this->objectManager->getObject(Utility::class);

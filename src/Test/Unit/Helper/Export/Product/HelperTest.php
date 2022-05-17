@@ -32,20 +32,15 @@ use Shopgate_Model_Catalog_Relation;
  */
 class HelperTest extends TestCase
 {
-
-    /**
-     * @var ObjectManager
-     */
-    private $objectManager;
-    /**
-     * @var Utility
-     */
-    private $helper;
+    /** @var ObjectManager */
+    private ObjectManager $objectManager;
+    /** @var Utility */
+    private Utility $helper;
 
     /**
      * Load object manager for initialization
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->objectManager = new ObjectManager($this);
         $this->helper        = $this->objectManager->getObject('Shopgate\Export\Helper\Product\Utility');

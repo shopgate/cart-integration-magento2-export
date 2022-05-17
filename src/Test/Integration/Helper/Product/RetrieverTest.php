@@ -51,7 +51,7 @@ class RetrieverTest extends TestCase
     /**
      * Init store manager + current class
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->objectManager     = Bootstrap::getObjectManager();
         $this->storeManager      = $this->objectManager->get(StoreManagerInterface::class);

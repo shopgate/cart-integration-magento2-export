@@ -40,7 +40,7 @@ class CategoryTest extends TestCase
     /** @var  ConfigManager */
     protected $cfgManager;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->cfgManager          = new ConfigManager;
         $objManager                = Bootstrap::getObjectManager();

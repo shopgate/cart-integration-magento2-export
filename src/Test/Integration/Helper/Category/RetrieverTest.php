@@ -49,7 +49,7 @@ class RetrieverTest extends TestCase
     /**
      * Init store manager + current class
      */
-    public function setUp()
+    public function setUp(): void
     {
         $objManager            = Bootstrap::getObjectManager();
         $this->storeManager    = $objManager->create('Magento\Store\Model\StoreManagerInterface');
@@ -166,7 +166,7 @@ class RetrieverTest extends TestCase
      * Remove all created categories.
      * Area security is required to delete categories.
      */
-    public function tearDown()
+    public function tearDown(): void
     {
         /**
          * @var Registry $registry

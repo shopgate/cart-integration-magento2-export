@@ -30,7 +30,6 @@ use Shopgate\Base\Tests\Bootstrap;
 use Shopgate\Base\Tests\Integration\Db\StockManager;
 use Shopgate\Export\Helper\Cart;
 use Shopgate\Export\Model\Service\Export as ExportModel;
-use Zend_Json_Decoder;
 use Zend_Json_Exception;
 
 /**
@@ -74,7 +73,7 @@ class ExportTest extends TestCase
      */
     public function testCheckCartItems(int $expected, array $sgCart): void
     {
-        $internalInfo = Zend_Json_Decoder::decode($sgCart['cart']['items'][0]['internal_order_info']);
+        $internalInfo = \json_decode($sgCart['cart']['items'][0]['internal_order_info'], true);
         $this->stockManager->setStockWebsite($internalInfo['product_id']);
 
         /** @var ExportModel $class */
@@ -367,7 +366,7 @@ class ExportTest extends TestCase
      */
     public function testCheckCartCoupons(bool $expected, array $cart): void
     {
-        $internalInfo = Zend_Json_Decoder::decode($cart['cart']['items'][0]['internal_order_info']);
+        $internalInfo = \json_decode($cart['cart']['items'][0]['internal_order_info'], true);
         $this->stockManager->setStockWebsite($internalInfo['product_id']);
 
         /** @var ExportModel $class */
@@ -564,7 +563,7 @@ class ExportTest extends TestCase
     private function runCheckCartShippingTest(array $expectedAmounts): void
     {
         $cart         = $this->getCartForShippingTests();
-        $internalInfo = Zend_Json_Decoder::decode($cart['cart']['items'][0]['internal_order_info']);
+        $internalInfo = \json_decode($cart['cart']['items'][0]['internal_order_info'], true);
         $this->stockManager->setStockWebsite($internalInfo['product_id']);
 
         /** @var ExportModel $class */

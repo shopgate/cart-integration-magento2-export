@@ -60,7 +60,7 @@ class ProductTest extends TestCase
     /**
      * Setup
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->objectManager = Bootstrap::getObjectManager();
         $core                = $this->objectManager->get(Core::class);
@@ -78,7 +78,7 @@ class ProductTest extends TestCase
      * 2) 1000-20$
      * 3) 1000-50%
      *
-     * @magentoDataFixture  ../../../../vendor/shopgate/cart-integration-magento2-export/src/Test/Integration/fixtures/product_with_tier_pricing.php
+     * @magentoDataFixture  ../../../../app/code/Shopgate/Export/Test/Integration/fixtures/product_with_tier_pricing.php
      * @throws Exception
      */
     public function testNonRuleTierPrices(): void
@@ -102,7 +102,7 @@ class ProductTest extends TestCase
      *
      * @throws NoSuchEntityException
      * @throws Exception
-     * @magentoDataFixture  ../../../../vendor/shopgate/cart-integration-magento2-export/src/Test/Integration/fixtures/product_with_description.php
+     * @magentoDataFixture  ../../../../app/code/Shopgate/Export/Test/Integration/fixtures/product_with_description.php
      * @dataProvider        descriptionProvider
      */
     public function testSetDescription(string $sku, string $expected, array $configs): void
@@ -164,7 +164,7 @@ class ProductTest extends TestCase
     }
 
     /**
-     * @magentoDataFixture  ../../../../vendor/shopgate/cart-integration-magento2-export/src/Test/Integration/fixtures/product_with_tier_pricing.php
+     * @magentoDataFixture  ../../../../app/code/Shopgate/Export/Test/Integration/fixtures/product_with_tier_pricing.php
      * @throws NoSuchEntityException
      * @throws Exception
      */
@@ -186,7 +186,7 @@ class ProductTest extends TestCase
      * @throws NoSuchEntityException
      * @throws Exception
      * @dataProvider        parentProvider
-     * @magentoDataFixture  ../../../../vendor/shopgate/cart-integration-magento2-export/src/Test/Integration/fixtures/add_description_to_configurable.php
+     * @magentoDataFixture  ../../../../app/code/Shopgate/Export/Test/Integration/fixtures/add_description_to_configurable.php
      */
     public function testSetParentDescription(string $sku, string $expected, array $configs): void
     {
@@ -250,7 +250,7 @@ class ProductTest extends TestCase
 
     /**
      * @throws Exception
-     * @magentoDataFixture  ../../../../vendor/shopgate/cart-integration-magento2-export/src/Test/Integration/fixtures/product_with_tier_pricing.php
+     * @magentoDataFixture  ../../../../app/code/Shopgate/Export/Test/Integration/fixtures/product_with_tier_pricing.php
      */
     public function testGroupUids(): void
     {
@@ -281,7 +281,7 @@ class ProductTest extends TestCase
     }
 
     /**
-     * @magentoDataFixture  ../../../../vendor/shopgate/cart-integration-magento2-export/src/Test/Integration/fixtures/product_with_tier_pricing.php
+     * @magentoDataFixture  ../../../../app/code/Shopgate/Export/Test/Integration/fixtures/product_with_tier_pricing.php
      * @throws Exception
      */
     public function testSetWeight(): void

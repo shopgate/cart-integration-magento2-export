@@ -34,14 +34,14 @@ use ShopgateOrderItem;
 class UtilityTest extends TestCase
 {
     /** @var ObjectManager */
-    private $objectManager;
+    private ObjectManager $objectManager;
     /** @var CronHelper */
-    private $cronHelper;
+    private CronHelper $cronHelper;
 
     /**
      * Load object manager for initialization
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->objectManager = new ObjectManager($this);
         /** @var CronHelper $cronHelper */
