@@ -46,7 +46,7 @@ class HelperTest extends TestCase
     /**
      * Init store manager + current class
      */
-    public function setUp()
+    public function setUp(): void
     {
         $objManager           = Bootstrap::getObjectManager();
         $this->storeManager   = $objManager->create(StoreManagerInterface::class);

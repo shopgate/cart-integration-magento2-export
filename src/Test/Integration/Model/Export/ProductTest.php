@@ -60,7 +60,7 @@ class ProductTest extends TestCase
     /**
      * Setup
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->objectManager = Bootstrap::getObjectManager();
         $core                = $this->objectManager->get(Core::class);

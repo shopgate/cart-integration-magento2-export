@@ -43,7 +43,7 @@ class UtilityTest extends TestCase
     /**
      * Set up
      */
-    public function setUp()
+    public function setUp(): void
     {
         $this->cfgManager = new ConfigManager;
         $objManager       = Bootstrap::getObjectManager();
@@ -108,7 +108,7 @@ class UtilityTest extends TestCase
     /**
      * Remove database entries
      */
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->cfgManager->removeConfigs();
     }

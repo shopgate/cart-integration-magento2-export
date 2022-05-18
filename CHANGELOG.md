@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- Support for Magento 2.4.4
+- Support for PHP 8.1.x
 
 ## [2.9.23] - 2022-01-05
 ### Fixed

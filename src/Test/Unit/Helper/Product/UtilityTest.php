@@ -43,7 +43,7 @@ class UtilityTest extends TestCase
     /**
      * Basic setup
      */
-    protected function setUp()
+    protected function setUp(): void
     {
         $this->objectManager    = new ObjectManager($this);
         $this->subjectUnderTest = $this->objectManager->getObject(Utility::class);

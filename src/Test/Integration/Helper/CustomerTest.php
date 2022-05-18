@@ -53,7 +53,7 @@ class CustomerTest extends TestCase
     /**
      * Load object manager for initialization
      */
-    public function setUp()
+    public function setUp(): void
     {
         $objectManager         = Bootstrap::getObjectManager();
         $this->cfgManager      = new ConfigManager;
@@ -122,7 +122,7 @@ class CustomerTest extends TestCase
     /**
      * Reset the customer in the database
      */
-    public function tearDown()
+    public function tearDown(): void
     {
         /**
          * @var Registry $registry

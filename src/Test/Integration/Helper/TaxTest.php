@@ -45,7 +45,7 @@ class TaxTest extends TestCase
     /**
      * Load object manager for initialization
      */
-    public function setUp()
+    public function setUp(): void
     {
         $objectManager        = Bootstrap::getObjectManager();
         $this->cfgManager     = new ConfigManager;
@@ -96,7 +96,7 @@ class TaxTest extends TestCase
     /**
      * Cleanup created table data
      */
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->cfgManager->removeConfigs();
     }

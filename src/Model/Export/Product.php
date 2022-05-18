@@ -35,6 +35,7 @@ use Magento\GroupedProduct\Model\Product\Type\Grouped;
 use Magento\Store\Model\Store;
 use Magento\Store\Model\StoreManagerInterface;
 use Shopgate\Base\Api\Config\CoreInterface;
+use Shopgate\Base\Helper\Encoder;
 use Shopgate\Base\Helper\Product\Type;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Export\Api\ExportInterface;
@@ -56,7 +57,6 @@ use Shopgate_Model_Catalog_Tag;
 use Shopgate_Model_Catalog_TierPrice;
 use Shopgate_Model_Media_Image;
 use Zend_Date;
-use Zend_Json;
 use function is_object;
 
 class Product extends Shopgate_Model_Catalog_Product
@@ -114,7 +114,9 @@ class Product extends Shopgate_Model_Catalog_Product
     private $categoryRepository;
     /** @var GalleryReadHandler */
     private $galleryReadHandler;
-
+    /** @var Encoder */
+    private $encoder;
+    
     /**
      * @param CoreInterface               $scopeConfig
      * @param StoreManagerInterface       $storeManager
@@ -124,6 +126,7 @@ class Product extends Shopgate_Model_Catalog_Product
      * @param Type                        $type
      * @param SgLoggerInterface           $logger
      * @param GalleryReadHandler          $galleryReadHandler
+     * @param Encoder                     $encoder
      */
     public function __construct(
         CoreInterface $scopeConfig,
@@ -133,7 +136,8 @@ class Product extends Shopgate_Model_Catalog_Product
         CategoryRepositoryInterface $categoryRepository,
         Type $type,
         SgLoggerInterface $logger,
-        GalleryReadHandler $galleryReadHandler
+        GalleryReadHandler $galleryReadHandler,
+        Encoder $encoder
     ) {
         parent::__construct();
         $this->scopeConfig        = $scopeConfig;
@@ -144,6 +148,7 @@ class Product extends Shopgate_Model_Catalog_Product
         $this->type               = $type;
         $this->logger             = $logger;
         $this->galleryReadHandler = $galleryReadHandler;
+        $this->encoder            = $encoder;
     }
 
     /**
@@ -304,7 +309,7 @@ class Product extends Shopgate_Model_Catalog_Product
             $internalOrderInfo['item_type']  = $this->parent->getTypeId();
         }
 
-        parent::setInternalOrderInfo(Zend_Json::encode($internalOrderInfo));
+        parent::setInternalOrderInfo($this->encoder->encode($internalOrderInfo));
     }
 
     /**
