@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
-## [2.9.24]
+## [2.9.24] - 2022-05-18
 ### Fixed
 - shipping rate calculation in the import of Shopgate orders when using rates from Magento 2 during checkout
 
