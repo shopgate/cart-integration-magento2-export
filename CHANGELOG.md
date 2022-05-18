@@ -5,13 +5,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+## [2.9.24]
+### Fixed
+- shipping rate calculation in the import of Shopgate orders when using rates from Magento 2 during checkout
+
 ### Added
-- Support for Magento 2.4.4
-- Support for PHP 8.1.x
+- support for Magento 2.4.4
+- support for PHP 8.1.x
 
 ## [2.9.23] - 2022-01-05
 ### Fixed
-- Translations of property labels
+- translations of property labels
 
 ## [2.9.22] - 2020-10-02
 ### Fixed
@@ -140,7 +144,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.23...HEAD
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.24...HEAD
+[2.9.24]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.23...2.9.24
 [2.9.23]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.22...2.9.23
 [2.9.22]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.21...2.9.22
 [2.9.21]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.20...2.9.21
