@@ -4,6 +4,9 @@
             <categories>
                 <nav_only>0</nav_only>
             </categories>
+            <products>
+                <out_of_stock>0</out_of_stock>
+            </products>
         </shopgate_export>
     </default>
 </config>

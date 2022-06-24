@@ -28,4 +28,5 @@ interface ExportInterface extends \Shopgate\Base\Api\ExportInterface
     const PATH_CAT_NAV_ONLY           = self::PATH_CATEGORIES . '/nav_only';
     const PATH_PROD_DESCRIPTION       = self::PATH_PRODUCTS . '/description';
     const PATH_PROD_CHILD_DESCRIPTION = self::PATH_PRODUCTS . '/child_description';
+    const PATH_PROD_OUT_OF_STOCK      = self::PATH_PRODUCTS . '/out_of_stock';
 }
