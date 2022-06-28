@@ -34,8 +34,10 @@ use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\GroupedProduct\Model\Product\Type\Grouped;
+use Shopgate\Base\Api\Config\CoreInterface;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Base\Model\Utility\SgProfiler;
+use Shopgate\Export\Api\ExportInterface;
 use Shopgate\Export\Model\Export\Product;
 use Shopgate\Export\Model\Export\ProductFactory as ExportFactory;
 
@@ -53,6 +55,8 @@ class Retriever
     private $productRepository;
     /** @var CollectionFactory */
     private $collectionFactory;
+    /** @var CoreInterface */
+    private $scopeConfig;
 
     /**
      * @param SgLoggerInterface $logger
@@ -68,13 +72,15 @@ class Retriever
         ExportFactory $exportFactory,
         SgProfiler $profiler,
         ProductRepository $productRepository,
-        CollectionFactory $productCollectionFactory
+        CollectionFactory $productCollectionFactory,
+        CoreInterface $scopeConfig
     ) {
         $this->log               = $logger;
         $this->exportFactory     = $exportFactory;
         $this->profiler          = $profiler;
         $this->productRepository = $productRepository;
         $this->collectionFactory = $productCollectionFactory;
+        $this->scopeConfig       = $scopeConfig;
     }
 
     /**
@@ -117,6 +123,10 @@ class Retriever
             $productCollection->getSelect()->limit($limit, $offset);
             $this->log->debug("Product Export Limit: {$limit}");
             $this->log->debug("Product Export Offset: {$offset}");
+        }
+    
+        if ($this->scopeConfig->getConfigByPath(ExportInterface::PATH_PROD_OUT_OF_STOCK)->getData('value')) {
+            $productCollection->setFlag('has_stock_status_filter', false);
         }
 
         foreach ($productCollection as $product) {
