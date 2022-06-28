@@ -587,7 +587,10 @@ class Product extends Shopgate_Model_Catalog_Product
             $forceExport = in_array($code, $forceAttributes, true);
             if ($forceExport || $attribute->getIsVisibleOnFront() || $eanMapping === $attribute->getAttributeCode()) {
                 $value = $attribute->getFrontend()->getValue($this->item);
-                if (!empty($value) && ($this->item->hasData($code) || $forceExport)) {
+                if (!empty($value)
+                    && !is_array($value)
+                    && ($this->item->hasData($code) || $forceExport)
+                ) {
                     $propertyModel = new Shopgate_Model_Catalog_Property();
                     $propertyModel->setUid($attribute->getAttributeId());
                     $propertyModel->setLabel($attribute->getStoreLabel());
