@@ -44,7 +44,7 @@
                     <comment>Attributes which are not visible on the frontpage will not be exported by default! Please select all invisible attributes that should be exported.</comment>
                 </field>
                 <field id="out_of_stock" translate="label tooltip" type="select" sortOrder="20" showInDefault="1" showInWebsite="1" showInStore="1" canRestore="1">
-                    <label>Force the export of out of stock Products</label>
+                    <label>Force the export of out-of-stock products</label>
                     <source_model>Magento\Config\Model\Config\Source\Yesno</source_model>
                 </field>
             </group>

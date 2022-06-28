@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 ### Added
-- Configuration to force the export of out of stock products
+- configuration to force the export of out-of-stock products
 
 ## [2.9.24] - 2022-05-18
 ### Fixed
