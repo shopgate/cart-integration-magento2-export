@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ## [Unreleased]
 ### Fixed
-- property related error in item export
+- error in the export of product properties
 
 ## [2.9.24] - 2022-05-18
 ### Fixed
