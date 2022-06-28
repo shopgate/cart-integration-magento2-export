@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Fixed
 - error in the export of product properties
 
+### Added
+- configuration to force the export of out-of-stock products
+
 ## [2.9.24] - 2022-05-18
 ### Fixed
 - shipping rate calculation in the import of Shopgate orders when using rates from Magento 2 during checkout
