@@ -4,6 +4,7 @@
     <preference for="Shopgate\Export\Api\ExportInterface" type="Shopgate\Export\Model\Service\Export"/>
     <preference for="Shopgate\Base\Api\CronInterface" type="Shopgate\Export\Api\CronInterface"/>
     <preference for="Shopgate\Export\Api\CronInterface" type="Shopgate\Export\Model\Service\Cron"/>
+    <preference for="Shopgate\Base\Helper\Product\Type\Configurable" type="Shopgate\Export\Helper\Product\Type\Configurable" />
     <type name="Shopgate\Export\Helper\Cart">
         <arguments>
             <argument name="quoteFields" xsi:type="array">
