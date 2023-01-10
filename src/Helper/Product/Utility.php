@@ -23,6 +23,8 @@
 namespace Shopgate\Export\Helper\Product;
 
 use Exception;
+use Magento\Bundle\Model\ResourceModel\Option\Collection as OptionCollection;
+use Magento\Bundle\Model\ResourceModel\Selection\Collection as SelectionCollection;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Api\Data\ProductCustomOptionValuesInterface;
 use Magento\Catalog\Model\Category;
@@ -433,5 +435,48 @@ class Utility
         }
 
         return $this->filter->getPageFilter()->filter((string) $description);
+    }
+
+    /**
+     * @param array $inputs
+     * @param $selection
+     */
+    public function addBundleInputOption(array $inputs, $selection)
+    {
+        foreach ($inputs as $input) {
+            if ($input->getUid() === $selection->getOptionId()) {
+                $qty = max(1, (int)$selection->getSelectionQty());
+                $inputItem = new Shopgate_Model_Catalog_Option();
+                $inputItem->setUid($selection->getSelectionId());
+                $inputItem->setLabel(
+                    $qty > 1
+                        ? sprintf('%d x %s', $qty, $selection->getName())
+                        : $selection->getName());
+                $inputItem->setAdditionalPrice(
+                    $selection->getSelectionCanChangeQty() == 0 && $qty > 1
+                        ? $selection->getPrice() * $qty
+                        : $selection->getPrice());
+                $input->addOption($inputItem);
+            }
+        }
+    }
+
+    /**
+     * @param MageProduct $item
+     * @return OptionCollection
+     */
+    public function getOptionsCollection(Product $item): OptionCollection
+    {
+        return $item->getTypeInstance(true)->getOptionsCollection($item);
+    }
+
+    /**
+     * @param MageProduct $item
+     * @return SelectionCollection
+     */
+    public function getSelectionsCollection(Product $item): SelectionCollection
+    {
+        return $item->getTypeInstance(true)->getSelectionsCollection($item->getTypeInstance(true)->getOptionsIds($item),
+            $item);
     }
 }

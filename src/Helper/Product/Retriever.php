@@ -34,6 +34,7 @@ use Magento\Catalog\Model\ResourceModel\Product\CollectionFactory;
 use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\GroupedProduct\Model\Product\Type\Grouped;
+use Magento\Bundle\Model\Product\Type as BundleType;
 use Shopgate\Base\Api\Config\CoreInterface;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Base\Model\Utility\SgProfiler;
@@ -44,7 +45,12 @@ use Shopgate\Export\Model\Export\ProductFactory as ExportFactory;
 class Retriever
 {
     /**  @const ALLOWED_PRODUCT_TYPES   Supported product types for export */
-    public const ALLOWED_PRODUCT_TYPES = [Type::TYPE_SIMPLE, Configurable::TYPE_CODE, Grouped::TYPE_CODE];
+    public const ALLOWED_PRODUCT_TYPES = [
+        Type::TYPE_SIMPLE,
+        Configurable::TYPE_CODE,
+        Grouped::TYPE_CODE,
+        BundleType::TYPE_CODE
+    ];
     /** @var SgLoggerInterface */
     private $log;
     /** @var SgProfiler */
