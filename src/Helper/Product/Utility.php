@@ -33,8 +33,10 @@ use Magento\Catalog\Model\Product as MageProduct;
 use Magento\Catalog\Model\Product\Option;
 use Magento\Catalog\Model\Product\Visibility;
 use Magento\Cms\Model\Template\FilterProvider;
+use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
+use Magento\InventoryConfigurationApi\Exception\SkuIsNotAssignedToStockException;
 use Magento\Store\Model\StoreManager;
 use Magento\Tax\Model\Config as TaxConfig;
 use Magento\Tax\Model\TaxCalculation;
@@ -52,6 +54,8 @@ use Shopgate_Model_Catalog_Product;
 use Shopgate_Model_Catalog_Relation;
 use Shopgate_Model_Catalog_Validation;
 use Shopgate_Model_Catalog_Visibility;
+use Magento\Bundle\Model\Product\Type as BundleType;
+use Magento\InventorySalesAdminUi\Model\GetSalableQuantityDataBySku;
 use function in_array;
 
 class Utility
@@ -101,16 +105,19 @@ class Utility
     protected $sgCore;
     /** @var StockUtility */
     protected $stockUtility;
+    /** @var GetSalableQuantityDataBySku  */
+    protected $getSalableQuantityDataBySku;
 
     /**
-     * @param StoreManager                $storeManager
-     * @param TaxCalculation              $taxCalculation
-     * @param ExportUtility               $utility
+     * @param StoreManager $storeManager
+     * @param TaxCalculation $taxCalculation
+     * @param ExportUtility $utility
      * @param CategoryRepositoryInterface $categoryRepository
-     * @param TaxConfig                   $taxConfig
-     * @param FilterProvider              $filter
-     * @param CoreInterface               $sgCore
-     * @param Factory                     $stockUtilityFactory
+     * @param TaxConfig $taxConfig
+     * @param FilterProvider $filter
+     * @param CoreInterface $sgCore
+     * @param Factory $stockUtilityFactory
+     * @param GetSalableQuantityDataBySku $getSalableQuantityDataBySku
      */
     public function __construct(
         StoreManager $storeManager,
@@ -120,16 +127,18 @@ class Utility
         TaxConfig $taxConfig,
         FilterProvider $filter,
         CoreInterface $sgCore,
-        Factory $stockUtilityFactory
+        Factory $stockUtilityFactory,
+        GetSalableQuantityDataBySku $getSalableQuantityDataBySku
     ) {
-        $this->storeManager       = $storeManager;
-        $this->taxCalculation     = $taxCalculation;
-        $this->utility            = $utility;
-        $this->categoryRepository = $categoryRepository;
-        $this->taxConfig          = $taxConfig;
-        $this->filter             = $filter;
-        $this->sgCore             = $sgCore;
-        $this->stockUtility       = $stockUtilityFactory->getUtility();
+        $this->storeManager                = $storeManager;
+        $this->taxCalculation              = $taxCalculation;
+        $this->utility                     = $utility;
+        $this->categoryRepository          = $categoryRepository;
+        $this->taxConfig                   = $taxConfig;
+        $this->filter                      = $filter;
+        $this->sgCore                      = $sgCore;
+        $this->stockUtility                = $stockUtilityFactory->getUtility();
+        $this->getSalableQuantityDataBySku = $getSalableQuantityDataBySku;
     }
 
     /**
@@ -206,7 +215,37 @@ class Utility
      */
     public function getStockItem($product): StockItem
     {
-        return $this->stockUtility->getStockItem($product);
+        return $product->getTypeId() == BundleType::TYPE_CODE
+            ? $this->setStockQuantityForBundleProduct($product, $this->stockUtility->getStockItem($product))
+            : $this->stockUtility->getStockItem($product);
+    }
+
+    /**
+     * @param MageProduct $product
+     * @param StockItem $stockItem
+     * @return StockItem
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     * @throws InputException
+     * @throws SkuIsNotAssignedToStockException
+     */
+    protected function setStockQuantityForBundleProduct(MageProduct $product, StockItem $stockItem): StockItem
+    {
+        $selectionQuantities = [];
+
+        foreach ($this->getSelectionsCollection($product) as $selection) {
+            $selectionId = $selection->getSelectionId();
+            if (!array_key_exists($selectionId, $selectionQuantities)) {
+                $selectionQuantities[$selectionId] = 0;
+            }
+            $quantity = $this->getSalableQuantityDataBySku->execute($selection->getSku());
+            $selectionQuantities[$selectionId] = isset($quantity[0]) ? $quantity[0]['qty'] : 0;
+        }
+
+        $stockItem->setStockQuantity(count($selectionQuantities) ? min($selectionQuantities) : 0);
+
+        return $stockItem;
+
     }
 
     /**
@@ -452,6 +491,7 @@ class Utility
                     $qty > 1
                         ? sprintf('%d x %s', $qty, $selection->getName())
                         : $selection->getName());
+
                 $inputItem->setAdditionalPrice(
                     $selection->getSelectionCanChangeQty() == 0 && $qty > 1
                         ? $selection->getPrice() * $qty

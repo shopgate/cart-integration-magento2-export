@@ -57,6 +57,7 @@ use Shopgate_Model_Catalog_Stock;
 use Shopgate_Model_Catalog_Tag;
 use Shopgate_Model_Catalog_TierPrice;
 use Shopgate_Model_Media_Image;
+use Shopgate_Model_Catalog_Option;
 use Zend_Date;
 use Magento\Bundle\Model\Product\Type as BundleType;
 use function is_object;
@@ -693,6 +694,29 @@ class Product extends Shopgate_Model_Catalog_Product
 
         foreach ($this->helperProduct->getSelectionsCollection($this->item) as $selection) {
             $this->helperProduct->addBundleInputOption($inputs, $selection, $this->item);
+        }
+
+        /** Adjust option prices */
+        $priceAdjustmentData = [];
+
+        /** Store cheapest price from selection */
+        foreach ($inputs as $input) {
+            /** @var Shopgate_Model_Catalog_Input $input */
+            foreach ($input->getOptions() as $option) {
+                /** @var Shopgate_Model_Catalog_Option $option */
+                $priceAdjustmentData[$input->getUid()] = !isset($priceAdjustmentData[$input->getUid()]) || $option->getAdditionalPrice() < $priceAdjustmentData[$input->getUid()]
+                    ? $option->getAdditionalPrice()
+                    : $priceAdjustmentData[$input->getUid()];
+            }
+        }
+        /** Update additional prices */
+        foreach ($inputs as $input) {
+            foreach ($input->getOptions() as $option) {
+                /** @var Shopgate_Model_Catalog_Option $option */
+                if (isset($priceAdjustmentData[$input->getUid()])) {
+                    $option->setAdditionalPrice($option->getAdditionalPrice() - $priceAdjustmentData[$input->getUid()]);
+                }
+            }
         }
 
         return $inputs;
