@@ -119,7 +119,7 @@ class Product extends Shopgate_Model_Catalog_Product
     private $galleryReadHandler;
     /** @var Encoder */
     private $encoder;
-    
+
     /**
      * @param CoreInterface               $scopeConfig
      * @param StoreManagerInterface       $storeManager
@@ -720,7 +720,6 @@ class Product extends Shopgate_Model_Catalog_Product
         }
 
         return $inputs;
-
     }
 
     /**

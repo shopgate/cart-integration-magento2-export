@@ -39,7 +39,6 @@ use Zend_Json_Exception;
  */
 class ExportTest extends TestCase
 {
-
     /**
      * @var StockManager
      */

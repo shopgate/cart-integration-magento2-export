@@ -245,7 +245,6 @@ class Utility
         $stockItem->setStockQuantity(count($selectionQuantities) ? min($selectionQuantities) : 0);
 
         return $stockItem;
-
     }
 
     /**
