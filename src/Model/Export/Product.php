@@ -22,6 +22,7 @@
 namespace Shopgate\Export\Model\Export;
 
 use Exception;
+use Magento\Bundle\Model\Option;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Model\Product as MageProduct;
 use Magento\Catalog\Model\Product\Gallery\ReadHandler as GalleryReadHandler;
@@ -56,7 +57,9 @@ use Shopgate_Model_Catalog_Stock;
 use Shopgate_Model_Catalog_Tag;
 use Shopgate_Model_Catalog_TierPrice;
 use Shopgate_Model_Media_Image;
+use Shopgate_Model_Catalog_Option;
 use Zend_Date;
+use Magento\Bundle\Model\Product\Type as BundleType;
 use function is_object;
 
 class Product extends Shopgate_Model_Catalog_Product
@@ -220,7 +223,12 @@ class Product extends Shopgate_Model_Catalog_Product
             : Shopgate_Model_Catalog_Price::DEFAULT_PRICE_TYPE_NET;
 
         $priceModel = new Shopgate_Model_Catalog_Price();
-        $priceModel->setPrice($this->item->getPrice());
+
+        $priceModel->setPrice(
+            $this->item->getTypeId() === BundleType::TYPE_CODE
+                ? $this->item->getPriceInfo()->getPrice('final_price')->getMinimalPrice()->getValue()
+                : $this->item->getPrice()
+        );
 
         if ($priceModel->getPrice() > 0) {
             $priceModel->setSalePrice($this->item->getFinalPrice());
@@ -608,10 +616,16 @@ class Product extends Shopgate_Model_Catalog_Product
      */
     public function setInputs(): void
     {
-        if (!$this->item->getOptions()) {
+        $result = [];
+
+        if ($this->item->getTypeId() === BundleType::TYPE_CODE) {
+            $result = $this->setBundleOptions();
+        }
+
+        if (!$this->item->getOptions() && !count($result)) {
             return;
         }
-        $result = [];
+
         foreach ($this->item->getOptions() as $option) {
             /** @var MageProduct\Option $option */
             $inputType = $this->helperProduct->mapInputType($option->getType());
@@ -648,6 +662,65 @@ class Product extends Shopgate_Model_Catalog_Product
         }
 
         parent::setInputs($result);
+    }
+
+    /**
+     * @return Shopgate_Model_Catalog_Input[]
+     */
+    protected function setBundleOptions(): array
+    {
+        $inputs = [];
+
+        foreach ($this->helperProduct->getOptionsCollection($this->item) as $option) {
+            /** @var Option $option */
+            $input = new Shopgate_Model_Catalog_Input();
+
+            $input->setUid($option->getOptionId());
+            $input->setOptions([]);
+            $input->setLabel($option->getDefaultTitle());
+
+            $inputType = $this->helperProduct->mapInputType($option->getType());
+
+            if (!$inputType) {
+                continue;
+            }
+
+            $input->setType($inputType);
+            $input->setRequired($option->getRequired());
+            $input->setSortOrder($option->getPosition());
+
+            $inputs[] = $input;
+        }
+
+        foreach ($this->helperProduct->getSelectionsCollection($this->item) as $selection) {
+            $this->helperProduct->addBundleInputOption($inputs, $selection, $this->item);
+        }
+
+        /** Adjust option prices */
+        $priceAdjustmentData = [];
+
+        /** Store cheapest price from selection */
+        foreach ($inputs as $input) {
+            /** @var Shopgate_Model_Catalog_Input $input */
+            foreach ($input->getOptions() as $option) {
+                /** @var Shopgate_Model_Catalog_Option $option */
+                $priceAdjustmentData[$input->getUid()] = !isset($priceAdjustmentData[$input->getUid()]) || $option->getAdditionalPrice() < $priceAdjustmentData[$input->getUid()]
+                    ? $option->getAdditionalPrice()
+                    : $priceAdjustmentData[$input->getUid()];
+            }
+        }
+        /** Update additional prices */
+        foreach ($inputs as $input) {
+            foreach ($input->getOptions() as $option) {
+                /** @var Shopgate_Model_Catalog_Option $option */
+                if (isset($priceAdjustmentData[$input->getUid()])) {
+                    $option->setAdditionalPrice($option->getAdditionalPrice() - $priceAdjustmentData[$input->getUid()]);
+                }
+            }
+        }
+
+        return $inputs;
+
     }
 
     /**
