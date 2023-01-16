@@ -7,9 +7,13 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v3
+      - name: Install PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: 8.1
       - name: Code Style
         run: |
-          curl -L https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v3.4.0/php-cs-fixer.phar -o php-cs-fixer
+          curl -L https://github.com/FriendsOfPHP/PHP-CS-Fixer/releases/download/v3.13.2/php-cs-fixer.phar -o php-cs-fixer
           chmod a+x php-cs-fixer
           ./php-cs-fixer fix --config=.php-cs-fixer.dist.php --cache-file=.php-cs-fixer.cache --diff --dry-run --verbose
 
