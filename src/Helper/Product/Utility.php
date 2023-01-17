@@ -23,6 +23,7 @@
 namespace Shopgate\Export\Helper\Product;
 
 use Exception;
+use Magento\Bundle\Model\Product\Price;
 use Magento\Bundle\Model\ResourceModel\Option\Collection as OptionCollection;
 use Magento\Bundle\Model\ResourceModel\Selection\Collection as SelectionCollection;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
@@ -477,9 +478,10 @@ class Utility
 
     /**
      * @param array $inputs
-     * @param $selection
+     * @param MageProduct $selection
+     * @param MageProduct $item
      */
-    public function addBundleInputOption(array $inputs, $selection)
+    public function addBundleInputOption(array $inputs, MageProduct $selection, MageProduct $item)
     {
         foreach ($inputs as $input) {
             if ($input->getUid() === $selection->getOptionId()) {
@@ -491,10 +493,12 @@ class Utility
                         ? sprintf('%d x %s', $qty, $selection->getName())
                         : $selection->getName());
 
-                $inputItem->setAdditionalPrice(
-                    $selection->getSelectionCanChangeQty() == 0 && $qty > 1
+                $inputItem->setAdditionalPrice($item->getPriceType() == Price::PRICE_TYPE_DYNAMIC
+                    ? $selection->getSelectionCanChangeQty() == 0 && $qty > 1
                         ? $selection->getPrice() * $qty
-                        : $selection->getPrice());
+                        : $selection->getPrice()
+                    : $selection->getSelectionPriceValue());
+
                 $input->addOption($inputItem);
             }
         }

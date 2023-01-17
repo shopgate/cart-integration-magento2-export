@@ -23,6 +23,7 @@ namespace Shopgate\Export\Model\Export;
 
 use Exception;
 use Magento\Bundle\Model\Option;
+use Magento\Bundle\Model\Product\Price;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
 use Magento\Catalog\Model\Product as MageProduct;
 use Magento\Catalog\Model\Product\Gallery\ReadHandler as GalleryReadHandler;
@@ -696,25 +697,27 @@ class Product extends Shopgate_Model_Catalog_Product
             $this->helperProduct->addBundleInputOption($inputs, $selection, $this->item);
         }
 
-        /** Adjust option prices */
-        $priceAdjustmentData = [];
+        if (Price::PRICE_TYPE_DYNAMIC) {
+            /** Adjust option prices */
+            $priceAdjustmentData = [];
 
-        /** Store cheapest price from selection */
-        foreach ($inputs as $input) {
-            /** @var Shopgate_Model_Catalog_Input $input */
-            foreach ($input->getOptions() as $option) {
-                /** @var Shopgate_Model_Catalog_Option $option */
-                $priceAdjustmentData[$input->getUid()] = !isset($priceAdjustmentData[$input->getUid()]) || $option->getAdditionalPrice() < $priceAdjustmentData[$input->getUid()]
-                    ? $option->getAdditionalPrice()
-                    : $priceAdjustmentData[$input->getUid()];
+            /** Store cheapest price from selection */
+            foreach ($inputs as $input) {
+                /** @var Shopgate_Model_Catalog_Input $input */
+                foreach ($input->getOptions() as $option) {
+                    /** @var Shopgate_Model_Catalog_Option $option */
+                    $priceAdjustmentData[$input->getUid()] = !isset($priceAdjustmentData[$input->getUid()]) || $option->getAdditionalPrice() < $priceAdjustmentData[$input->getUid()]
+                        ? $option->getAdditionalPrice()
+                        : $priceAdjustmentData[$input->getUid()];
+                }
             }
-        }
-        /** Update additional prices */
-        foreach ($inputs as $input) {
-            foreach ($input->getOptions() as $option) {
-                /** @var Shopgate_Model_Catalog_Option $option */
-                if (isset($priceAdjustmentData[$input->getUid()])) {
-                    $option->setAdditionalPrice($option->getAdditionalPrice() - $priceAdjustmentData[$input->getUid()]);
+            /** Update additional prices */
+            foreach ($inputs as $input) {
+                foreach ($input->getOptions() as $option) {
+                    /** @var Shopgate_Model_Catalog_Option $option */
+                    if (isset($priceAdjustmentData[$input->getUid()])) {
+                        $option->setAdditionalPrice($option->getAdditionalPrice() - $priceAdjustmentData[$input->getUid()]);
+                    }
                 }
             }
         }
