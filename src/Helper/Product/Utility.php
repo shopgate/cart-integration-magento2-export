@@ -482,7 +482,7 @@ class Utility
      * @param MageProduct $selection
      * @param MageProduct $item
      */
-    public function addBundleInputOption(array $inputs, $selection, MageProduct $item)
+    public function addBundleInputOption(array $inputs, MageProduct $selection, MageProduct $item)
     {
         foreach ($inputs as $input) {
             if ($input->getUid() === $selection->getOptionId()) {
