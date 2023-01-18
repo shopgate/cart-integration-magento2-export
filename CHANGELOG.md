@@ -5,8 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+## [2.9.26] - 2023-01-18
 ### Added
-- support bundle products export
+- support bundle products in produt export
 
 ## [2.9.25] - 2022-11-25
 ### Fixed
@@ -154,7 +155,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.25...HEAD
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.26...HEAD
+[2.9.26]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.25...2.9.26
 [2.9.25]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.24...2.9.25
 [2.9.24]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.23...2.9.24
 [2.9.23]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.22...2.9.23
