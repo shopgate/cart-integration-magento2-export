@@ -7,7 +7,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ## [Unreleased]
 ## [2.9.26] - 2023-01-18
 ### Added
-- support bundle products in produt export
+- support bundle products in product export
 
 ## [2.9.25] - 2022-11-25
 ### Fixed
