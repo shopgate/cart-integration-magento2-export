@@ -59,7 +59,6 @@ use Shopgate_Model_Catalog_Tag;
 use Shopgate_Model_Catalog_TierPrice;
 use Shopgate_Model_Media_Image;
 use Shopgate_Model_Catalog_Option;
-use Zend_Date;
 use Magento\Bundle\Model\Product\Type as BundleType;
 use function is_object;
 
@@ -168,7 +167,7 @@ class Product extends Shopgate_Model_Catalog_Product
      */
     public function setLastUpdate(): void
     {
-        parent::setLastUpdate(date(Zend_Date::ISO_8601, strtotime($this->item->getUpdatedAt())));
+        parent::setLastUpdate(date('c', strtotime($this->item->getUpdatedAt())));
     }
 
     /**

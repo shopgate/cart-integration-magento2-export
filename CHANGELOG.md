@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Removed
+- dependency to Zend_Date class
+
 ## [2.9.26] - 2023-01-18
 ### Added
 - support bundle products in product export
