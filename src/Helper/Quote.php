@@ -183,7 +183,7 @@ class Quote extends \Shopgate\Base\Helper\Quote
             $stockData                    = $type->getStockData();
             $priceIncludesTaxes           = $this->taxData->priceIncludesTax($this->quote->getStore());
             $productId                    =
-                Serializer::unserialize($item->getAdditionalData())->getShopgateItemNumber();
+                Serializer::unserialize($item->getAdditionalData() ?? '')->getShopgateItemNumber();
             $data['unit_amount']          = $this->calculatePrice($price, $percent, $priceIncludesTaxes);
             $data['unit_amount_with_tax'] = $this->calculatePrice($price, $percent, $priceIncludesTaxes, true);
 
