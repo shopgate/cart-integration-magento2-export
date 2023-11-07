@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- PHP 8.1 compatibility
+
 ## [2.9.27] - 2023-06-30
 ### Removed
 - dependency to Zend_Date class
