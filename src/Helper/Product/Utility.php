@@ -24,6 +24,7 @@ namespace Shopgate\Export\Helper\Product;
 
 use Exception;
 use Magento\Bundle\Model\Product\Price;
+use Magento\Bundle\Model\Product\Type as BundleType;
 use Magento\Bundle\Model\ResourceModel\Option\Collection as OptionCollection;
 use Magento\Bundle\Model\ResourceModel\Selection\Collection as SelectionCollection;
 use Magento\Catalog\Api\CategoryRepositoryInterface;
@@ -37,7 +38,6 @@ use Magento\Cms\Model\Template\FilterProvider;
 use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
-use Magento\InventoryConfigurationApi\Exception\SkuIsNotAssignedToStockException;
 use Magento\Store\Model\StoreManager;
 use Magento\Tax\Model\Config as TaxConfig;
 use Magento\Tax\Model\TaxCalculation;
@@ -55,8 +55,7 @@ use Shopgate_Model_Catalog_Product;
 use Shopgate_Model_Catalog_Relation;
 use Shopgate_Model_Catalog_Validation;
 use Shopgate_Model_Catalog_Visibility;
-use Magento\Bundle\Model\Product\Type as BundleType;
-use Magento\InventorySalesAdminUi\Model\GetSalableQuantityDataBySku;
+
 use function in_array;
 
 class Utility
@@ -70,25 +69,25 @@ class Utility
 
     /** @var array */
     protected $inputTypes = [
-        'field'     => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_TEXT,
-        'area'      => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_AREA,
-        'select'    => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_SELECT,
+        'field' => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_TEXT,
+        'area' => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_AREA,
+        'select' => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_SELECT,
         'drop_down' => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_SELECT,
-        'radio'     => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_SELECT,
-        'checkbox'  => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_SELECT,
-        'multiple'  => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_SELECT,
-        'multi'     => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_SELECT,
-        'date'      => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_DATE,
+        'radio' => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_SELECT,
+        'checkbox' => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_SELECT,
+        'multiple' => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_SELECT,
+        'multi' => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_SELECT,
+        'date' => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_DATE,
         'date_time' => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_DATETIME,
-        'time'      => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_TIME
+        'time' => Shopgate_Model_Catalog_Input::DEFAULT_INPUT_TYPE_TIME
     ];
     /** @var array */
     protected $weightUnits = [
-        'kgs'  => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_KG,
-        'g'    => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_GRAM,
+        'kgs' => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_KG,
+        'g' => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_GRAM,
         'auto' => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_DEFAULT,
-        'lb'   => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_POUND,
-        'oz'   => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_OUNCE
+        'lb' => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_POUND,
+        'oz' => Shopgate_Model_Catalog_Product::DEFAULT_WEIGHT_UNIT_OUNCE
     ];
     /** @var StoreManager */
     protected $storeManager;
@@ -106,8 +105,6 @@ class Utility
     protected $sgCore;
     /** @var StockUtility */
     protected $stockUtility;
-    /** @var GetSalableQuantityDataBySku  */
-    protected $getSalableQuantityDataBySku;
 
     /**
      * @param StoreManager $storeManager
@@ -118,7 +115,6 @@ class Utility
      * @param FilterProvider $filter
      * @param CoreInterface $sgCore
      * @param Factory $stockUtilityFactory
-     * @param GetSalableQuantityDataBySku $getSalableQuantityDataBySku
      */
     public function __construct(
         StoreManager $storeManager,
@@ -128,18 +124,16 @@ class Utility
         TaxConfig $taxConfig,
         FilterProvider $filter,
         CoreInterface $sgCore,
-        Factory $stockUtilityFactory,
-        GetSalableQuantityDataBySku $getSalableQuantityDataBySku
+        Factory $stockUtilityFactory
     ) {
-        $this->storeManager                = $storeManager;
-        $this->taxCalculation              = $taxCalculation;
-        $this->utility                     = $utility;
-        $this->categoryRepository          = $categoryRepository;
-        $this->taxConfig                   = $taxConfig;
-        $this->filter                      = $filter;
-        $this->sgCore                      = $sgCore;
-        $this->stockUtility                = $stockUtilityFactory->getUtility();
-        $this->getSalableQuantityDataBySku = $getSalableQuantityDataBySku;
+        $this->storeManager = $storeManager;
+        $this->taxCalculation = $taxCalculation;
+        $this->utility = $utility;
+        $this->categoryRepository = $categoryRepository;
+        $this->taxConfig = $taxConfig;
+        $this->filter = $filter;
+        $this->sgCore = $sgCore;
+        $this->stockUtility = $stockUtilityFactory->getUtility();
     }
 
     /**
@@ -154,7 +148,7 @@ class Utility
             Visibility::VISIBILITY_IN_CATALOG
         ];
 
-        return in_array((int) $product->getVisibility(), $validVisibilities, true);
+        return in_array((int)$product->getVisibility(), $validVisibilities, true);
     }
 
     /**
@@ -169,9 +163,9 @@ class Utility
         if ($manufacturer) {
             $manufacturer =
                 $product->getResource()
-                        ->getAttribute(self::DEFAULT_ATTRIBUTE_MANUFACTURER)
-                        ->getSource()
-                        ->getOptionText($manufacturer);
+                    ->getAttribute(self::DEFAULT_ATTRIBUTE_MANUFACTURER)
+                    ->getSource()
+                    ->getOptionText($manufacturer);
         }
 
         return $manufacturer;
@@ -224,22 +218,18 @@ class Utility
     /**
      * @param MageProduct $product
      * @param StockItem $stockItem
+     *
      * @return StockItem
      * @throws LocalizedException
      * @throws NoSuchEntityException
      * @throws InputException
-     * @throws SkuIsNotAssignedToStockException
      */
     protected function setStockQuantityForBundleProduct(MageProduct $product, StockItem $stockItem): StockItem
     {
         $selectionQuantities = [];
-
         foreach ($this->getSelectionsCollection($product) as $selection) {
             $selectionId = $selection->getSelectionId();
-            if (!array_key_exists($selectionId, $selectionQuantities)) {
-                $selectionQuantities[$selectionId] = 0;
-            }
-            $quantity = $this->getSalableQuantityDataBySku->execute($selection->getSku());
+            $quantity = $this->stockUtility->getStockQuantityBySku($selection->getSku());
             $selectionQuantities[$selectionId] = isset($quantity[0]) ? $quantity[0]['qty'] : 0;
         }
 
@@ -311,7 +301,7 @@ class Utility
     }
 
     /**
-     * @param Option      $option
+     * @param Option $option
      * @param MageProduct $item
      *
      * @return mixed
@@ -323,7 +313,7 @@ class Utility
 
     /**
      * @param Option | ProductCustomOptionValuesInterface $option
-     * @param MageProduct                                 $item
+     * @param MageProduct $item
      *
      * @return mixed
      */
@@ -337,7 +327,7 @@ class Utility
     }
 
     /**
-     * @param array  $relationIds
+     * @param array $relationIds
      * @param string $type
      *
      * @return Shopgate_Model_Catalog_Relation
@@ -352,7 +342,7 @@ class Utility
     }
 
     /**
-     * @param Option      $option
+     * @param Option $option
      * @param MageProduct $item
      *
      * @return array
@@ -391,7 +381,7 @@ class Utility
      */
     public function getDeepLinkUrl($item, $parentItem = null): string
     {
-        return $parentItem && (int) $item->getVisibility() === Visibility::VISIBILITY_NOT_VISIBLE
+        return $parentItem && (int)$item->getVisibility() === Visibility::VISIBILITY_NOT_VISIBLE
             ? $this->utility->parseUrl($parentItem->getProductUrl())
             : $this->utility->parseUrl($item->getProductUrl());
     }
@@ -409,14 +399,14 @@ class Utility
      * Create a category export for a product
      *
      * @param string | int $categoryId
-     * @param null         $position
+     * @param ?int $position
      *
      * @return Shopgate_Model_Catalog_CategoryPath
      */
     public function getExportCategory($categoryId, $position = null): Shopgate_Model_Catalog_CategoryPath
     {
         $category = new Shopgate_Model_Catalog_CategoryPath();
-        $category->setSortOrder($position);
+        $category->setSortOrder($position ?: 0);
         $category->setUid($categoryId);
 
         return $category;
@@ -432,10 +422,10 @@ class Utility
     public function getPositionInCategory($productId, $categoryId): int
     {
         /** @var Category $category */
-        $category  = $this->categoryRepository->get($categoryId);
+        $category = $this->categoryRepository->get($categoryId);
         $positions = $category->getProductsPosition();
 
-        return (int) isset($positions[$productId]) ? $positions[$productId] : 1;
+        return (int)isset($positions[$productId]) ? $positions[$productId] : 1;
     }
 
     /**
@@ -473,7 +463,7 @@ class Utility
                 $description = $product->getData('description');
         }
 
-        return $this->filter->getPageFilter()->filter((string) $description);
+        return $this->filter->getPageFilter()->filter((string)$description);
     }
 
     /**
@@ -491,13 +481,16 @@ class Utility
                 $inputItem->setLabel(
                     $qty > 1
                         ? sprintf('%d x %s', $qty, $selection->getName())
-                        : $selection->getName());
+                        : $selection->getName()
+                );
 
-                $inputItem->setAdditionalPrice($item->getPriceType() == Price::PRICE_TYPE_DYNAMIC
-                    ? $selection->getSelectionCanChangeQty() == 0 && $qty > 1
+                $inputItem->setAdditionalPrice(
+                    $item->getPriceType() == Price::PRICE_TYPE_DYNAMIC
+                        ? $selection->getSelectionCanChangeQty() == 0 && $qty > 1
                         ? $selection->getPrice() * $qty
                         : $selection->getPrice()
-                    : $selection->getSelectionPriceValue());
+                        : $selection->getSelectionPriceValue()
+                );
 
                 $input->addOption($inputItem);
             }
@@ -506,6 +499,7 @@ class Utility
 
     /**
      * @param MageProduct $item
+     *
      * @return OptionCollection
      */
     public function getOptionsCollection(Product $item): OptionCollection
@@ -515,11 +509,14 @@ class Utility
 
     /**
      * @param MageProduct $item
+     *
      * @return SelectionCollection
      */
     public function getSelectionsCollection(Product $item): SelectionCollection
     {
-        return $item->getTypeInstance(true)->getSelectionsCollection($item->getTypeInstance(true)->getOptionsIds($item),
-            $item);
+        return $item->getTypeInstance(true)->getSelectionsCollection(
+            $item->getTypeInstance(true)->getOptionsIds($item),
+            $item
+        );
     }
 }

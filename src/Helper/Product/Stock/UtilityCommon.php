@@ -30,6 +30,7 @@ use Magento\CatalogInventory\Api\StockRegistryInterface;
 use Magento\CatalogInventory\Model\ResourceModel\Stock\Item as StockItemResource;
 use Magento\CatalogInventory\Model\Stock;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Export\Model\Shopgate\Product\StockItem;
 use Shopgate\Export\Model\Shopgate\Product\StockItemFactory as ShopgateStockItemFactory;
@@ -70,12 +71,12 @@ class UtilityCommon implements Utility
         StockConfigurationInterface $stockConfiguration,
         StockRegistryInterface $stockRegistry
     ) {
-        $this->log                      = $logger;
+        $this->log = $logger;
         $this->shopgateStockItemFactory = $productStockItemFactory;
-        $this->stockItemResource        = $stockItemResource;
-        $this->stockItemFactory         = $stockItemFactory;
-        $this->stockConfiguration       = $stockConfiguration;
-        $this->stockRegistry            = $stockRegistry;
+        $this->stockItemResource = $stockItemResource;
+        $this->stockItemFactory = $stockItemFactory;
+        $this->stockConfiguration = $stockConfiguration;
+        $this->stockRegistry = $stockRegistry;
     }
 
     /**
@@ -90,15 +91,15 @@ class UtilityCommon implements Utility
         $shopgateStockItem = $this->shopgateStockItemFactory->create();
 
         /** @var StockItemInterface $stockItem */
-        $stockItem      = $this->stockItemFactory->create();
+        $stockItem = $this->stockItemFactory->create();
         $defaultScopeId = $this->stockConfiguration->getDefaultScopeId();
         $defaultStockId = $this->stockRegistry->getStock($defaultScopeId)->getStockId();
-        $stockId        = $stockItem->getStockId();
+        $stockId = $stockItem->getStockId();
 
         $this->stockItemResource->loadByProductId(
             $stockItem,
             $product->getId(),
-            $stockId ? : $defaultStockId
+            $stockId ?: $defaultStockId
         );
 
         $useStock = false;
@@ -113,12 +114,22 @@ class UtilityCommon implements Utility
             }
         }
         $shopgateStockItem->setUseStock($useStock);
-        $shopgateStockItem->setBackorders((bool) $stockItem->getBackorders());
-        $shopgateStockItem->setStockQuantity((int) $stockItem->getQty());
+        $shopgateStockItem->setBackorders((bool)$stockItem->getBackorders());
+        $shopgateStockItem->setStockQuantity((int)$stockItem->getQty());
         $shopgateStockItem->setMaximumOrderQuantity($stockItem->getMaxSaleQty());
         $shopgateStockItem->setMinimumOrderQuantity($stockItem->getMinSaleQty());
-        $shopgateStockItem->setIsSaleable(!$useStock ? : $product->getIsSalable());
+        $shopgateStockItem->setIsSaleable(!$useStock ?: $product->getIsSalable());
 
         return $shopgateStockItem;
+    }
+
+    /**
+     * @throws NoSuchEntityException
+     */
+    public function getStockQuantityBySku(string $sku): array
+    {
+        $stock = $this->stockRegistry->getStockItemBySku($sku);
+
+        return [['qty' => $stock->getQty()]];
     }
 }

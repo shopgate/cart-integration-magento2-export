@@ -130,7 +130,7 @@ class Retriever
             $this->log->debug("Product Export Limit: {$limit}");
             $this->log->debug("Product Export Offset: {$offset}");
         }
-    
+
         if ($this->scopeConfig->getConfigByPath(ExportInterface::PATH_PROD_OUT_OF_STOCK)->getData('value')) {
             $productCollection->setFlag('has_stock_status_filter', false);
         }

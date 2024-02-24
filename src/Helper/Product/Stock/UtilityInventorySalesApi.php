@@ -23,9 +23,13 @@
 namespace Shopgate\Export\Helper\Product\Stock;
 
 use Magento\Catalog\Model\Product as MageProduct;
+use Magento\Framework\Exception\InputException;
 use Magento\Framework\Exception\LocalizedException;
+use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\InventoryCatalog\Model\GetStockIdForCurrentWebsite;
+use Magento\InventoryConfigurationApi\Exception\SkuIsNotAssignedToStockException;
 use Magento\InventoryExportStock\Model\GetStockItemConfiguration;
+use Magento\InventorySalesAdminUi\Model\GetSalableQuantityDataBySku;
 use Magento\InventorySalesApi\Model\GetStockItemDataInterface;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Export\Model\Shopgate\Product\StockItem;
@@ -48,25 +52,23 @@ class UtilityInventorySalesApi implements Utility
     /** @var GetStockItemConfiguration */
     private $stockItemConfig;
 
-    /**
-     * @param SgLoggerInterface $logger
-     * @param ShopgateStockItemFactory $productStockItemFactory
-     * @param GetStockItemDataInterface $getStockItemData
-     * @param GetStockIdForCurrentWebsite $websiteStockId
-     * @param GetStockItemConfiguration $stockItemConfig
-     */
+    /** @var GetSalableQuantityDataBySku */
+    private $getSalableQuantityDataBySku;
+
     public function __construct(
         SgLoggerInterface $logger,
         ShopgateStockItemFactory $productStockItemFactory,
         GetStockItemDataInterface $getStockItemData,
         GetStockIdForCurrentWebsite $websiteStockId,
-        GetStockItemConfiguration $stockItemConfig
+        GetStockItemConfiguration $stockItemConfig,
+        GetSalableQuantityDataBySku $getSalableQuantityDataBySku
     ) {
         $this->log = $logger;
         $this->shopgateStockItemFactory = $productStockItemFactory;
         $this->getStockItemData = $getStockItemData;
         $this->websiteStockId = $websiteStockId;
         $this->stockItemConfig = $stockItemConfig;
+        $this->getSalableQuantityDataBySku = $getSalableQuantityDataBySku;
     }
 
     /**
@@ -77,7 +79,6 @@ class UtilityInventorySalesApi implements Utility
      */
     public function getStockItem($product): StockItem
     {
-        /** @var StockItem $shopgateStockItem */
         $shopgateStockItem = $this->shopgateStockItemFactory->create();
 
         $stockId = $this->websiteStockId->execute();
@@ -92,5 +93,16 @@ class UtilityInventorySalesApi implements Utility
         $shopgateStockItem->setMinimumOrderQuantity($stockItemConfig->getMinSaleQty());
 
         return $shopgateStockItem;
+    }
+
+    /**
+     * @throws InputException
+     * @throws LocalizedException
+     * @throws NoSuchEntityException
+     * @throws SkuIsNotAssignedToStockException
+     */
+    public function getStockQuantityBySku(string $sku): array
+    {
+        return $this->getSalableQuantityDataBySku->execute($sku);
     }
 }

@@ -112,10 +112,10 @@ class Quote extends \Shopgate\Base\Helper\Quote
     /**
      * @return \ShopgateExternalCoupon[]
      */
-    public function getValidatedCoupons()
+    public function getValidatedCoupons(): array
     {
         $coupons = [];
-        /** @var bool $invalidateCRP return an invalidated Cart Rule Coupon only if it was actually requested */
+        /** return an invalidated Cart Rule Coupon only if it was actually requested */
         $invalidateCRP     = false;
         $discountAmount    = $this->quote->getSubtotal() - $this->quote->getSubtotalWithDiscount();
         $quoteTaxes        = $this->quote->getTotals()['tax'];
@@ -170,7 +170,7 @@ class Quote extends \Shopgate\Base\Helper\Quote
      * @return \ShopgateCartItem[]
      * @throws \Exception
      */
-    public function getValidatedItems()
+    public function getValidatedItems(): array
     {
         //todo-sg check validation for bundle products in check_cart and check_stock
         $products = [];
@@ -220,7 +220,7 @@ class Quote extends \Shopgate\Base\Helper\Quote
      *
      * @return \ShopgateShippingMethod[]
      */
-    public function getValidatedShippingMethods()
+    public function getValidatedShippingMethods(): array
     {
         $methods = [];
         $this->quote->setData('totals_collected_flag', false);
