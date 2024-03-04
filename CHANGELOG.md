@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+## [2.9.29]
 ### Fixed
 - export works again with MSI modules disabled
 
@@ -166,7 +167,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.28...HEAD
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.29...HEAD
+[2.9.29]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.28...2.9.29
 [2.9.28]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.27...2.9.28
 [2.9.27]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.26...2.9.27
 [2.9.26]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.25...2.9.26
