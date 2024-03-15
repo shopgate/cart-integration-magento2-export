@@ -63,10 +63,7 @@ class Configurable extends OriginalConfigurable
      */
     public function getChildren()
     {
-        $childProductIds   = $this->getItem()->getTypeInstance()->getChildrenIds($this->getItem()->getId());
-        $childProductIds   = current($childProductIds);
-        $productCollection = $this->productFactory->create()->getCollection();
-        $productCollection->addAttributeToFilter('entity_id', ['in' => $childProductIds]);
+        $productCollection = $this->getItem()->getTypeInstance()->getUsedProductCollection($this->getItem());
         $productCollection->addStoreFilter();
         $productCollection->addAttributeToSelect('*');
         $productCollection->addAttributeToFilter('status', ['eq' => Status::STATUS_ENABLED]);
