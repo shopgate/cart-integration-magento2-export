@@ -31,6 +31,7 @@ use Magento\ConfigurableProduct\Model\Product\Type\Configurable;
 use Magento\Customer\Model\GroupManagement;
 use Magento\Directory\Helper\Data;
 use Magento\Framework\DataObject;
+use Magento\Framework\Event\ManagerInterface;
 use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\GroupedProduct\Model\Product\Type\Grouped;
@@ -119,17 +120,20 @@ class Product extends Shopgate_Model_Catalog_Product
     private $galleryReadHandler;
     /** @var Encoder */
     private $encoder;
+    /** @var ManagerInterface */
+    private $eventManager;
 
     /**
      * @param CoreInterface               $scopeConfig
      * @param StoreManagerInterface       $storeManager
      * @param HelperProduct               $helperProduct
-     * @param ExportFactory               $exportFactory
+     * @param ProductFactory              $exportFactory
      * @param CategoryRepositoryInterface $categoryRepository
      * @param Type                        $type
      * @param SgLoggerInterface           $logger
      * @param GalleryReadHandler          $galleryReadHandler
      * @param Encoder                     $encoder
+     * @param ManagerInterface            $eventManager
      */
     public function __construct(
         CoreInterface $scopeConfig,
@@ -140,7 +144,8 @@ class Product extends Shopgate_Model_Catalog_Product
         Type $type,
         SgLoggerInterface $logger,
         GalleryReadHandler $galleryReadHandler,
-        Encoder $encoder
+        Encoder $encoder,
+        ManagerInterface $eventManager
     ) {
         parent::__construct();
         $this->scopeConfig        = $scopeConfig;
@@ -152,6 +157,7 @@ class Product extends Shopgate_Model_Catalog_Product
         $this->logger             = $logger;
         $this->galleryReadHandler = $galleryReadHandler;
         $this->encoder            = $encoder;
+        $this->eventManager       = $eventManager;
     }
 
     /**
@@ -401,7 +407,14 @@ class Product extends Shopgate_Model_Catalog_Product
             }
         }
 
-        parent::setCategoryPaths($result);
+        $categoryPathsObject = new DataObject(['category_path' => $result]);
+
+        $this->eventManager->dispatch(
+            'sg_export_set_category_paths',
+            ['category_path' => $categoryPathsObject, 'product_id' => $this->item->getId()]
+        );
+
+        parent::setCategoryPaths($categoryPathsObject->getData('category_path'));
     }
 
     /**
