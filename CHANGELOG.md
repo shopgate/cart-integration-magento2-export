@@ -8,6 +8,9 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 ### Fixed
 - missing attributes on child products
 
+### Added
+- event 'sg_export_set_category_paths' to allow modification of assigned product categories before export
+
 ## [2.9.29] - 2024-03-04
 ### Fixed
 - export works again with MSI modules disabled
