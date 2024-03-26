@@ -5,6 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Fixed
+- missing attributes on child products
+
 ### Added
 - event 'sg_export_set_category_paths' to allow modification of assigned product categories before export
 
