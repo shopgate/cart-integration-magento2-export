@@ -621,7 +621,14 @@ class Product extends Shopgate_Model_Catalog_Product
             }
         }
 
-        parent::setProperties($result);
+        $dataObject = new DataObject(['properties' => $result]);
+
+        $this->eventManager->dispatch(
+            'sg_export_set_properties',
+            ['properties' => $dataObject, 'product' => $this->item]
+        );
+
+        parent::setProperties($dataObject->getData('properties'));
     }
 
     /**

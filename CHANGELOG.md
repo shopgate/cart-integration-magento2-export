@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 
 ### Added
 - event 'sg_export_set_category_paths' to allow modification of assigned product categories before export
+- event 'sg_export_set_properties' to allow modification of assigned product properties before export
 
 ## [2.9.29] - 2024-03-04
 ### Fixed
