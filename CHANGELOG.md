@@ -5,7 +5,9 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
-
+### Removed
+- usage of deprecated Zend serializer
+- 
 ## [2.9.30] - 2024-04-03
 ### Fixed
 - missing attributes on child products

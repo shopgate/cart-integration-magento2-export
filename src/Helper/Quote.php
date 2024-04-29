@@ -27,6 +27,7 @@ use Magento\Quote\Model\Quote as MageQuote;
 use Magento\Quote\Model\QuoteRepository;
 use Magento\Store\Model\StoreManagerInterface;
 use Magento\Tax\Helper\Data as MageTaxHelper;
+use Shopgate\Base\Helper\Encoder;
 use Shopgate\Base\Helper\Product\Type;
 use Shopgate\Base\Helper\Product\Utility;
 use Shopgate\Base\Helper\Quote\Coupon;
@@ -38,7 +39,6 @@ use Shopgate\Base\Model\Shopgate\Extended\Base;
 use Shopgate\Base\Model\Utility\Registry;
 use Shopgate\Base\Model\Utility\SgLoggerInterface;
 use Shopgate\Export\Helper\Tax as TaxHelper;
-use Zend\Serializer\Serializer;
 
 class Quote extends \Shopgate\Base\Helper\Quote
 {
@@ -67,10 +67,11 @@ class Quote extends \Shopgate\Base\Helper\Quote
      * @param Customer                $quoteCustomer
      * @param Registry                $coreRegistry
      * @param StoreManagerInterface   $storeManager
-     * @param TaxHelper               $taxHelper
+     * @param Tax                     $taxHelper
      * @param Coupon                  $couponQuoteHelper
      * @param QuoteRepository         $quoteRepository
      * @param ShippingMethodConverter $shippingConverter
+     * @param Encoder                 $encoder
      */
     public function __construct(
         Type $type,
@@ -87,7 +88,8 @@ class Quote extends \Shopgate\Base\Helper\Quote
         TaxHelper $taxHelper,
         Coupon $couponQuoteHelper,
         QuoteRepository $quoteRepository,
-        ShippingMethodConverter $shippingConverter
+        ShippingMethodConverter $shippingConverter,
+        Encoder $encoder
     ) {
         $this->cartItemHelper    = $cartItemHelper;
         $this->couponHelper      = $externalCoupon;
@@ -105,7 +107,8 @@ class Quote extends \Shopgate\Base\Helper\Quote
             $storeManager,
             $couponQuoteHelper,
             $quoteRepository,
-            $type
+            $type,
+            $encoder
         );
     }
 
@@ -177,13 +180,13 @@ class Quote extends \Shopgate\Base\Helper\Quote
         $this->quote->collectTotals();
 
         foreach ($this->quote->getAllVisibleItems() as $item) {
+            $additionalDataArray          = $this->encoder->decode($item->getAdditionalData() ?? '');
             $price                        = $item->getPrice();
             $percent                      = $item->getTaxPercent();
             $type                         = $this->typeHelper->getType($item);
             $stockData                    = $type->getStockData();
             $priceIncludesTaxes           = $this->taxData->priceIncludesTax($this->quote->getStore());
-            $productId                    =
-                Serializer::unserialize($item->getAdditionalData() ?? '')->getShopgateItemNumber();
+            $productId                    = $additionalDataArray['shopgate_item_number'] ?? '';
             $data['unit_amount']          = $this->calculatePrice($price, $percent, $priceIncludesTaxes);
             $data['unit_amount_with_tax'] = $this->calculatePrice($price, $percent, $priceIncludesTaxes, true);
 
