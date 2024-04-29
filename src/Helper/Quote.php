@@ -67,7 +67,7 @@ class Quote extends \Shopgate\Base\Helper\Quote
      * @param Customer                $quoteCustomer
      * @param Registry                $coreRegistry
      * @param StoreManagerInterface   $storeManager
-     * @param Tax                     $taxHelper
+     * @param TaxHelper               $taxHelper
      * @param Coupon                  $couponQuoteHelper
      * @param QuoteRepository         $quoteRepository
      * @param ShippingMethodConverter $shippingConverter
