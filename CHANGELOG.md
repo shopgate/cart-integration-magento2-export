@@ -5,6 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+## [2.9.32] - 2025-02-13
 ### Added
 - event 'sg_export_set_inputs' to allow modification of product inputs before export
 - event 'sg_export_set_prices' to allow modification of product prices before export
@@ -183,7 +184,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.31...HEAD
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.32...HEAD
+[2.9.32]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.31...2.9.32
 [2.9.31]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.30...2.9.31
 [2.9.30]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.29...2.9.30
 [2.9.29]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.28...2.9.29
