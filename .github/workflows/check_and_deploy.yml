@@ -2,7 +2,7 @@ name: Run CS fixer & deploy
 on: [push]
 jobs:
   check:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     name: Code style check
     steps:
       - name: Check out repository code
@@ -20,7 +20,7 @@ jobs:
   deploy:
     name: Deploy to GitHub
     needs: [check]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: startsWith(github.ref, 'refs/tags/') # only tags
     steps:
       - name: Get tag name
@@ -50,7 +50,7 @@ jobs:
   notify-release-success:
     name: Notify developers of new release
     needs: [deploy]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: |
       success() &&
       startsWith(github.ref, 'refs/tags/')
@@ -70,7 +70,7 @@ jobs:
   notify-release-fail:
     name: Notify developers of failed release
     needs: [deploy]
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-24.04
     if: |
       failure() &&
       startsWith(github.ref, 'refs/tags/')
