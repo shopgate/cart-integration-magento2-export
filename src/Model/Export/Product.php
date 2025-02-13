@@ -643,9 +643,7 @@ class Product extends Shopgate_Model_Catalog_Product
     public function setInputs(): void
     {
         $result = [];
-        $options = $this->item->getOptions() === null
-            ? []
-            : $this->item->getOptions();
+        $options = $this->item->getOptions() ?? [];
 
         if ($this->item->getTypeId() === BundleType::TYPE_CODE) {
             $result = $this->setBundleOptions();
