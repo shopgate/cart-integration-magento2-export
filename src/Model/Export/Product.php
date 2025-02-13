@@ -255,7 +255,13 @@ class Product extends Shopgate_Model_Catalog_Product
             $priceModel->addTierPriceGroup($tierPriceModel);
         }
 
-        parent::setPrice($priceModel);
+        $dataObject = new DataObject(['prices' => $priceModel]);
+        $this->eventManager->dispatch(
+            'sg_export_set_prices',
+            ['prices' => $dataObject, 'product' => $this->item]
+        );
+
+        parent::setPrice($dataObject->getData('prices'));
     }
 
     /**
@@ -637,16 +643,15 @@ class Product extends Shopgate_Model_Catalog_Product
     public function setInputs(): void
     {
         $result = [];
+        $options = $this->item->getOptions() === null
+            ? []
+            : $this->item->getOptions();
 
         if ($this->item->getTypeId() === BundleType::TYPE_CODE) {
             $result = $this->setBundleOptions();
         }
 
-        if (!$this->item->getOptions() && !count($result)) {
-            return;
-        }
-
-        foreach ($this->item->getOptions() as $option) {
+        foreach ($options as $option) {
             /** @var MageProduct\Option $option */
             $inputType = $this->helperProduct->mapInputType($option->getType());
             if ($inputType === false) {
@@ -681,7 +686,13 @@ class Product extends Shopgate_Model_Catalog_Product
             $result[] = $inputItem;
         }
 
-        parent::setInputs($result);
+        $dataObject = new DataObject(['inputs' => $result]);
+        $this->eventManager->dispatch(
+            'sg_export_set_inputs',
+            ['inputs' => $dataObject, 'product' => $this->item]
+        );
+
+        parent::setInputs($dataObject->getData('inputs'));
     }
 
     /**
