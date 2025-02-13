@@ -116,7 +116,7 @@ class Retriever
             ]
         );
         $productCollection->addAttributeToFilter('status', Status::STATUS_ENABLED);
-        $productCollection->addAttributeToFilter('type_id', ['in' => self::ALLOWED_PRODUCT_TYPES]);
+        $productCollection->addAttributeToFilter('type_id', ['in' => static::ALLOWED_PRODUCT_TYPES]);
         $productCollection->addStoreFilter();
 
         if (!empty($skipItemIds)) {

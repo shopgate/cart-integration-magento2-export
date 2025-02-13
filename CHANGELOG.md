@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Added
+- event 'sg_export_set_inputs' to allow modification of product inputs before export
+- event 'sg_export_set_prices' to allow modification of product prices before export
+
 ## [2.9.31] - 2024-05-10
 ### Removed
 - usage of deprecated Zend serializer
