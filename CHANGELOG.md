@@ -5,6 +5,10 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+### Removed
+- Support for Magento 2 below version 2.4.4
+- PHP Support below Version 8.1
+
 ## [2.9.32] - 2025-02-13
 ### Added
 - event 'sg_export_set_inputs' to allow modification of product inputs before export
