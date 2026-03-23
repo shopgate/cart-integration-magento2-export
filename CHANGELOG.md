@@ -190,8 +190,8 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - get_customer call
 - check_cart call
 
-[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.32...HEAD
-[2.10.0]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.31...2.9.32
+[Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.10.0...HEAD
+[2.10.0]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.32...2.10.0
 [2.9.32]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.31...2.9.32
 [2.9.31]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.30...2.9.31
 [2.9.30]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.29...2.9.30
