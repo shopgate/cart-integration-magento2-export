@@ -5,6 +5,8 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
 ## [Unreleased]
+
+## [2.10.0] - 2026-03-23
 ### Removed
 - Support for Magento 2 below version 2.4.4
 - PHP Support below Version 8.1
@@ -189,6 +191,7 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/) and this p
 - check_cart call
 
 [Unreleased]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.32...HEAD
+[2.10.0]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.31...2.9.32
 [2.9.32]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.31...2.9.32
 [2.9.31]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.30...2.9.31
 [2.9.30]: https://github.com/shopgate/cart-integration-magento2-export/compare/2.9.29...2.9.30
